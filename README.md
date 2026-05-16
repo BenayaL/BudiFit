@@ -80,3 +80,4 @@ Institution: Ort Braude Academic College
 ## 👨‍💻 Student Developers
 
 Benaya Leib: https://github.com/BenayaL
+Itay Fisch: https://github.com/ItayFisch

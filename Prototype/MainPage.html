@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BudiFit - Section G Prototype</title>
+
+  <!-- Tailwind CSS CDN -->
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="bg-purple-800 text-white shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold">BudiFit</h1>
+        <p class="text-purple-200 text-sm">Personal fitness challenges with Budi AI assistant</p>
+      </div>
+
+      <nav class="flex flex-wrap gap-2">
+        <button class="nav-btn nav-active px-4 py-2 rounded" data-screen="loginScreen">Login</button>
+        <button class="nav-btn px-4 py-2 rounded hover:bg-purple-700" data-screen="registerScreen">Register</button>
+        <button class="nav-btn px-4 py-2 rounded hover:bg-purple-700" data-screen="dashboardScreen">Dashboard</button>
+        <button class="nav-btn px-4 py-2 rounded hover:bg-purple-700" data-screen="botScreen">Budi</button>
+        <button class="nav-btn px-4 py-2 rounded hover:bg-purple-700" data-screen="profileScreen">Profile</button>
+        <button class="nav-btn px-4 py-2 rounded hover:bg-purple-700" data-screen="adminScreen">Admin</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Login Screen -->
+    <section id="loginScreen" class="screen active">
+      <div class="purple-card max-w-md mx-auto p-8">
+        <h2 class="text-3xl font-bold text-purple-800 mb-2 text-center">Login</h2>
+        <p class="text-gray-500 text-center mb-6">Enter demo user details or register a new user.</p>
+
+        <form id="loginForm">
+          <label for="loginUserInput" class="block mb-1 font-semibold text-purple-800">Username or Email</label>
+          <input type="text" id="loginUserInput" class="form-input" placeholder="daniel" required />
+
+          <label for="loginPassInput" class="block mb-1 font-semibold text-purple-800">Password</label>
+          <input type="password" id="loginPassInput" class="form-input" placeholder="1234" required />
+
+          <button type="submit" class="w-full p-3 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors font-semibold">
+            Login
+          </button>
+
+          <button type="button" class="w-full p-3 mt-4 bg-purple-100 text-purple-800 rounded hover:bg-purple-200" onclick="showScreen('registerScreen')">
+            Register
+          </button>
+
+          <a href="#" onclick="alert('Forgot password functionality will be implemented later.');" class="block text-right mt-4 text-purple-600 hover:underline">
+            Forgot Password?
+          </a>
+        </form>
+
+        <div id="loginMessage" class="mt-4 text-center text-sm font-semibold"></div>
+      </div>
+    </section>
+
+    <!-- Register Screen -->
+    <section id="registerScreen" class="screen">
+      <div class="purple-card max-w-lg mx-auto p-8">
+        <h2 class="text-3xl font-bold text-purple-800 mb-2 text-center">Register</h2>
+        <p class="text-gray-500 text-center mb-6">Create a user profile for personalized challenges.</p>
+
+        <form id="registerForm">
+          <input type="text" id="userInput" placeholder="Username" required class="form-input">
+          <input type="email" id="mailInput" placeholder="Email" required class="form-input">
+          <input type="password" id="passInput" placeholder="Password" required class="form-input">
+          <input type="password" id="confirmInput" placeholder="Confirm Password" required class="form-input">
+
+          <label for="levelInput" class="block mb-1 font-semibold text-purple-800">Fitness Level</label>
+          <select id="levelInput" class="form-input">
+            <option>Beginner</option>
+            <option>Intermediate</option>
+            <option>Advanced</option>
+          </select>
+
+          <label for="goalInput" class="block mb-1 font-semibold text-purple-800">Main Goal</label>
+          <select id="goalInput" class="form-input">
+            <option>Build consistency</option>
+            <option>Lose fat</option>
+            <option>Gain strength</option>
+            <option>Improve cardio</option>
+          </select>
+
+          <button type="submit" class="w-full p-3 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors font-semibold">
+            Register
+          </button>
+
+          <button type="button" class="w-full p-3 mt-4 bg-purple-100 text-purple-800 rounded hover:bg-purple-200" onclick="showScreen('loginScreen')">
+            Already have an account? Login
+          </button>
+        </form>
+
+        <div id="registerMessage" class="mt-4 text-center text-sm font-semibold"></div>
+      </div>
+    </section>
+
+    <!-- Dashboard Screen -->
+    <section id="dashboardScreen" class="screen">
+      <div class="mb-8">
+        <h2 id="welcomeTitle" class="text-4xl font-bold text-purple-900">Dashboard</h2>
+        <p class="text-gray-600 mt-2">This screen displays fake user progress and daily fitness challenges.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="purple-card p-5">
+          <p class="text-sm text-gray-500">Fitness Level</p>
+          <h3 id="fitnessLevel" class="text-2xl font-bold text-purple-800 mt-2">Beginner</h3>
+        </div>
+
+        <div class="purple-card p-5">
+          <p class="text-sm text-gray-500">Streak</p>
+          <h3 id="streakDays" class="text-2xl font-bold text-purple-800 mt-2">6 days</h3>
+        </div>
+
+        <div class="purple-card p-5">
+          <p class="text-sm text-gray-500">Completed Challenges</p>
+          <h3 id="completedCount" class="text-2xl font-bold text-purple-800 mt-2">18</h3>
+        </div>
+
+        <div class="purple-card p-5">
+          <p class="text-sm text-gray-500">Points</p>
+          <h3 id="pointsCount" class="text-2xl font-bold text-purple-800 mt-2">340</h3>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="purple-card p-6 lg:col-span-2">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <p class="text-purple-600 font-semibold">Daily Challenge</p>
+              <h3 id="challengeTitle" class="text-2xl font-bold text-purple-900">Beginner Strength Boost</h3>
+            </div>
+
+            <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
+              AI Recommended
+            </span>
+          </div>
+
+          <ul id="challengeList" class="space-y-2 mb-6 text-gray-700"></ul>
+
+          <button id="completeChallengeBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-semibold">
+            Mark as Completed
+          </button>
+
+          <div id="challengeMessage" class="mt-4 text-center font-semibold"></div>
+        </div>
+
+        <div class="purple-card p-6">
+          <p class="text-purple-600 font-semibold">Achievements</p>
+          <h3 class="text-2xl font-bold text-purple-900 mb-4">Badges</h3>
+
+          <div id="achievementsList" class="space-y-3"></div>
+
+          <button onclick="shareAchievement()" class="w-full mt-5 bg-purple-100 text-purple-800 hover:bg-purple-200 py-3 rounded font-semibold">
+            Share Achievement
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bot Screen -->
+    <section id="botScreen" class="screen">
+      <div class="mb-8">
+        <h2 class="text-4xl font-bold text-purple-900">Budi</h2>
+        <p class="text-gray-600 mt-2">A fake AI bot chat that demonstrates the future interaction with an external AI API.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="purple-card p-6 lg:col-span-2">
+          <div id="chatBox" class="h-96 overflow-y-auto bg-purple-50 rounded p-4 mb-4 space-y-3"></div>
+
+          <div class="flex flex-col md:flex-row gap-2">
+            <input id="botInput" type="text" class="form-input mb-0" placeholder="Ask Budi for motivation or a challenge...">
+
+            <button id="sendBotBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded font-semibold">
+              Send
+            </button>
+          </div>
+        </div>
+
+        <div class="purple-card p-6">
+          <h3 class="text-2xl font-bold text-purple-900 mb-4">Quick Prompts</h3>
+
+          <button class="quick-prompt w-full text-left bg-purple-100 hover:bg-purple-200 text-purple-900 p-4 rounded mb-3" data-prompt="Give me an easier challenge">
+            Give me an easier challenge
+          </button>
+
+          <button class="quick-prompt w-full text-left bg-purple-100 hover:bg-purple-200 text-purple-900 p-4 rounded mb-3" data-prompt="I only have 5 minutes">
+            I only have 5 minutes
+          </button>
+
+          <button class="quick-prompt w-full text-left bg-purple-100 hover:bg-purple-200 text-purple-900 p-4 rounded" data-prompt="Motivate me">
+            Motivate me
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Profile Screen -->
+    <section id="profileScreen" class="screen">
+      <div class="mb-8">
+        <h2 class="text-4xl font-bold text-purple-900">Personal Profile</h2>
+        <p class="text-gray-600 mt-2">The user can view and update personal fitness details. This is a prototype screen using fake data.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="purple-card p-6 lg:col-span-1">
+          <div class="flex flex-col items-center text-center">
+            <div class="w-24 h-24 rounded-full bg-purple-700 text-white flex items-center justify-center text-3xl font-bold mb-4" id="profileAvatar">
+              D
+            </div>
+
+            <h3 id="profileName" class="text-2xl font-bold text-purple-900">daniel</h3>
+            <p id="profileEmail" class="text-gray-500">daniel@example.com</p>
+            <span id="profileLevelBadge" class="mt-4 bg-purple-100 text-purple-800 px-4 py-2 rounded-full font-semibold">
+              Beginner
+            </span>
+          </div>
+        </div>
+
+        <div class="purple-card p-6 lg:col-span-2">
+          <h3 class="text-2xl font-bold text-purple-900 mb-4">Edit Profile</h3>
+
+          <form id="profileForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block mb-1 font-semibold text-purple-800">Username</label>
+              <input id="profileUsernameInput" type="text" class="form-input" />
+            </div>
+
+            <div>
+              <label class="block mb-1 font-semibold text-purple-800">Email</label>
+              <input id="profileEmailInput" type="email" class="form-input" />
+            </div>
+
+            <div>
+              <label class="block mb-1 font-semibold text-purple-800">Fitness Level</label>
+              <select id="profileLevelInput" class="form-input">
+                <option>Beginner</option>
+                <option>Intermediate</option>
+                <option>Advanced</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block mb-1 font-semibold text-purple-800">Main Goal</label>
+              <select id="profileGoalInput" class="form-input">
+                <option>Build consistency</option>
+                <option>Lose fat</option>
+                <option>Gain strength</option>
+                <option>Improve cardio</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block mb-1 font-semibold text-purple-800">Preferred Reminder Time</label>
+              <input id="profileReminderInput" type="time" class="form-input" value="18:00" />
+            </div>
+
+            <div>
+              <label class="block mb-1 font-semibold text-purple-800">Weekly Workout Target</label>
+              <input id="profileWeeklyTargetInput" type="number" min="1" max="7" class="form-input" value="4" />
+            </div>
+
+            <div class="md:col-span-2">
+              <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-semibold">
+                Save Profile Changes
+              </button>
+
+              <div id="profileMessage" class="mt-4 text-center font-semibold"></div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Admin Screen -->
+    <section id="adminScreen" class="screen">
+      <div class="mb-8">
+        <h2 class="text-4xl font-bold text-purple-900">Admin - User Management</h2>
+        <p class="text-gray-600 mt-2">Fake users are rendered into a table. Double click a cell to edit it.</p>
+      </div>
+
+      <div class="purple-card p-6 overflow-x-auto">
+        <table id="usersData" class="min-w-full border border-purple-200">
+          <thead>
+            <tr class="bg-purple-700 text-white"></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

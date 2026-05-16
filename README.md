@@ -73,12 +73,11 @@ This project is intended for educational use only and is not licensed for commer
 ## 📚 Course Information
 
 Course: Advanced Web Development  
-Institution: Ort Braude Academic College
+Institution: Braude College Of Engineering
 
 ---
 
 ## 👨‍💻 Student Developers
 
 Benaya Leib: https://github.com/BenayaL
-
 Itay Fisch: https://github.com/ItayFisch

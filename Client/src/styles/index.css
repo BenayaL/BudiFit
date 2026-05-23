@@ -1,0 +1,71 @@
+
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+/* Import Tailwind CSS utilities */
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-serif: "Instrument Serif", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/*
+  Floating animation for the Budi character.
+  The image slowly moves up and down.
+*/
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/*
+  Slow rotation animation for small decorative elements.
+*/
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*
+  Custom utility class for floating animation.
+  We use it directly in JSX with className="animate-float".
+*/
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/*
+  Custom utility class for slow spinning animation.
+*/
+.animate-spin-slow {
+  animation: spin-slow 7s linear infinite;
+}
+
+/*
+  Make sure the app can take the full screen height.
+*/
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+/*
+  General body reset.
+  Tailwind handles most styling, but this removes default browser margin.
+*/
+body {
+  margin: 0;
+  background: #fbfaf7;
+}

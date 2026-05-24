@@ -108,8 +108,9 @@ export function WelcomePage({ onRegister, onLogin }: WelcomePageProps) {
 
         {/* Bottom footer text */}
         <footer className="pb-2 text-center text-sm text-slate-400">
-          Braude College Of Engineering <span className="text-orange-400">⚡</span> Coached by
-          AI · Works in your language.
+          Braude College Of Engineering © 2026
+         <span className="text-orange-400">⚡</span> Coached by
+          AI · Inspired by Gilad Budman.
         </footer>
       </section>
     </main>

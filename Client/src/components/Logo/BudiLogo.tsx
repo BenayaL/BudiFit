@@ -14,7 +14,7 @@ export function BudiLogo() {
     <img
       src={logo}
       alt="BudiFit"
-      className="h-9 w-auto drop-shadow-md"
+      className="h-20 w-auto drop-shadow-md"
       draggable={false}
     />
   );

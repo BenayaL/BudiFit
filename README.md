@@ -81,3 +81,6 @@ Institution: Braude College Of Engineering
 
 Benaya Leib: https://github.com/BenayaL  
 Itay Fisch: https://github.com/ItayFisch
+Uriel Pekelis: https://github.com/juligantos
+Lidor Ben David: https://github.com/somnus871
+Yarden Ben Shtrit: https://github.com/JordanStyle

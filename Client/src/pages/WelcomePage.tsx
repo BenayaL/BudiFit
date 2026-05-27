@@ -24,7 +24,7 @@ interface WelcomePageProps {
  * 1. Start registration
  * 2. Go to login
  */
-export function WelcomePage({ onRegister, onLogin }: WelcomePageProps) {
+ function WelcomePage({ onRegister, onLogin }: WelcomePageProps) {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#fbfaf7] text-slate-950">
       {/*

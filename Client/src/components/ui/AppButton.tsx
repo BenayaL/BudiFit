@@ -9,12 +9,13 @@ import type { ReactNode } from "react";
  * type - controls the HTML button type.
  * disabled - disables the button and prevents user clicks.
  */
-type AppButtonProps = {
+export type AppButtonProps = {
   children: ReactNode;
   onClick?: () => void;
   variant?: "primary" | "secondary" | "ghost";
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
+  className?: string;
 };
 
 /**
@@ -30,6 +31,7 @@ export function AppButton({
   variant = "primary",
   type = "button",
   disabled = false,
+  className = "",
 }: AppButtonProps) {
   /**
    * Base classes are shared by all button variants.
@@ -59,7 +61,7 @@ export function AppButton({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${baseClasses} ${variantClasses[variant]}`}
+      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
     >
       {children}
     </button>

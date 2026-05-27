@@ -4,6 +4,7 @@ import { useState } from "react";
 // Import pages.
 import { WelcomePage } from "./pages/WelcomePage";
 import { LoginPage } from "./pages/LoginPage";
+import { ProfilePage } from "./pages/ProfilePage";
 
 // Import the Page type.
 // The "type" keyword means this import is used only for TypeScript typing.
@@ -202,6 +203,22 @@ function App() {
             Back to welcome
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (currentPage === "profile") {
+    return (
+      <div className="min-h-screen bg-[#fbfaf7]">
+        <TopNav
+          items={navItems}
+          activePage={currentPage}
+          onChangePage={(page) => setCurrentPage(page)}
+          user={dummyUser}
+          onStartWorkout={() => alert("Starting workout!")}
+          onLogout={() => setCurrentPage("welcome")}
+        />
+        <ProfilePage />
       </div>
     );
   }

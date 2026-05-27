@@ -1,18 +1,18 @@
 //import React from "react";
-import { AppButton } from "../components/ui/AppButton";
+import AppButton from "../components/ui/AppButton";
 
 // 1. Define strict types for the data we expect
 export type Goal = "strength" | "cardio" | "flex" | "consistency" | "weightLoss";
 
-export type Achievement = {
+export interface Achievement {
   id: string;
   title: string;
   description: string;
   earned: boolean;
   icon: string;
-};
+}
 
-export type UserProfile = {
+export interface UserProfile {
   name: string;
   level: string;
   memberSince: string;
@@ -21,7 +21,7 @@ export type UserProfile = {
   totalMinutes: number;
   goals: Goal[];
   achievements: Achievement[];
-};
+}
 
 // SVG Helper for clean code
 const Icon = ({ name, className }: { name: string; className?: string }) => {
@@ -126,6 +126,8 @@ export function ProfilePage() {
     </div>
   );
 }
+
+export default ProfilePage;
 
 // Small helper component for the top stats
 function StatTile({ label, value, sub, icon, color, bg }: { label: string; value: string; sub: string; icon: string; color: string; bg: string }) {

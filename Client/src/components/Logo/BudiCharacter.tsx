@@ -7,9 +7,9 @@ import budiMark from "../../assets/budi-mark-tx.png";
  * size is optional because if no size is sent from the parent component,
  * the component will use "lg" as the default value.
  */
-type BudiCharacterProps = {
+interface BudiCharacterProps {
   size?: "sm" | "md" | "lg";
-};
+}
 
 /**
  * BudiCharacter component
@@ -58,3 +58,5 @@ export function BudiCharacter({ size = "lg" }: BudiCharacterProps) {
     </div>
   );
 }
+
+export default BudiCharacter;

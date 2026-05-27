@@ -8,12 +8,12 @@ import type { ReactNode } from "react";
  * error - optional error message displayed under the field.
  * children - the actual input/select/textarea passed into the component.
  */
-type FormFieldProps = {
+interface FormFieldProps {
   id: string;
   label: string;
   error?: string;
   children: ReactNode;
-};
+}
 
 /**
  * FormField component
@@ -47,3 +47,5 @@ export function FormField({ id, label, error, children }: FormFieldProps) {
     </div>
   );
 }
+
+export default FormField;

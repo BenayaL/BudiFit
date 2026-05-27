@@ -1,11 +1,10 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-
-import { AppButton } from "../components/ui/AppButton";
-import { FormField } from "../components/ui/FormField";
-
-import { BudiLogo } from "../components/Logo/BudiLogo";
-import { BudiCharacter } from "../components/Logo/BudiCharacter";
+import AppButton from "../components/ui/AppButton";
+import FormField from "../components/ui/FormField";
+import PasswordInput from "../components/ui/PasswordInput";
+import BudiLogo from "../components/Logo/BudiLogo";
+import BudiCharacter from "../components/Logo/BudiCharacter";
 
 /**
  * Props that LoginPage receives from App.tsx.
@@ -14,11 +13,11 @@ import { BudiCharacter } from "../components/Logo/BudiCharacter";
  * onGoToRegister - moves the user to the register page.
  * onBackToWelcome - moves the user back to the welcome page.
  */
-type LoginPageProps = {
+interface LoginPageProps {
   onLoginSuccess: () => void;
   onGoToRegister: () => void;
   onBackToWelcome: () => void;
-};
+}
 
 /**
  * The shape of the login form state.
@@ -38,7 +37,7 @@ type LoginFormValues = {
  * For now, the login is simulated on the client side.
  * Later, this is where we will call the backend login API.
  */
-export function LoginPage({
+function LoginPage({
   onLoginSuccess,
   onGoToRegister,
   onBackToWelcome,
@@ -189,15 +188,10 @@ export function LoginPage({
 
                 {/* Password field */}
                 <FormField id="password" label="Password">
-                  <input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
+                  <PasswordInput
                     value={form.password}
-                    onChange={(event) =>
-                      handleInputChange("password", event.target.value)
-                    }
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/15"
+                    onChange={(value) => handleInputChange("password", value)}
+                    autoComplete="current-password"
                   />
                 </FormField>
 
@@ -249,3 +243,5 @@ export function LoginPage({
     </main>
   );
 }
+
+export default LoginPage;

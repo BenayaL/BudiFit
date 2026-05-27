@@ -1,7 +1,7 @@
 // Import reusable brand components.
-import { BudiCharacter } from "../components/Logo/BudiCharacter";
-import { BudiLogo } from "../components/Logo/BudiLogo";
-import { AppButton } from "../components/ui/AppButton";
+import BudiCharacter from "../components/Logo/BudiCharacter";
+import BudiLogo from "../components/Logo/BudiLogo";
+import AppButton from "../components/ui/AppButton";
 
 /**
  * Props type for WelcomePage.
@@ -11,10 +11,10 @@ import { AppButton } from "../components/ui/AppButton";
  *
  * This keeps the component reusable and separated from navigation logic.
  */
-type WelcomePageProps = {
+interface WelcomePageProps {
   onRegister: () => void;
   onLogin: () => void;
-};
+}
 
 /**
  * WelcomePage component
@@ -116,3 +116,5 @@ export function WelcomePage({ onRegister, onLogin }: WelcomePageProps) {
     </main>
   );
 }
+
+export default WelcomePage;

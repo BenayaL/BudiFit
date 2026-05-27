@@ -1,17 +1,13 @@
 // useState allows the App component to remember which page is currently active.
 import { useState } from "react";
-
-// Import pages.
-import { WelcomePage } from "./pages/WelcomePage";
-import { LoginPage } from "./pages/LoginPage";
-import { ProfilePage } from "./pages/ProfilePage";
-
-// Import the Page type.
-// The "type" keyword means this import is used only for TypeScript typing.
+import WelcomePage from "./pages/WelcomePage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import ProfilePage from "./pages/ProfilePage";
 import type { Page } from "./types/AppTypes";
 
 // Import the top navigation component and its NavItem type.
-import { TopNav, type NavItem } from "./components/layout/TopNav";
+import TopNav, { type NavItem } from "./components/layout/TopNav";
 
 /**
  * App component
@@ -191,19 +187,11 @@ function App() {
    */
   if (currentPage === "register") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#fbfaf7]">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold">Register page soon</h1>
-
-          <button
-            type="button"
-            onClick={() => setCurrentPage("welcome")}
-            className="mt-4 font-semibold text-purple-600 underline"
-          >
-            Back to welcome
-          </button>
-        </div>
-      </div>
+      <RegisterPage
+        onRegisterSuccess={() => setCurrentPage("dashboard")}
+        onGoToLogin={() => setCurrentPage("login")}
+        onBackToWelcome={() => setCurrentPage("welcome")}
+      />
     );
   }
 

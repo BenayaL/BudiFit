@@ -19,3 +19,5 @@ export function BudiLogo() {
     />
   );
 }
+
+export default BudiLogo;

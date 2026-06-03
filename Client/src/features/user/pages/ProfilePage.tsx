@@ -1,7 +1,7 @@
 // features/user = domain module for user profile, stats, and settings
 
 // shared = reusable components used by several features
-import AppButton from "../../../shared/ui/AppButton";
+import AppButton from "../../../common/ui/AppButton";
 
 // types and interfaces live inside this feature folder
 import type { UserProfile, Achievement } from "../interfaces/user.interfaces";

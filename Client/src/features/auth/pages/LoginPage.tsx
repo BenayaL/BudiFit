@@ -6,11 +6,11 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 
 // shared = reusable components used by several features
-import AppButton from "../../../shared/ui/AppButton";
-import FormField from "../../../shared/ui/FormField";
-import PasswordInput from "../../../shared/ui/PasswordInput";
-import BudiLogo from "../../../shared/logo/BudiLogo";
-import BudiCharacter from "../../../shared/logo/BudiCharacter";
+import AppButton from "../../../common/ui/AppButton";
+import FormField from "../../../common/ui/FormField";
+import PasswordInput from "../../../common/ui/PasswordInput";
+import BudiLogo from "../../../common/logo/BudiLogo";
+import BudiCharacter from "../../../common/logo/BudiCharacter";
 
 interface LoginPageProps {
   onLoginSuccess: () => void;

@@ -11,7 +11,7 @@ import RegisterPage from "../features/auth/pages/RegisterPage";
 import ProfilePage from "../features/user/pages/ProfilePage";
 
 // shared = reusable components used by several features
-import TopNav, { type NavItem } from "../shared/layout/TopNav";
+import TopNav, { type NavItem } from "../common/layout/TopNav";
 
 import type { Page } from "./app.types";
 import { mainAppPages } from "./routes";

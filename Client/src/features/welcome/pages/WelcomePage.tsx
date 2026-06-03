@@ -1,9 +1,9 @@
 // features/welcome = domain module for the public landing/welcome screen
 
 // shared = reusable components used by several features
-import BudiCharacter from "../../../shared/logo/BudiCharacter";
-import BudiLogo from "../../../shared/logo/BudiLogo";
-import AppButton from "../../../shared/ui/AppButton";
+import BudiCharacter from "../../../common/logo/BudiCharacter";
+import BudiLogo from "../../../common/logo/BudiLogo";
+import AppButton from "../../../common/ui/AppButton";
 
 interface WelcomePageProps {
   onRegister: () => void;

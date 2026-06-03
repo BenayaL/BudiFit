@@ -19,7 +19,8 @@ interface RegisterPageProps {
 }
 
 type RegisterFormValues = {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   username: string;
   email: string;
   password: string;
@@ -32,7 +33,8 @@ function RegisterPage({
   onBackToWelcome,
 }: RegisterPageProps) {
   const [form, setForm] = useState<RegisterFormValues>({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     username: "",
     email: "",
     password: "",
@@ -43,7 +45,8 @@ function RegisterPage({
   const [isLoading, setIsLoading] = useState(false);
 
   const areRequiredFieldsFilled =
-    form.fullName.trim() !== "" &&
+    form.firstName.trim() !== "" &&
+    form.lastName.trim() !== "" &&
     form.username.trim() !== "" &&
     form.email.trim() !== "" &&
     form.password.trim() !== "" &&
@@ -151,14 +154,27 @@ function RegisterPage({
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                <FormField id="fullName" label="Full name">
+                <FormField id="firstName" label="First name">
                   <input
-                    id="fullName"
+                    id="firstName"
                     type="text"
-                    placeholder="Your full name"
-                    value={form.fullName}
+                    placeholder="Your first name"
+                    value={form.firstName}
                     onChange={(event) =>
-                      handleInputChange("fullName", event.target.value)
+                      handleInputChange("firstName", event.target.value)
+                    }
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/15"
+                  />
+                </FormField>
+
+                <FormField id="lastName" label="Last name">
+                  <input
+                    id="lastName"
+                    type="text"
+                    placeholder="Your last name"
+                    value={form.lastName}
+                    onChange={(event) =>
+                      handleInputChange("lastName", event.target.value)
                     }
                     className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/15"
                   />

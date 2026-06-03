@@ -7,9 +7,9 @@ export interface LoginRequest {
   password: string;
 }
 
-// RegisterRequest matches the body expected by POST /auth/register.
 export interface RegisterRequest {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   username: string;
   email: string;
   password: string;

@@ -9,20 +9,35 @@ import WelcomePage from "../features/welcome/pages/WelcomePage";
 import LoginPage from "../features/auth/pages/LoginPage";
 import RegisterPage from "../features/auth/pages/RegisterPage";
 import ProfilePage from "../features/user/pages/ProfilePage";
+import CoachDashboardPage from "../features/coach/pages/CoachDashboardPage";
+import CoachTraineesPage from "../features/coach/pages/CoachTraineesPage";
+import CoachPlansPage from "../features/coach/pages/CoachPlansPage";
+import CoachPlanReviewPage from "../features/coach/pages/CoachPlanReviewPage";
+import CoachTraineeProfilePage from "../features/coach/pages/CoachTraineeProfilePage";
 
 // shared = reusable components used by several features
 import TopNav, { type NavItem } from "../common/layout/TopNav";
 
 import type { Page } from "./app.types";
-import { mainAppPages } from "./routes";
+import { coachPages, traineePages } from "./routes";
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>("welcome");
+  const [currentRole, setCurrentRole] = useState<"trainee" | "coach">("trainee");
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [selectedTraineeId, setSelectedTraineeId] = useState<string | null>(null);
 
-  const dummyUser = {
-    name: "Julian",
-    streak: 14,
-  };
+  //remove dummyuser when userService is wired up and replace with real user data from context or a global store
+  const dummyUser =
+    currentRole === "coach"
+      ? {
+        name: "Yaniv",
+        streak: 0,
+      }
+      : {
+        name: "Julian",
+        streak: 14,
+      };
 
   // Small inline icon helper — keeps navItems readable without a separate file.
   const Icon = ({ d }: { d: string }) => (
@@ -39,6 +54,44 @@ function App() {
       <path d={d} />
     </svg>
   );
+
+  const coachNavItems: NavItem[] = [
+    {
+      id: "coach-dashboard",
+      label: "Coach",
+      icon: (
+        <Icon d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87" />
+      ),
+    },
+    {
+      id: "coach-trainees",
+      label: "Trainees",
+      icon: (
+        <Icon d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+      ),
+    },
+    {
+      id: "coach-plans",
+      label: "Plans",
+      icon: (
+        <Icon d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+      ),
+    },
+    {
+      id: "profile",
+      label: "Profile",
+      icon: (
+        <Icon d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+      ),
+    },
+    {
+      id: "notifications",
+      label: "Notifications",
+      icon: (
+        <Icon d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
+      ),
+    },
+  ];
 
   // Every id must match a value in the Page union type (app.types.ts).
   const navItems: NavItem[] = [
@@ -96,7 +149,9 @@ function App() {
     },
   ];
 
-  const isMainAppPage = mainAppPages.includes(currentPage);
+  const activeNavItems = currentRole === "coach" ? coachNavItems : navItems;
+  const visiblePages = currentRole === "coach" ? coachPages : traineePages;
+  const isMainAppPage = visiblePages.includes(currentPage);
 
   if (currentPage === "welcome") {
     return (
@@ -110,7 +165,10 @@ function App() {
   if (currentPage === "login") {
     return (
       <LoginPage
-        onLoginSuccess={() => setCurrentPage("dashboard")}
+        onLoginSuccess={(role) => {
+          setCurrentRole(role);
+          setCurrentPage(role === "coach" ? "coach-dashboard" : "dashboard");
+        }}
         onGoToRegister={() => setCurrentPage("register")}
         onBackToWelcome={() => setCurrentPage("welcome")}
       />
@@ -120,7 +178,10 @@ function App() {
   if (currentPage === "register") {
     return (
       <RegisterPage
-        onRegisterSuccess={() => setCurrentPage("dashboard")}
+        onRegisterSuccess={(role) => {
+          setCurrentRole(role);
+          setCurrentPage(role === "coach" ? "coach-dashboard" : "dashboard");
+        }}
         onGoToLogin={() => setCurrentPage("login")}
         onBackToWelcome={() => setCurrentPage("welcome")}
       />
@@ -131,7 +192,7 @@ function App() {
     return (
       <div className="min-h-screen bg-[#fbfaf7]">
         <TopNav
-          items={navItems}
+          items={activeNavItems}
           activePage={currentPage}
           onChangePage={(page) => setCurrentPage(page)}
           user={dummyUser}
@@ -143,11 +204,126 @@ function App() {
     );
   }
 
+  if (currentPage === "coach-dashboard") {
+    return (
+      <div className="min-h-screen bg-[#fbfaf7]">
+        <TopNav
+          items={activeNavItems}
+          activePage={currentPage}
+          onChangePage={(page) => setCurrentPage(page)}
+          user={dummyUser}
+          onStartWorkout={() => alert("Coach action coming soon!")}
+          onLogout={() => setCurrentPage("welcome")}
+        />
+        <CoachDashboardPage
+          onChangePage={(page) => setCurrentPage(page)}
+          onReviewPlan={(planId) => {
+            setSelectedPlanId(planId);
+            setCurrentPage("coach-plan-review");
+          }}
+          onViewTraineeProfile={(traineeId) => {
+            setSelectedTraineeId(traineeId);
+            setCurrentPage("coach-trainee-profile");
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (currentPage === "coach-trainees") {
+    return (
+      <div className="min-h-screen bg-[#fbfaf7]">
+        <TopNav
+          items={activeNavItems}
+          activePage={currentPage}
+          onChangePage={(page) => setCurrentPage(page)}
+          user={dummyUser}
+          onStartWorkout={() => alert("Coach action coming soon!")}
+          onLogout={() => setCurrentPage("welcome")}
+        />
+
+        <CoachTraineesPage
+          onViewTraineeProfile={(traineeId) => {
+            setSelectedTraineeId(traineeId);
+            setCurrentPage("coach-trainee-profile");
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (currentPage === "coach-trainee-profile") {
+    return (
+      <div className="min-h-screen bg-[#fbfaf7]">
+        <TopNav
+          items={activeNavItems}
+          activePage="coach-trainees"
+          onChangePage={(page) => setCurrentPage(page)}
+          user={dummyUser}
+          onStartWorkout={() => alert("Coach action coming soon!")}
+          onLogout={() => setCurrentPage("welcome")}
+        />
+
+        <CoachTraineeProfilePage
+          selectedTraineeId={selectedTraineeId}
+          onChangePage={(page) => setCurrentPage(page)}
+          onReviewPlan={(planId) => {
+            setSelectedPlanId(planId);
+            setCurrentPage("coach-plan-review");
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (currentPage === "coach-plans") {
+    return (
+      <div className="min-h-screen bg-[#fbfaf7]">
+        <TopNav
+          items={activeNavItems}
+          activePage={currentPage}
+          onChangePage={(page) => setCurrentPage(page)}
+          user={dummyUser}
+          onStartWorkout={() => alert("Coach action coming soon!")}
+          onLogout={() => setCurrentPage("welcome")}
+        />
+
+        <CoachPlansPage
+          onChangePage={(page) => setCurrentPage(page)}
+          onReviewPlan={(planId) => {
+            setSelectedPlanId(planId);
+            setCurrentPage("coach-plan-review");
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (currentPage === "coach-plan-review") {
+    return (
+      <div className="min-h-screen bg-[#fbfaf7]">
+        <TopNav
+          items={activeNavItems}
+          activePage="coach-plans"
+          onChangePage={(page) => setCurrentPage(page)}
+          user={dummyUser}
+          onStartWorkout={() => alert("Coach action coming soon!")}
+          onLogout={() => setCurrentPage("welcome")}
+        />
+
+        <CoachPlanReviewPage
+          selectedPlanId={selectedPlanId}
+          onChangePage={(page) => setCurrentPage(page)}
+        />
+      </div>
+    );
+  }
+
   if (isMainAppPage) {
     return (
       <div className="min-h-screen bg-[#fbfaf7]">
         <TopNav
-          items={navItems}
+          items={activeNavItems}
           activePage={currentPage}
           onChangePage={(page) => setCurrentPage(page)}
           user={dummyUser}

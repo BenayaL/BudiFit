@@ -13,7 +13,7 @@ import BudiLogo from "../../../common/logo/BudiLogo";
 import BudiCharacter from "../../../common/logo/BudiCharacter";
 
 interface RegisterPageProps {
-  onRegisterSuccess: () => void;
+  onRegisterSuccess: (role: "trainee" | "coach") => void;
   onGoToLogin: () => void;
   onBackToWelcome: () => void;
 }
@@ -25,6 +25,7 @@ type RegisterFormValues = {
   email: string;
   password: string;
   confirmPassword: string;
+  role: "trainee" | "coach";
 };
 
 function RegisterPage({
@@ -39,6 +40,7 @@ function RegisterPage({
     email: "",
     password: "",
     confirmPassword: "",
+    role: "trainee",
   });
 
   const [error, setError] = useState("");
@@ -98,7 +100,7 @@ function RegisterPage({
     // Temporary fake registration — replace with: await authService.register(form)
     setTimeout(() => {
       setIsLoading(false);
-      onRegisterSuccess();
+      onRegisterSuccess(form.role);
     }, 900);
   }
 
@@ -154,6 +156,41 @@ function RegisterPage({
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <p className="mb-2 text-sm font-bold text-slate-700">
+                    I want to join as
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleInputChange("role", "trainee")}
+                      className={`rounded-2xl border px-4 py-4 text-left transition ${form.role === "trainee"
+                          ? "border-purple-500 bg-purple-50 text-purple-700 ring-4 ring-purple-500/10"
+                          : "border-slate-200 bg-white text-slate-600 hover:border-purple-200"
+                        }`}
+                    >
+                      <span className="block text-sm font-extrabold">Trainee</span>
+                      <span className="mt-1 block text-xs">
+                        I want workouts and challenges
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleInputChange("role", "coach")}
+                      className={`rounded-2xl border px-4 py-4 text-left transition ${form.role === "coach"
+                          ? "border-purple-500 bg-purple-50 text-purple-700 ring-4 ring-purple-500/10"
+                          : "border-slate-200 bg-white text-slate-600 hover:border-purple-200"
+                        }`}
+                    >
+                      <span className="block text-sm font-extrabold">Coach</span>
+                      <span className="mt-1 block text-xs">
+                        I manage trainees and plans
+                      </span>
+                    </button>
+                  </div>
+                </div>
                 <FormField id="firstName" label="First name">
                   <input
                     id="firstName"

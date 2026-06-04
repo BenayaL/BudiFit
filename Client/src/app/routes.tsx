@@ -4,9 +4,7 @@
 
 import type { Page } from "./app.types";
 
-// mainAppPages lists all pages that live behind the logged-in layout (TopNav visible).
-// Auth and public pages (welcome, login, register) are intentionally excluded.
-export const mainAppPages: Page[] = [
+export const traineePages: Page[] = [
   "home",
   "chat",
   "workout",
@@ -16,3 +14,15 @@ export const mainAppPages: Page[] = [
   "notifications",
   "export",
 ];
+
+export const coachPages: Page[] = [
+  "coach-dashboard",
+  "coach-trainees",
+  "coach-trainee-profile",
+  "coach-plans",
+  "coach-plan-review",
+  "profile",
+  "notifications",
+];
+
+export const mainAppPages: Page[] = [...traineePages, ...coachPages];

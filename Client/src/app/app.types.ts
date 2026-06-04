@@ -13,4 +13,9 @@ export type Page =
   | "profile"
   | "social"
   | "notifications"
-  | "export";
+  | "export"
+  | "coach-dashboard"
+  | "coach-trainees"
+  | "coach-trainee-profile"
+  | "coach-plans"
+  | "coach-plan-review";

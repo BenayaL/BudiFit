@@ -13,7 +13,7 @@ import BudiLogo from "../../../common/logo/BudiLogo";
 import BudiCharacter from "../../../common/logo/BudiCharacter";
 
 interface LoginPageProps {
-  onLoginSuccess: () => void;
+  onLoginSuccess: (role: "trainee" | "coach") => void;
   onGoToRegister: () => void;
   onBackToWelcome: () => void;
 }
@@ -59,7 +59,8 @@ function LoginPage({
     // Temporary fake login — replace with: await authService.login(form.email, form.password)
     setTimeout(() => {
       setIsLoading(false);
-      onLoginSuccess();
+      const role = form.email.toLowerCase().includes("coach") ? "coach" : "trainee";
+      onLoginSuccess(role);
     }, 800);
   }
 

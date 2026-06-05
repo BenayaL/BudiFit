@@ -1,23 +1,26 @@
-// api = shared HTTP communication layer used by all feature services
-// httpClient wraps fetch (or axios) so all requests share the same base URL,
-// auth headers, and error handling in one place.
+// api — reusable HTTP wrapper used by all domain services.
+// All fetch calls go through here so base URL, auth headers, and error handling
+// are defined once and not duplicated across services.
 
-// import { env } from "../config/env";
-
-// Base URL will come from env.ts once the backend is ready.
-const BASE_URL = ""; // TODO: replace with env.API_BASE_URL
+import { env } from "../config/env";
 
 async function request<T>(
   method: string,
   path: string,
-  body?: unknown
+  body?: unknown,
+  token?: string
 ): Promise<T> {
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${env.API_BASE_URL}${path}`, {
     method,
-    headers: {
-      "Content-Type": "application/json",
-      // TODO: attach Authorization header from auth state/store
-    },
+    headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 
@@ -29,8 +32,12 @@ async function request<T>(
 }
 
 export const httpClient = {
-  get: <T>(path: string) => request<T>("GET", path),
-  post: <T>(path: string, body: unknown) => request<T>("POST", path, body),
-  patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, body),
-  delete: <T>(path: string) => request<T>("DELETE", path),
+  get: <T>(path: string, token?: string) => request<T>("GET", path, undefined, token),
+  post: <TResponse, TBody = unknown>(path: string, body: TBody, token?: string) =>
+    request<TResponse>("POST", path, body, token),
+  put: <TResponse, TBody = unknown>(path: string, body: TBody, token?: string) =>
+    request<TResponse>("PUT", path, body, token),
+  patch: <TResponse, TBody = unknown>(path: string, body: TBody, token?: string) =>
+    request<TResponse>("PATCH", path, body, token),
+  delete: <T>(path: string, token?: string) => request<T>("DELETE", path, undefined, token),
 };

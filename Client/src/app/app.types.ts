@@ -10,6 +10,7 @@ export type Page =
   | "home"
   | "chat"
   | "workout"
+  | "workout-history" 
   | "dashboard"
   | "profile"
   | "social"

@@ -14,6 +14,8 @@ import BotChatPage from "../features/botManagement/BotChat/BotChatPage";
 import ProgressDashboardPage from "../features/progressManagement/ProgressDashboard/ProgressDashboardPage";
 import WorkoutListPage from "../features/workoutManagement/WorkoutList/WorkoutListPage";
 import TraineeOnboardingPage from "../features/userManagement/Onboarding/TraineeOnboardingPage";
+import WorkoutHistoryPage from "../features/workoutManagement/WorkoutHistory/WorkoutHistoryPage";
+
 // common
 import TopNav from "../common/TopNav/TopNav";
 
@@ -39,22 +41,22 @@ function App() {
   const navUser = { name: displayName || "You", streak };
 
   function handleLoginSuccess(loginRole: "trainee" | "coach") {
-  if (loginRole === "coach") {
-    setCurrentPage("coach-dashboard");
-  } else if (!hasCompletedOnboarding) {
-    setCurrentPage("trainee-onboarding");
-  } else {
-    setCurrentPage("dashboard");
+    if (loginRole === "coach") {
+      setCurrentPage("coach-dashboard");
+    } else if (!hasCompletedOnboarding) {
+      setCurrentPage("trainee-onboarding");
+    } else {
+      setCurrentPage("dashboard");
+    }
   }
-}
 
   function handleRegisterSuccess(regRole: "trainee" | "coach") {
-  if (regRole === "coach") {
-    setCurrentPage("coach-dashboard");
-  } else {
-    setCurrentPage("trainee-onboarding"); // Force onboarding for new trainees
+    if (regRole === "coach") {
+      setCurrentPage("coach-dashboard");
+    } else {
+      setCurrentPage("trainee-onboarding"); // Force onboarding for new trainees
+    }
   }
-}
 
   function handleLogout() {
     logout();
@@ -109,15 +111,15 @@ function App() {
   }
 
   if (currentPage === "trainee-onboarding") {
-  return (
-    <TraineeOnboardingPage
-      onComplete={() => {
-        setOnboardingComplete();
-        setCurrentPage("dashboard");
-      }}
-    />
-  );
-}
+    return (
+      <TraineeOnboardingPage
+        onComplete={() => {
+          setOnboardingComplete();
+          setCurrentPage("dashboard");
+        }}
+      />
+    );
+  }
 
   // ─── Authenticated pages (with nav) ──────────────────────────────────────
 
@@ -134,7 +136,16 @@ function App() {
   }
 
   if (currentPage === "workout") {
-    return withNav(<WorkoutListPage />);
+    return withNav(
+      <WorkoutListPage onGoToHistory={() => setCurrentPage("workout-history")} />
+    );
+  }
+
+  if (currentPage === "workout-history") {
+    return withNav(
+      <WorkoutHistoryPage onBack={() => setCurrentPage("workout")} />,
+      "workout"   // keep "Workout" highlighted in nav while on sub-page
+    );
   }
 
   if (currentPage === "coach-dashboard") {

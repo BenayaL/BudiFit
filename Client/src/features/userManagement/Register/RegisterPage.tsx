@@ -25,15 +25,7 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin, onBackToWelcome }: Regis
         </header>
 
         <div className="flex flex-1 items-center justify-center py-10">
-          <div className="grid w-full max-w-5xl items-center gap-12 lg:grid-cols-2">
-            <div className="hidden flex-col items-center text-center lg:flex">
-              <BudiCharacter size="md" />
-              <h1 className="mt-8 text-4xl font-extrabold tracking-tight">Meet your new AI coach.</h1>
-              <p className="mt-4 max-w-md text-lg font-medium text-slate-600">
-                Create your account, set your goals, and let Budi build your daily fitness challenges.
-              </p>
-            </div>
-
+          
             <div>
               <div className="mx-auto mb-4 flex justify-center lg:hidden">
                 <BudiCharacter size="sm" />
@@ -48,7 +40,6 @@ function RegisterPage({ onRegisterSuccess, onGoToLogin, onBackToWelcome }: Regis
                 onGoToLogin={onGoToLogin}
               />
             </div>
-          </div>
         </div>
       </section>
     </main>

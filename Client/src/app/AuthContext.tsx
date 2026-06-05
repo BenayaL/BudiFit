@@ -13,6 +13,7 @@ interface AuthState {
   role: UserRole | null;
   displayName: string;
   streak: number;
+  hasCompletedOnboarding: boolean;
 }
 
 interface AuthContextValue extends AuthState {
@@ -20,6 +21,7 @@ interface AuthContextValue extends AuthState {
   login: (response: AuthResponse) => void;
   logout: () => void;
   updateDisplayInfo: (displayName: string, streak: number) => void;
+  setOnboardingComplete: () => void;
 }
 
 const STORAGE_KEY = "budifit_auth";
@@ -31,7 +33,7 @@ function loadFromStorage(): AuthState {
   } catch {
     // corrupted — start fresh
   }
-  return { token: null, userId: null, role: null, displayName: "", streak: 0 };
+  return { token: null, userId: null, role: null, displayName: "", streak: 0, hasCompletedOnboarding: false };
 }
 
 function saveToStorage(state: AuthState) {
@@ -50,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role: response.role,
       displayName: "",
       streak: 0,
+      hasCompletedOnboarding: false,
     };
     saveToStorage(next);
     setAuth(next);
@@ -57,12 +60,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
-    setAuth({ token: null, userId: null, role: null, displayName: "", streak: 0 });
+    setAuth({ token: null, userId: null, role: null, displayName: "", streak: 0, hasCompletedOnboarding: false });
   }, []);
 
   const updateDisplayInfo = useCallback((displayName: string, streak: number) => {
     setAuth((prev) => {
       const next = { ...prev, displayName, streak };
+      saveToStorage(next);
+      return next;
+    });
+  }, []);
+
+  const setOnboardingComplete = useCallback(() => {
+    setAuth((prev) => {
+      const next = { ...prev, hasCompletedOnboarding: true };
       saveToStorage(next);
       return next;
     });
@@ -74,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     logout,
     updateDisplayInfo,
+    setOnboardingComplete,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

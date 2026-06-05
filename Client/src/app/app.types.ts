@@ -6,6 +6,7 @@ export type Page =
   | "welcome"
   | "login"
   | "register"
+  | "trainee-onboarding"
   | "home"
   | "chat"
   | "workout"

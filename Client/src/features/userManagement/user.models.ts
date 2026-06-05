@@ -57,6 +57,7 @@ export interface AuthResponse {
   token: string;
   userId: string;
   role: UserRole;
+  hasCompletedOnboarding?: boolean;
 }
 
 // ─── Utility ──────────────────────────────────────────────────────────────────

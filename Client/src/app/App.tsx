@@ -13,7 +13,7 @@ import PlanReviewPage from "../features/coachManagement/PlanReview/PlanReviewPag
 import BotChatPage from "../features/botManagement/BotChat/BotChatPage";
 import ProgressDashboardPage from "../features/progressManagement/ProgressDashboard/ProgressDashboardPage";
 import WorkoutListPage from "../features/workoutManagement/WorkoutList/WorkoutListPage";
-
+import TraineeOnboardingPage from "../features/userManagement/Onboarding/TraineeOnboardingPage";
 // common
 import TopNav from "../common/TopNav/TopNav";
 
@@ -24,7 +24,7 @@ import { coachNavItems, traineeNavItems } from "./navigation";
 import { useAuth } from "./AuthContext";
 
 function App() {
-  const { role, displayName, streak, logout } = useAuth();
+  const { role, displayName, streak, logout, hasCompletedOnboarding, setOnboardingComplete } = useAuth();
 
   const [currentPage, setCurrentPage] = useState<Page>("welcome");
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
@@ -39,12 +39,22 @@ function App() {
   const navUser = { name: displayName || "You", streak };
 
   function handleLoginSuccess(loginRole: "trainee" | "coach") {
-    setCurrentPage(loginRole === "coach" ? "coach-dashboard" : "dashboard");
+  if (loginRole === "coach") {
+    setCurrentPage("coach-dashboard");
+  } else if (!hasCompletedOnboarding) {
+    setCurrentPage("trainee-onboarding");
+  } else {
+    setCurrentPage("dashboard");
   }
+}
 
   function handleRegisterSuccess(regRole: "trainee" | "coach") {
-    setCurrentPage(regRole === "coach" ? "coach-dashboard" : "dashboard");
+  if (regRole === "coach") {
+    setCurrentPage("coach-dashboard");
+  } else {
+    setCurrentPage("trainee-onboarding"); // Force onboarding for new trainees
   }
+}
 
   function handleLogout() {
     logout();
@@ -97,6 +107,17 @@ function App() {
       />
     );
   }
+
+  if (currentPage === "trainee-onboarding") {
+  return (
+    <TraineeOnboardingPage
+      onComplete={() => {
+        setOnboardingComplete();
+        setCurrentPage("dashboard");
+      }}
+    />
+  );
+}
 
   // ─── Authenticated pages (with nav) ──────────────────────────────────────
 

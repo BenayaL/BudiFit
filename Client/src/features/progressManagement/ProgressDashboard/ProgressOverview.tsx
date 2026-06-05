@@ -1,5 +1,5 @@
 import type { ProgressSummary } from "../progress.models";
-
+import { AnimatedCounter } from "../../userManagement/UserProfile/AnimatedCounter";
 interface ProgressOverviewProps {
   summary: ProgressSummary;
 }
@@ -14,6 +14,7 @@ interface StatTileProps {
 }
 
 function StatTile({ label, value, sub, emoji, color, bg }: StatTileProps) {
+  const numericValue = parseInt(value, 10) || 0;
   return (
     <div className="bg-white rounded-[20px] p-5 border border-slate-200 shadow-sm">
       <div className="flex justify-between items-start">
@@ -23,7 +24,9 @@ function StatTile({ label, value, sub, emoji, color, bg }: StatTileProps) {
         </div>
       </div>
       <div className="mt-3">
-        <span className="text-3xl font-extrabold text-slate-900 tabular-nums tracking-tight">{value}</span>
+        <span className="text-3xl font-extrabold text-slate-900 tabular-nums tracking-tight">
+            <AnimatedCounter target={numericValue} />
+        </span>
         <span className="text-sm font-medium text-slate-500 ml-1">{sub}</span>
       </div>
     </div>

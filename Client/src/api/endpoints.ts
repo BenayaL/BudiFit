@@ -39,10 +39,16 @@ export const ENDPOINTS = {
 
   progress: {
     dashboard: "/progress/dashboard",
+    history:   "/progress/history",
   },
 
   bot: {
     chat: "/bot/chat",
-    history: (sessionId: string) => `/bot/chat/${sessionId}/history`,
+    history: (sessionId: string) => `/bot/history/${sessionId}`,
+  },
+
+  export: {                                          
+    pdf:   "/export/workout-summary/pdf",
+    email: "/export/workout-summary/email",
   },
 };

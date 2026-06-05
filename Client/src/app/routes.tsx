@@ -5,14 +5,12 @@
 import type { Page } from "./app.types";
 
 export const traineePages: Page[] = [
-  "home",
+  "dashboard",
   "chat",
   "workout",
-  "dashboard",
-  "profile",
   "social",
+  "profile",
   "notifications",
-  "export",
 ];
 
 export const coachPages: Page[] = [

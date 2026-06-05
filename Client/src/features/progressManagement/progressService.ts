@@ -9,5 +9,5 @@ export const progressService = {
     httpClient.get<ProgressSummary>(ENDPOINTS.progress.dashboard, token),
 
   getWorkoutHistory: (token: string): Promise<WorkoutHistoryItem[]> =>
-    httpClient.get<WorkoutHistoryItem[]>(ENDPOINTS.workouts.list, token),
+  httpClient.get<WorkoutHistoryItem[]>(ENDPOINTS.progress.history, token),
 };

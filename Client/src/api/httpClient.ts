@@ -25,7 +25,21 @@ async function request<T>(
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} — ${path}`);
+    let message = `HTTP ${response.status} — ${path}`;
+
+    try {
+      const errorBody = (await response.json()) as {
+        message?: string;
+      };
+
+      if (errorBody.message) {
+        message = errorBody.message;
+      }
+    } catch {
+      // If the server did not return JSON, keep the default message.
+    }
+
+    throw new Error(message);
   }
 
   return response.json() as Promise<T>;

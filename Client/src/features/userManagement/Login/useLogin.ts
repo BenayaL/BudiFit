@@ -33,14 +33,6 @@ export function useLogin(onLoginSuccess: LoginPageProps["onLoginSuccess"]) {
       auth.login(response);
       onLoginSuccess(response.role);
     } catch {
-      // DEV fallback — remove when backend is connected
-      if (import.meta.env.DEV) {
-        console.warn("[DEV] Backend not connected — using local login fallback.");
-        const role = form.email.toLowerCase().includes("coach") ? "coach" : "trainee";
-        auth.login({ token: "dev-token", userId: "dev-user-1", role });
-        onLoginSuccess(role);
-        return;
-      }
       setError("Cannot connect to server. Please try again later.");
     } finally {
       setIsLoading(false);

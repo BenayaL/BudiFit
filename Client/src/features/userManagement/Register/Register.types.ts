@@ -9,7 +9,6 @@ export type RegisterFormValues = {
 };
 
 export interface RegisterPageProps {
-  onRegisterSuccess: (role: "trainee" | "coach") => void;
   onGoToLogin: () => void;
   onBackToWelcome: () => void;
 }

@@ -51,14 +51,6 @@ export function useEditProfile(
       setSuccess(true);
       onSaved(form);
     } catch {
-      // DEV fallback — save optimistically when backend is unavailable
-      if (import.meta.env.DEV) {
-        console.warn("[DEV] updateUserProfile failed — applying optimistic update.");
-        updateDisplayInfo(form.firstName, 0);
-        setSuccess(true);
-        onSaved(form);
-        return;
-      }
       setError("Failed to save changes. Please try again.");
     } finally {
       setIsLoading(false);

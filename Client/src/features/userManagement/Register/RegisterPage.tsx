@@ -5,9 +5,9 @@ import { RegisterForm } from "./RegisterForm";
 import { useRegister } from "./useRegister";
 import type { RegisterPageProps } from "./Register.types";
 
-function RegisterPage({ onRegisterSuccess, onGoToLogin, onBackToWelcome }: RegisterPageProps) {
+function RegisterPage({ onGoToLogin, onBackToWelcome }: RegisterPageProps) {
   const { form, error, isLoading, isFormValid, handleInputChange, handleSubmit } =
-    useRegister(onRegisterSuccess);
+    useRegister(onGoToLogin);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#fbfaf7] text-slate-950">

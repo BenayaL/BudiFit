@@ -3,16 +3,6 @@ import { progressService } from "../../progressManagement/progressService";
 import type { WorkoutHistoryItem } from "../../progressManagement/progress.models";
 import { useAuth } from "../../../app/AuthContext";
 
-// ─── Fallback data (remove when backend connected) ────────────────────────────
-
-const FALLBACK_HISTORY: WorkoutHistoryItem[] = [
-  { id: "h1", date: "2025-06-01", durationMinutes: 45, challengeTitle: "Upper Body Strength" },
-  { id: "h2", date: "2025-05-29", durationMinutes: 30, challengeTitle: "Core Blast"          },
-  { id: "h3", date: "2025-05-27", durationMinutes: 60, challengeTitle: "Full Body HIIT"      },
-  { id: "h4", date: "2025-05-24", durationMinutes: 40, challengeTitle: "Lower Body Power"    },
-  { id: "h5", date: "2025-05-22", durationMinutes: 35, challengeTitle: "Cardio Endurance"    },
-];
-
 // ─── Share modal (same component as WorkoutListPage) ─────────────────────────
 
 function ShareModal({ onClose }: { onClose: () => void }) {
@@ -79,6 +69,7 @@ function WorkoutHistoryPage({ onBack }: WorkoutHistoryPageProps) {
   const { token } = useAuth();
   const [history, setHistory] = useState<WorkoutHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
   const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
@@ -87,9 +78,9 @@ function WorkoutHistoryPage({ onBack }: WorkoutHistoryPageProps) {
       try {
         const data = await progressService.getWorkoutHistory(token);
         setHistory(data);
-      } catch {
-        console.warn("[DEV] getWorkoutHistory failed — using fallback.");
-        setHistory(FALLBACK_HISTORY);
+      } catch (err) {
+        console.error("[WORKOUT] Failed to load workout history:", err);
+        setError("Failed to load workout history.");
       } finally {
         setIsLoading(false);
       }
@@ -144,6 +135,8 @@ function WorkoutHistoryPage({ onBack }: WorkoutHistoryPageProps) {
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         {isLoading ? (
           <p className="p-8 text-center text-slate-400">Loading history…</p>
+        ) : error ? (
+          <p className="p-8 text-center text-red-500">{error}</p>
         ) : history.length === 0 ? (
           <p className="p-8 text-center text-slate-400">No workout history yet. Complete a session to see it here.</p>
         ) : (

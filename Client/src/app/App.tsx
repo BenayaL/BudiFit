@@ -50,14 +50,6 @@ function App() {
     }
   }
 
-  function handleRegisterSuccess(regRole: "trainee" | "coach") {
-    if (regRole === "coach") {
-      setCurrentPage("coach-dashboard");
-    } else {
-      setCurrentPage("trainee-onboarding"); // Force onboarding for new trainees
-    }
-  }
-
   function handleLogout() {
     logout();
     setCurrentPage("welcome");
@@ -103,7 +95,6 @@ function App() {
   if (currentPage === "register") {
     return (
       <RegisterPage
-        onRegisterSuccess={handleRegisterSuccess}
         onGoToLogin={() => setCurrentPage("login")}
         onBackToWelcome={() => setCurrentPage("welcome")}
       />

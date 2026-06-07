@@ -7,6 +7,7 @@ import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 
 import usersRouter from "./routes/users.route";
+import traineeProfileRouter from "./routes/TraineeProfile.route";
 
 dotenv.config();
 
@@ -57,6 +58,11 @@ if (!MONGO_URI) {
     );
 }
 
+mongoose.connection.once("open", () => {
+  console.log("Connected database name:", mongoose.connection.name);
+  console.log("Connected database host:", mongoose.connection.host);
+});
+
 // Basic route
 app.get("/", (req: Request, res: Response) => {
   res.send("BudiFit TypeScript server is running");
@@ -64,8 +70,9 @@ app.get("/", (req: Request, res: Response) => {
 
 // API routes
 app.use("/api/users", usersRouter);
+app.use("/api/trainee-profiles", traineeProfileRouter);
 
 // Start server
 app.listen(Number(PORT), "127.0.0.1", () => {
-  console.log(`Server is running on http://127.0.0.1:${PORT}`);
+  console.log(`Server running on http://127.0.0.1:${PORT}`);
 });

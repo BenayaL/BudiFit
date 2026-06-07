@@ -35,31 +35,69 @@ usersRouter.get("/:email", async (req: Request, res: Response) => {
 });
 
 // POST /api/users/register
-// user registration with email, name, password, role, fitnessLevel and goals
+// User registration with personal details and role
 usersRouter.post("/register", async (req: Request, res: Response) => {
   try {
-    const existingUser = await User.findOne({ email: req.body.email });
+    const {
+      firstName,
+      lastName,
+      username,
+      email,
+      password,
+      role,
+      fitnessLevel,
+      goals,
+    } = req.body;
 
-    if (existingUser) {
-      res.status(400).json({ message: "Email already exists" });
+    const normalizedEmail = (email as string).trim().toLowerCase();
+    const normalizedUsername = (username as string).trim();
+
+    const emailMatch = await User.findOne({ email: normalizedEmail });
+
+    if (emailMatch) {
+      res.status(409).json({ message: "Email already exists" });
       return;
     }
 
-    const user = new User(req.body);
+    const usernameMatch = await User.findOne({ username: normalizedUsername });
+
+    if (usernameMatch) {
+      res.status(409).json({ message: "Username already exists" });
+      return;
+    }
+
+    const user = new User({
+      firstName,
+      lastName,
+      username: normalizedUsername,
+      email: normalizedEmail,
+      password,
+      role,
+      fitnessLevel,
+      goals,
+    });
+
     await user.save();
 
     res.status(201).json({
       message: "User registered successfully",
       user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
         email: user.email,
-        name: user.name,
         role: user.role,
         fitnessLevel: user.fitnessLevel,
         goals: user.goals,
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Failed to register user" });
+    console.error("Failed to register user:", error);
+
+    res.status(500).json({
+      message: "Failed to register user",
+    });
   }
 });
 
@@ -80,8 +118,11 @@ usersRouter.post("/login", async (req: Request, res: Response) => {
     res.status(200).json({
       message: "Login successful",
       user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
         email: user.email,
-        name: user.name,
         role: user.role,
         fitnessLevel: user.fitnessLevel,
         goals: user.goals,

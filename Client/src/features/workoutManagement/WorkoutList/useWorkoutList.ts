@@ -8,7 +8,7 @@ export function useWorkoutList(): WorkoutListState {
   const { token } = useAuth();
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const error = "";
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!token) {
@@ -18,12 +18,12 @@ export function useWorkoutList(): WorkoutListState {
 
     (async () => {
       try {
+        // TODO: Connect to GET /api/workouts when the server endpoint is implemented.
         const data = await workoutService.getWorkouts(token);
         setWorkouts(data);
-      } catch {
-        // TODO: backend not connected yet — shows empty state
-        console.warn("[DEV] getWorkouts failed — no fallback data.");
-        setWorkouts([]);
+      } catch (err) {
+        console.error("[WORKOUT] Failed to load workouts:", err);
+        setError("Failed to load workouts.");
       } finally {
         setIsLoading(false);
       }

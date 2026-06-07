@@ -53,6 +53,19 @@ export interface RegisterRequest {
   role: UserRole;
 }
 
+export interface RegisterServerResponse {
+  message: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+    role: UserRole;
+    hasCompletedOnboarding?: boolean;
+  };
+}
+
 export interface AuthResponse {
   token: string;
   userId: string;

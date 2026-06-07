@@ -8,7 +8,7 @@ export function useTodayChallenge(): TodayChallengeState {
   const { token } = useAuth();
   const [challenge, setChallenge] = useState<DailyChallenge | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const error = "";
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!token) {
@@ -18,12 +18,12 @@ export function useTodayChallenge(): TodayChallengeState {
 
     (async () => {
       try {
+        // TODO: Connect to GET /api/challenges/today when the server endpoint is implemented.
         const data = await challengeService.getTodayChallenge(token);
         setChallenge(data);
-      } catch {
-        // TODO: backend not connected yet — shows empty state
-        console.warn("[DEV] getTodayChallenge failed — no fallback data.");
-        setChallenge(null);
+      } catch (err) {
+        console.error("[CHALLENGE] Failed to load today's challenge:", err);
+        setError("Failed to load today's challenge.");
       } finally {
         setIsLoading(false);
       }

@@ -8,14 +8,16 @@ import type {
   RegisterRequest,
   AuthResponse,
   UserProfile,
+  RegisterServerResponse,
 } from "./user.models";
 
 export const userService = {
   login: (data: LoginRequest): Promise<AuthResponse> =>
     httpClient.post<AuthResponse, LoginRequest>(ENDPOINTS.auth.login, data),
 
-  register: (data: RegisterRequest): Promise<AuthResponse> =>
-    httpClient.post<AuthResponse, RegisterRequest>(ENDPOINTS.auth.register, data),
+  // TODO: update to return a real token once the server implements JWT.
+  register: (data: RegisterRequest): Promise<RegisterServerResponse> =>
+    httpClient.post<RegisterServerResponse, RegisterRequest>(ENDPOINTS.auth.register, data),
 
   logout: (token: string): Promise<void> =>
     httpClient.post<void>(ENDPOINTS.auth.logout, {}, token),

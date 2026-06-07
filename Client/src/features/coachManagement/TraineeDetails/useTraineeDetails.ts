@@ -3,24 +3,16 @@ import type { Trainee, CoachPlan } from "../coach.models";
 import type { TraineeDetailsState } from "./TraineeDetails.types";
 import { coachService } from "../coachService";
 import { useAuth } from "../../../app/AuthContext";
-import { COACH_FALLBACK_TRAINEES, COACH_FALLBACK_PLANS } from "../CoachDashboard/useCoachDashboard";
 
 export function useTraineeDetails(traineeId: string | null): TraineeDetailsState {
   const { token } = useAuth();
   const [trainee, setTrainee] = useState<Trainee | null>(null);
   const [plans, setPlans] = useState<CoachPlan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const error = "";
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!traineeId) {
-      setIsLoading(false);
-      return;
-    }
-
-    if (!token) {
-      setTrainee(COACH_FALLBACK_TRAINEES.find((t) => t.userId === traineeId) ?? null);
-      setPlans(COACH_FALLBACK_PLANS.filter((p) => p.traineeId === traineeId));
+    if (!traineeId || !token) {
       setIsLoading(false);
       return;
     }
@@ -33,11 +25,9 @@ export function useTraineeDetails(traineeId: string | null): TraineeDetailsState
         ]);
         setTrainee(t);
         setPlans(allPlans.filter((p) => p.traineeId === traineeId));
-      } catch {
-        // TODO: remove fallback when backend is connected
-        console.warn("[DEV] getTraineeById failed — using fallback.");
-        setTrainee(COACH_FALLBACK_TRAINEES.find((t) => t.userId === traineeId) ?? null);
-        setPlans(COACH_FALLBACK_PLANS.filter((p) => p.traineeId === traineeId));
+      } catch (err) {
+        console.error("[COACH] Failed to load trainee details:", err);
+        setError("Failed to load trainee details.");
       } finally {
         setIsLoading(false);
       }

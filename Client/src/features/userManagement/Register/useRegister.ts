@@ -3,7 +3,6 @@ import type { FormEvent } from "react";
 import type { RegisterFormValues, RegisterPageProps } from "./Register.types";
 import { validateRegisterForm, isRegisterFormValid } from "./Register.validation";
 import { userService } from "../userService";
-import { useAuth } from "../../../app/AuthContext";
 
 const INITIAL_FORM: RegisterFormValues = {
   firstName: "",
@@ -15,8 +14,7 @@ const INITIAL_FORM: RegisterFormValues = {
   role: "trainee",
 };
 
-export function useRegister(onRegisterSuccess: RegisterPageProps["onRegisterSuccess"]) {
-  const auth = useAuth();
+export function useRegister(onGoToLogin: RegisterPageProps["onGoToLogin"]) {
   const [form, setForm] = useState<RegisterFormValues>(INITIAL_FORM);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +37,7 @@ export function useRegister(onRegisterSuccess: RegisterPageProps["onRegisterSucc
     setError("");
 
     try {
-      const response = await userService.register({
+      await userService.register({
         firstName: form.firstName,
         lastName: form.lastName,
         username: form.username,
@@ -47,19 +45,14 @@ export function useRegister(onRegisterSuccess: RegisterPageProps["onRegisterSucc
         password: form.password,
         role: form.role,
       });
-      auth.login(response);
-      auth.updateDisplayInfo(form.firstName, 0);
-      onRegisterSuccess(response.role);
-    } catch {
-      // DEV fallback — remove when backend is connected
-      if (import.meta.env.DEV) {
-        console.warn("[DEV] Backend not connected — using local register fallback.");
-        auth.login({ token: "dev-token", userId: "dev-user-1", role: form.role });
-        auth.updateDisplayInfo(form.firstName, 0);
-        onRegisterSuccess(form.role);
-        return;
-      }
-      setError("Cannot connect to server. Please try again later.");
+      onGoToLogin();
+    } catch (err) {
+      console.error("Registration failed:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Registration failed. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }

@@ -46,8 +46,8 @@ export function TopNav({
 
         {/* Center — desktop nav or responsive dropdown */}
         <div className="relative flex justify-center min-w-0">
-          {/* Desktop navigation (≥1330px) */}
-          <div ref={navRef} className="hidden min-[1330px]:flex relative justify-center gap-1">
+          {/* Desktop navigation (≥1005px) */}
+          <div ref={navRef} className="hidden min-[1005px]:flex relative justify-center gap-1">
             <div
               className="absolute bottom-0 top-0 z-0 rounded-xl bg-gradient-to-br from-purple-600 to-purple-500 shadow-md transition-all duration-300 ease-out"
               style={{ left: indicator.left, width: indicator.width, opacity: indicator.opacity }}
@@ -75,8 +75,8 @@ export function TopNav({
             })}
           </div>
 
-          {/* Responsive dropdown (<1330px) */}
-          <div className="flex min-[1330px]:hidden relative w-full max-w-[200px] justify-center">
+          {/* Responsive dropdown (<1005px) */}
+          <div className="flex min-[1005px]:hidden relative w-full max-w-[200px] justify-center">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex w-full items-center justify-between gap-2 rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm"

@@ -1,6 +1,7 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import BudiLogo from "../BudiLogo/BudiLogo";
 import AppButton from "../AppButton/AppButton";
+
 import type { TopNavProps } from "./TopNav.types";
 
 export function TopNav({
@@ -12,6 +13,7 @@ export function TopNav({
   onGoToProfile,
 }: TopNavProps) {
   const navRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [indicator, setIndicator] = useState({ left: 0, width: 0, opacity: 0 });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -19,7 +21,7 @@ export function TopNav({
 
   useLayoutEffect(() => {
     const updateIndicator = () => {
-      if (window.innerWidth < 1330) return;
+      if (window.innerWidth < 1005) return;
       if (!navRef.current) return;
 
       const activeBtn = navRef.current.querySelector(`[data-nav="${activePage}"]`);
@@ -35,6 +37,16 @@ export function TopNav({
     window.addEventListener("resize", updateIndicator);
     return () => window.removeEventListener("resize", updateIndicator);
   }, [activePage]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <nav className="sticky top-0 z-10 px-6 pt-4 backdrop-blur-md bg-[#fbfaf7]/85">
@@ -76,7 +88,7 @@ export function TopNav({
           </div>
 
           {/* Responsive dropdown (<1005px) */}
-          <div className="flex min-[1005px]:hidden relative w-full max-w-[200px] justify-center">
+          <div ref={dropdownRef} className="flex min-[1005px]:hidden relative w-full max-w-[200px] justify-center">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex w-full items-center justify-between gap-2 rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm"

@@ -6,9 +6,15 @@ import helmet from "helmet";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 
-import usersRouter from "./routes/users.route";
-import traineeProfileRouter from "./routes/TraineeProfile.route";
+import usersRouter            from "./routes/users.route";
+import traineeProfileRouter   from "./routes/TraineeProfile.route";
 import coachConnectionsRouter from "./routes/coachConnections.route";
+import workoutRouter          from "./routes/workout.routes";
+import challengeRouter        from "./routes/challenge.routes";
+import coachRouter            from "./routes/coach.routes";
+import progressRouter         from "./routes/progress.routes";
+import botRouter              from "./routes/bot.routes";
+import exportRouter           from "./routes/export.routes";
 
 dotenv.config();
 
@@ -77,9 +83,15 @@ app.get("/", (_req: Request, res: Response) => {
 /*
  * Application routes.
  */
-app.use("/api/users", usersRouter);
+app.use("/api/users",            usersRouter);
 app.use("/api/trainee-profiles", traineeProfileRouter);
 app.use("/api/coach-connections", coachConnectionsRouter);
+app.use("/api/workouts",         workoutRouter);
+app.use("/api/challenges",       challengeRouter);
+app.use("/api/coach",            coachRouter);
+app.use("/api/progress",         progressRouter);
+app.use("/api/bot",              botRouter);
+app.use("/api/export",           exportRouter);
 
 /*
  * Handles requests that do not match any existing route.

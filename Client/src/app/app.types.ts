@@ -10,6 +10,7 @@ export type Page =
   | "home"
   | "chat"
   | "workout"
+  | "generated-workout-plan-details"
   | "workout-history"
   | "dashboard"
   | "profile"
@@ -22,3 +23,4 @@ export type Page =
   | "coach-trainee-profile"
   | "coach-plans"
   | "coach-plan-review";
+  

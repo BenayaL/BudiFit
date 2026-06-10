@@ -29,6 +29,13 @@ export const ENDPOINTS = {
     complete: (workoutId: string) => `/workouts/${workoutId}/complete`,
   },
 
+  generatedWorkoutPlans: {
+  list: "/generated-workout-plans",
+  generate: "/generated-workout-plans/generate",
+  details: (planId: string) =>
+    `/generated-workout-plans/${planId}`,
+},
+
   challenges: {
     today: "/challenges/today",
     weekly: "/challenges/weekly",

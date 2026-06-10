@@ -13,6 +13,7 @@ import PlanReviewPage from "../features/coachManagement/PlanReview/PlanReviewPag
 import BotChatPage from "../features/botManagement/BotChat/BotChatPage";
 import ProgressDashboardPage from "../features/progressManagement/ProgressDashboard/ProgressDashboardPage";
 import WorkoutListPage from "../features/workoutManagement/WorkoutList/WorkoutListPage";
+import GeneratedWorkoutPlanDetailsPage from "../features/workoutManagement/WorkoutList/GeneratedWorkoutPlanDetails/GeneratedWorkoutPlanDetailsPage";
 import TraineeOnboardingPage from "../features/userManagement/Onboarding/TraineeOnboardingPage";
 import WorkoutHistoryPage from "../features/workoutManagement/WorkoutHistory/WorkoutHistoryPage";
 import SettingsPage from "../features/settingsManagement/Settings/SettingsPage";
@@ -47,6 +48,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState<Page | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [selectedTraineeId, setSelectedTraineeId] = useState<string | null>(null);
+  const [selectedWorkoutPlanId, setSelectedWorkoutPlanId,] = useState<string | null>(null);
 
   // After initialization, determine the correct starting page
   useEffect(() => {
@@ -182,9 +184,57 @@ function App() {
 
   if (currentPage === "workout") {
     return withNav(
-      <WorkoutListPage onGoToHistory={() => setCurrentPage("workout-history")} />
+      <WorkoutListPage
+        onGoToHistory={() =>
+          setCurrentPage("workout-history")
+        }
+        onSelectPlan={(planId) => {
+          setSelectedWorkoutPlanId(planId);
+          setCurrentPage("generated-workout-plan-details");
+        }}
+      />
     );
   }
+
+  if (
+    currentPage ==="generated-workout-plan-details") {
+    if (!selectedWorkoutPlanId) {
+      return withNav(
+        <main className="mx-auto max-w-4xl px-6 py-10">
+          <section className="rounded-3xl border border-red-200 bg-red-50 p-6">
+            <h1 className="text-xl font-bold text-red-800">
+              Workout plan not selected
+            </h1>
+
+            <button
+              type="button"
+              onClick={() =>
+                setCurrentPage("workout")
+              }
+              className="mt-4 rounded-2xl bg-purple-600 px-4 py-2 text-sm font-bold text-white"
+            >
+              Back to workouts
+            </button>
+          </section>
+        </main>,
+        "workout"
+      );
+    }
+
+    return withNav(
+      <GeneratedWorkoutPlanDetailsPage
+        planId={selectedWorkoutPlanId}
+        onBack={() => {
+          setSelectedWorkoutPlanId(null);
+          setCurrentPage("workout");
+        }}
+      />,
+      "workout"
+    );
+  }
+
+
+
 
   if (currentPage === "workout-history") {
     return withNav(

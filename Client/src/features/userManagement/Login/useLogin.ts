@@ -4,6 +4,7 @@ import type { LoginFormValues, LoginPageProps } from "./Login.types";
 import { isLoginFormValid, validateLoginForm } from "./Login.validation";
 import { userService } from "../userService";
 import { useAuth } from "../../../app/AuthContext";
+import { env } from "../../../config/env";
 
 export function useLogin(onLoginSuccess: LoginPageProps["onLoginSuccess"]) {
   const auth = useAuth();
@@ -28,14 +29,19 @@ export function useLogin(onLoginSuccess: LoginPageProps["onLoginSuccess"]) {
     setIsLoading(true);
     setError("");
 
+    if (env.IS_DEV) console.log("[LOGIN] Login started");
+
     try {
       const response = await userService.login({ email: form.email, password: form.password });
+      if (env.IS_DEV)
+        console.log("[LOGIN] Login succeeded — role:", response.role, "onboarded:", response.hasCompletedOnboarding);
       await auth.login(response, form.rememberMe);
       onLoginSuccess(response.role, response.hasCompletedOnboarding ?? false);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Login failed. Please try again."
-      );
+      const message =
+        err instanceof Error ? err.message : "Login failed. Please try again.";
+      if (env.IS_DEV) console.error("[LOGIN] Login failed:", message);
+      setError(message);
     } finally {
       setIsLoading(false);
     }

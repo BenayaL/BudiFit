@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import type { RegisterFormValues, RegisterPageProps } from "./Register.types";
 import { validateRegisterForm, isRegisterFormValid } from "./Register.validation";
 import { userService } from "../userService";
+import { env } from "../../../config/env";
 
 const INITIAL_FORM: RegisterFormValues = {
   firstName: "",
@@ -36,6 +37,8 @@ export function useRegister(onGoToLogin: RegisterPageProps["onGoToLogin"]) {
     setIsLoading(true);
     setError("");
 
+    if (env.IS_DEV) console.log("[REGISTER] Registration started");
+
     try {
       await userService.register({
         firstName: form.firstName,
@@ -45,14 +48,13 @@ export function useRegister(onGoToLogin: RegisterPageProps["onGoToLogin"]) {
         password: form.password,
         role: form.role,
       });
+      if (env.IS_DEV) console.log("[REGISTER] Registration succeeded");
       onGoToLogin();
     } catch (err) {
-      console.error("Registration failed:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Registration failed. Please try again."
-      );
+      const message =
+        err instanceof Error ? err.message : "Registration failed. Please try again.";
+      if (env.IS_DEV) console.error("[REGISTER] Registration failed:", message);
+      setError(message);
     } finally {
       setIsLoading(false);
     }

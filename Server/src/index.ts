@@ -15,8 +15,11 @@ import coachRouter            from "./routes/coach.routes";
 import progressRouter         from "./routes/progress.routes";
 import botRouter              from "./routes/bot.routes";
 import exportRouter           from "./routes/export.routes";
+import generatedWorkoutPlanRouter from "./routes/generatedWorkoutPlan.routes";
 
 dotenv.config();
+
+const IS_DEV = process.env.NODE_ENV !== "production";
 
 const app = express();
 
@@ -34,6 +37,24 @@ app.use(helmet());
  * Logs every incoming request in the terminal.
  */
 app.use(morgan("dev"));
+
+/*
+ * In development, logs method, path, status, and duration with a timestamp.
+ * Morgan "dev" already covers most of this; this adds ISO timestamps and
+ * fires on the response "finish" event so duration is accurate.
+ */
+if (IS_DEV) {
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const startMs = Date.now();
+    const ts = new Date().toISOString();
+    res.on("finish", () => {
+      console.log(
+        `[REQ] ${ts} ${req.method} ${req.path} → ${res.statusCode} (${Date.now() - startMs}ms)`
+      );
+    });
+    next();
+  });
+}
 
 /*
  * Limits the amount of requests sent to API routes.
@@ -92,7 +113,7 @@ app.use("/api/coach",            coachRouter);
 app.use("/api/progress",         progressRouter);
 app.use("/api/bot",              botRouter);
 app.use("/api/export",           exportRouter);
-
+app.use("/api/generated-workout-plans", generatedWorkoutPlanRouter);
 /*
  * Handles requests that do not match any existing route.
  */
@@ -105,20 +126,31 @@ app.use((_req: Request, res: Response) => {
 
 /*
  * General Express error handler.
+ * Receives errors passed via next(err) from any route or middleware.
  */
 app.use(
   (
     error: Error,
-    _req: Request,
+    req: Request,
     res: Response,
     _next: NextFunction
   ) => {
-    console.error("UNHANDLED SERVER ERROR:", error);
+    const ts = new Date().toISOString();
+    console.error(`[ERROR] ${ts} ${req.method} ${req.originalUrl}`);
+    console.error(`  name:    ${error.name}`);
+    console.error(`  message: ${error.message}`);
+    console.error(`  stack:   ${error.stack ?? "(no stack)"}`);
 
-    res.status(500).json({
+    const body: { success: false; message: string; error?: string } = {
       success: false,
       message: "Internal server error",
-    });
+    };
+
+    if (IS_DEV) {
+      body.error = error.message;
+    }
+
+    res.status(500).json(body);
   }
 );
 
@@ -151,11 +183,16 @@ async function startServer(): Promise<void> {
   }
 }
 
-/*
- * Logs database disconnection events.
- */
+mongoose.connection.on("connected", () => {
+  console.log("[DB] MongoDB connected");
+});
+
 mongoose.connection.on("disconnected", () => {
-  console.warn("MongoDB disconnected");
+  console.warn("[DB] MongoDB disconnected");
+});
+
+mongoose.connection.on("error", (err: Error) => {
+  console.error("[DB] MongoDB error:", err.message);
 });
 
 /*
@@ -181,6 +218,22 @@ process.on("SIGINT", () => {
 
 process.on("SIGTERM", () => {
   void shutdownServer("SIGTERM");
+});
+
+process.on("unhandledRejection", (reason: unknown) => {
+  const message = reason instanceof Error ? reason.message : String(reason);
+  const stack = reason instanceof Error ? (reason.stack ?? "") : "";
+  console.error("[PROCESS] Unhandled promise rejection:", message);
+  if (stack) console.error(stack);
+});
+
+process.on("uncaughtException", (error: Error) => {
+  console.error("[PROCESS] Uncaught exception:", error.name, error.message);
+  console.error(error.stack ?? "(no stack)");
+  // Give MongoDB a chance to close before the forced exit.
+  void mongoose.connection.close().finally(() => {
+    process.exit(1);
+  });
 });
 
 void startServer();

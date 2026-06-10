@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // features — domain pages
 import WelcomePage from "../features/welcome/WelcomePage";
@@ -15,6 +15,7 @@ import ProgressDashboardPage from "../features/progressManagement/ProgressDashbo
 import WorkoutListPage from "../features/workoutManagement/WorkoutList/WorkoutListPage";
 import TraineeOnboardingPage from "../features/userManagement/Onboarding/TraineeOnboardingPage";
 import WorkoutHistoryPage from "../features/workoutManagement/WorkoutHistory/WorkoutHistoryPage";
+import SettingsPage from "../features/settingsManagement/Settings/SettingsPage";
 
 // common
 import TopNav from "../common/TopNav/TopNav";
@@ -25,22 +26,68 @@ import { coachPages, traineePages } from "./routes";
 import { coachNavItems, traineeNavItems } from "./navigation";
 import { useAuth } from "./AuthContext";
 
-function App() {
-  const { role, displayName, streak, logout, hasCompletedOnboarding, setOnboardingComplete } = useAuth();
+// ─── Loading screen ───────────────────────────────────────────────────────────
 
-  const [currentPage, setCurrentPage] = useState<Page>("welcome");
+function LoadingScreen() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#fbfaf7]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
+        <p className="text-sm font-medium text-slate-500">Loading…</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+
+function App() {
+  const { user, isInitializing, logout, setOnboardingComplete } = useAuth();
+
+  const [currentPage, setCurrentPage] = useState<Page | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [selectedTraineeId, setSelectedTraineeId] = useState<string | null>(null);
 
-  const currentRole = role ?? "trainee";
+  // After initialization, determine the correct starting page
+  useEffect(() => {
+    if (isInitializing) return;
+
+    if (!user) {
+      setCurrentPage("welcome");
+      return;
+    }
+
+    // Only auto-navigate if we haven't already set a page
+    setCurrentPage((prev) => {
+      if (prev !== null) return prev; // keep the existing page if already navigated
+
+      if (user.role === "coach") return "coach-dashboard";
+      if (!user.hasCompletedOnboarding) return "trainee-onboarding";
+      return "dashboard";
+    });
+  }, [isInitializing, user]);
+
+  // Show loading while auth is being restored or page hasn't been determined yet
+  if (isInitializing || currentPage === null) {
+    return <LoadingScreen />;
+  }
+
+  const currentRole = user?.role ?? "trainee";
   const activeNavItems = currentRole === "coach" ? coachNavItems : traineeNavItems;
   const visiblePages = currentRole === "coach" ? coachPages : traineePages;
-  const isMainAppPage = visiblePages.includes(currentPage);
+  const isMainAppPage = visiblePages.includes(currentPage) || currentPage === "settings";
 
-  // TopNav expects { name, streak }. After profile loads, displayName is set via updateDisplayInfo.
-  const navUser = { name: displayName || "You", streak };
+  const navUser = {
+    name: user ? `${user.firstName} ${user.lastName}` : "",
+    avatarLetter: user ? user.firstName.charAt(0).toUpperCase() : "?",
+  };
 
-  function handleLoginSuccess(loginRole: "trainee" | "coach") {
+  async function handleLogout() {
+    await logout();
+    setCurrentPage("welcome");
+  }
+
+  function handleLoginSuccess(loginRole: "trainee" | "coach", hasCompletedOnboarding: boolean) {
     if (loginRole === "coach") {
       setCurrentPage("coach-dashboard");
     } else if (!hasCompletedOnboarding) {
@@ -50,12 +97,7 @@ function App() {
     }
   }
 
-  function handleLogout() {
-    logout();
-    setCurrentPage("welcome");
-  }
-
-  function withNav(content: React.ReactNode, activePage: Page = currentPage) {
+  function withNav(content: React.ReactNode, activePage: Page = currentPage!) {
     return (
       <div className="min-h-screen bg-[#fbfaf7]">
         <TopNav
@@ -64,14 +106,14 @@ function App() {
           onChangePage={(page) => setCurrentPage(page)}
           user={navUser}
           onStartWorkout={() => setCurrentPage("workout")}
-          onLogout={handleLogout}
+          onGoToProfile={() => setCurrentPage("profile")}
         />
         {content}
       </div>
     );
   }
 
-  // ─── Public pages (no nav) ────────────────────────────────────────────────
+  // ─── Public pages (no auth required, no nav) ──────────────────────────────
 
   if (currentPage === "welcome") {
     return (
@@ -114,8 +156,20 @@ function App() {
 
   // ─── Authenticated pages (with nav) ──────────────────────────────────────
 
+  // Guard: redirect unauthenticated users
+  if (!user) {
+    setCurrentPage("welcome");
+    return <LoadingScreen />;
+  }
+
   if (currentPage === "profile") {
-    return withNav(<UserProfilePage />);
+    return withNav(<UserProfilePage onGoToSettings={() => setCurrentPage("settings")} />);
+  }
+
+  if (currentPage === "settings") {
+    return withNav(
+      <SettingsPage onLogout={handleLogout} onGoToProfile={() => setCurrentPage("profile")} />
+    );
   }
 
   if (currentPage === "chat") {
@@ -135,7 +189,7 @@ function App() {
   if (currentPage === "workout-history") {
     return withNav(
       <WorkoutHistoryPage onBack={() => setCurrentPage("workout")} />,
-      "workout"   // keep "Workout" highlighted in nav while on sub-page
+      "workout"
     );
   }
 

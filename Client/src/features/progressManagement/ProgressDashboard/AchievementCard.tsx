@@ -1,4 +1,4 @@
-import type { Achievement } from "../user.models";
+import type { Achievement } from "../../userManagement/user.models";
 
 interface AchievementCardProps {
   achievement: Achievement;

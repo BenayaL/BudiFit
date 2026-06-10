@@ -8,7 +8,7 @@ export function useEditProfile(
   initialValues: EditProfileFormValues,
   onSaved: EditProfileFormProps["onSaved"]
 ) {
-  const { token, updateDisplayInfo } = useAuth();
+  const { token, updateCurrentUser } = useAuth();
   const [form, setForm] = useState<EditProfileFormValues>(initialValues);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -37,17 +37,25 @@ export function useEditProfile(
       return;
     }
 
+    if (!token) {
+      setError("Not authenticated.");
+      return;
+    }
+
     setIsLoading(true);
     setError("");
 
     try {
-      if (token) {
-        await userService.updateUserProfile(
-          { firstName: form.firstName, lastName: form.lastName, goals: form.goals },
-          token
-        );
-      }
-      updateDisplayInfo(form.firstName, 0);
+      const updated = await userService.updateCurrentUser(
+        {
+          firstName: form.firstName,
+          lastName: form.lastName,
+          goals: form.goals,
+        },
+        token
+      );
+      // Sync the new data into AuthContext so TopNav and other consumers update immediately
+      updateCurrentUser(updated);
       setSuccess(true);
       onSaved(form);
     } catch {

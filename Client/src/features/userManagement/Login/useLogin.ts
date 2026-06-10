@@ -7,11 +7,11 @@ import { useAuth } from "../../../app/AuthContext";
 
 export function useLogin(onLoginSuccess: LoginPageProps["onLoginSuccess"]) {
   const auth = useAuth();
-  const [form, setForm] = useState<LoginFormValues>({email: "",password: "",rememberMe: false,});
+  const [form, setForm] = useState<LoginFormValues>({ email: "", password: "", rememberMe: false });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  function handleInputChange(field: keyof LoginFormValues, value: string) {
+  function handleInputChange(field: keyof LoginFormValues, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
     setError("");
   }
@@ -30,13 +30,11 @@ export function useLogin(onLoginSuccess: LoginPageProps["onLoginSuccess"]) {
 
     try {
       const response = await userService.login({ email: form.email, password: form.password });
-      auth.login(response, form.rememberMe);
-      onLoginSuccess(response.role);
-    } catch (error) {
+      await auth.login(response, form.rememberMe);
+      onLoginSuccess(response.role, response.hasCompletedOnboarding ?? false);
+    } catch (err) {
       setError(
-        error instanceof Error
-          ? error.message
-          : "Login failed. Please try again."
+        err instanceof Error ? err.message : "Login failed. Please try again."
       );
     } finally {
       setIsLoading(false);

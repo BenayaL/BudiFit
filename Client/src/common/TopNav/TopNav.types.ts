@@ -12,8 +12,8 @@ export interface TopNavProps {
   onChangePage: (page: Page) => void;
   user: {
     name: string;
-    streak: number;
+    avatarLetter: string;
   };
   onStartWorkout: () => void;
-  onLogout: () => void;
+  onGoToProfile: () => void;
 }

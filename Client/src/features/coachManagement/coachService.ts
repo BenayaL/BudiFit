@@ -27,5 +27,5 @@ export const coachService = {
     httpClient.patch<void>(ENDPOINTS.coach.rejectPlan(planId), {}, token),
 
   getCoachProfile: (token: string): Promise<Coach> =>
-    httpClient.get<Coach>(ENDPOINTS.users.profile, token),
+    httpClient.get<Coach>(ENDPOINTS.auth.currentUser, token),
 };

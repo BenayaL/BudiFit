@@ -1,9 +1,7 @@
-import type { UserProfile } from "../user.models";
+import type { CurrentUser } from "../user.models";
 
-export interface UserProfilePageState {
-  profile: UserProfile | null;
-  isLoading: boolean;
-  error: string;
+export interface UserProfilePageProps {
+  onGoToSettings?: () => void;
 }
 
-export type { UserProfile };
+export type { CurrentUser };

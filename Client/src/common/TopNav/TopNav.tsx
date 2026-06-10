@@ -9,10 +9,9 @@ export function TopNav({
   onChangePage,
   user,
   onStartWorkout,
-  onLogout,
+  onGoToProfile,
 }: TopNavProps) {
   const navRef = useRef<HTMLDivElement>(null);
-
   const [indicator, setIndicator] = useState({ left: 0, width: 0, opacity: 0 });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -134,10 +133,6 @@ export function TopNav({
 
         {/* Right — user actions */}
         <div className="flex shrink-0 items-center gap-2 pr-1">
-          <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-purple-100 px-3 py-2 text-sm font-bold text-purple-800">
-            🔥 {user.streak}d
-          </div>
-
           {activePage !== "workout" && (
             <div className="shrink-0">
               <AppButton onClick={onStartWorkout} variant="primary" className="!py-2.5 !px-4">
@@ -151,13 +146,14 @@ export function TopNav({
             </div>
           )}
 
+          {/* Avatar — navigates to Profile */}
           <button
-            onClick={onLogout}
-            className="shrink-0 relative ml-2 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-slate-50 transition hover:bg-slate-100"
+            type="button"
+            onClick={onGoToProfile}
+            aria-label={`Go to profile — ${user.name}`}
+            className="relative flex h-10 w-10 items-center justify-center rounded-full bg-purple-600 text-sm font-bold text-white hover:bg-purple-700 transition-colors"
           >
-            <span className="text-sm font-bold text-slate-800">
-              {user.name.charAt(0).toUpperCase()}
-            </span>
+            {user.avatarLetter}
             <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
           </button>
         </div>

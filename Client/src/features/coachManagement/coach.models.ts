@@ -1,6 +1,6 @@
 // coachManagement — data contracts for coach, trainee, and plan objects.
 
-import type { User } from "../userManagement/user.models";
+import type { UserRole } from "../userManagement/user.models";
 
 // ─── Primitive types ──────────────────────────────────────────────────────────
 
@@ -9,13 +9,24 @@ export type PlanStatus = "pending_approval" | "approved" | "rejected";
 export type ExerciseDifficulty = "easy" | "moderate" | "hard";
 export type ChallengeOutcome = "completed" | "partial" | "missed";
 
+// ─── Base user shape used by coach-dashboard mock/API data ────────────────────
+
+interface CoachBaseUser {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  level: string;
+  role: UserRole;
+}
+
 // ─── Entities ─────────────────────────────────────────────────────────────────
 
-export interface Coach extends User {
+export interface Coach extends CoachBaseUser {
   assignedTraineeIds: string[];
 }
 
-export interface Trainee extends User {
+export interface Trainee extends CoachBaseUser {
   color: string;
   status: TraineeStatus;
   streakDays: number;

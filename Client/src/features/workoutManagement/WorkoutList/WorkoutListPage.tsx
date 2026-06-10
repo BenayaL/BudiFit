@@ -11,7 +11,7 @@ interface ShareModalProps {
 }
 
 function ShareModal({ title, onClose }: ShareModalProps) {
-  const { token } = useAuth();
+  useAuth(); // token available when backend export is implemented
   const [email, setEmail] = useState("");
   const [showEmail, setShowEmail] = useState(false);
   const [sent, setSent] = useState(false);

@@ -9,6 +9,8 @@ export interface ITraineeProfile extends Document {
   weight?: number;
   age?: number;
   medicalConditions: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const TraineeProfileSchema = new Schema<ITraineeProfile>(

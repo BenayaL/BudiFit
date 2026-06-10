@@ -1,134 +1,172 @@
-// app — global auth state: token, role, display info.
-// Stored in localStorage so the session survives a page refresh.
-// All domain hooks read the token from here instead of receiving it as a prop.
+// app — global auth state: token and real CurrentUser from the server.
+// Stored token in localStorage/sessionStorage so the session survives a page refresh.
+// On mount, the stored token is validated by calling GET /api/users/me.
 
-import { createContext, useContext, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import type { ReactNode } from "react";
-import type { UserRole } from "../features/userManagement/user.models";
-import type { AuthResponse } from "../features/userManagement/user.models";
+import type { CurrentUser, AuthResponse } from "../features/userManagement/user.models";
+import { userService } from "../features/userManagement/userService";
 
-interface AuthState {
-  token: string | null;
-  userId: string | null;
-  role: UserRole | null;
-  displayName: string;
-  streak: number;
-  hasCompletedOnboarding: boolean;
-}
-
-interface AuthContextValue extends AuthState {
-  isAuthenticated: boolean;
-  login: (response: AuthResponse, rememberMe: boolean) => void;
-  logout: () => void;
-  updateDisplayInfo: (displayName: string, streak: number) => void;
-  setOnboardingComplete: () => void;
-}
+// ─── Storage helpers ──────────────────────────────────────────────────────────
 
 const STORAGE_KEY = "budifit_auth";
 
-const EMPTY_AUTH_STATE: AuthState = {
-  token: null,
-  userId: null,
-  role: null,
-  displayName: "",
-  streak: 0,
-  hasCompletedOnboarding: false,
-};
-
-function loadFromStorage(): AuthState {
+function loadStoredToken(): string | null {
   try {
-    /*
-     * localStorage is checked first because it represents
-     * a remembered login.
-     */
-    const storedAuth =
+    const raw =
       localStorage.getItem(STORAGE_KEY) ??
       sessionStorage.getItem(STORAGE_KEY);
 
-    if (storedAuth) {
-      return JSON.parse(storedAuth) as AuthState;
+    if (!raw) return null;
+
+    // Migrate old format: was a JSON object with a `token` field
+    try {
+      const parsed = JSON.parse(raw) as { token?: string };
+      return parsed.token ?? null;
+    } catch {
+      // Already a raw token string (new format)
+      return raw;
     }
   } catch {
-    localStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(STORAGE_KEY);
+    return null;
   }
-
-  return EMPTY_AUTH_STATE;
 }
 
-function saveToActiveStorage(state: AuthState) {
-  if (localStorage.getItem(STORAGE_KEY)) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    return;
+function saveToken(token: string, rememberMe: boolean): void {
+  localStorage.removeItem(STORAGE_KEY);
+  sessionStorage.removeItem(STORAGE_KEY);
+  if (rememberMe) {
+    localStorage.setItem(STORAGE_KEY, token);
+  } else {
+    sessionStorage.setItem(STORAGE_KEY, token);
   }
+}
 
-  if (sessionStorage.getItem(STORAGE_KEY)) {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
+function clearToken(): void {
+  localStorage.removeItem(STORAGE_KEY);
+  sessionStorage.removeItem(STORAGE_KEY);
+}
+
+// ─── Context types ────────────────────────────────────────────────────────────
+
+interface AuthContextValue {
+  token: string | null;
+  user: CurrentUser | null;
+  isAuthenticated: boolean;
+  isInitializing: boolean;
+  login: (response: AuthResponse, rememberMe: boolean) => Promise<void>;
+  logout: () => Promise<void>;
+  refreshCurrentUser: () => Promise<void>;
+  updateCurrentUser: (updated: Partial<CurrentUser>) => void;
+  setOnboardingComplete: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// ─── Provider ─────────────────────────────────────────────────────────────────
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [auth, setAuth] = useState<AuthState>(loadFromStorage);
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<CurrentUser | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
-const login = useCallback(
-  (response: AuthResponse, rememberMe: boolean) => {
-    const next: AuthState = {
-      token: response.token,
-      userId: response.userId,
-      role: response.role,
-      displayName: "",
-      streak: 0,
-      hasCompletedOnboarding:
-        response.hasCompletedOnboarding ?? false,
-    };
+  // On mount: restore the session from storage
+  useEffect(() => {
+    const storedToken = loadStoredToken();
 
-    /*
-     * Remove an older session before choosing the new storage.
-     */
-    localStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(STORAGE_KEY);
-
-    if (rememberMe) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } else {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    if (!storedToken) {
+      setIsInitializing(false);
+      return;
     }
 
-    setAuth(next);
-  },
-  []
-);
+    setToken(storedToken);
 
-  const logout = useCallback(() => {
-  localStorage.removeItem(STORAGE_KEY);
-  sessionStorage.removeItem(STORAGE_KEY);
-  setAuth(EMPTY_AUTH_STATE);
-}, []);
-
-  const updateDisplayInfo = useCallback((displayName: string, streak: number) => {
-    setAuth((prev) => {
-      const next = { ...prev, displayName, streak };
-      saveToActiveStorage(next);  
-      return next;
-    });
+    userService
+      .getCurrentUser(storedToken)
+      .then((currentUser) => {
+        setUser(currentUser);
+      })
+      .catch(() => {
+        // Token is invalid or expired — clear the stale session
+        clearToken();
+        setToken(null);
+        setUser(null);
+      })
+      .finally(() => {
+        setIsInitializing(false);
+      });
   }, []);
 
-  const setOnboardingComplete = useCallback(() => {
-    setAuth((prev) => {
-      const next = { ...prev, hasCompletedOnboarding: true };
-      saveToActiveStorage(next);
-      return next;
-    });
+  const login = useCallback(
+    async (response: AuthResponse, rememberMe: boolean): Promise<void> => {
+      const newToken = response.token;
+
+      saveToken(newToken, rememberMe);
+      setToken(newToken);
+
+      try {
+        const currentUser = await userService.getCurrentUser(newToken);
+        setUser(currentUser);
+      } catch {
+        // Login succeeded but /me failed (server error).
+        // Keep the token — the user can still navigate; session restore will retry.
+      }
+    },
+    []
+  );
+
+  const logout = useCallback(async (): Promise<void> => {
+    try {
+      if (token) {
+        await userService.logout(token);
+      }
+    } catch {
+      // Network error — proceed with local cleanup regardless
+    } finally {
+      clearToken();
+      setToken(null);
+      setUser(null);
+    }
+  }, [token]);
+
+  const refreshCurrentUser = useCallback(async (): Promise<void> => {
+    if (!token) return;
+    try {
+      const currentUser = await userService.getCurrentUser(token);
+      setUser(currentUser);
+    } catch {
+      // Silently fail — caller can handle the stale state
+    }
+  }, [token]);
+
+  const updateCurrentUser = useCallback(
+    (updated: Partial<CurrentUser>): void => {
+      setUser((prev) => (prev ? { ...prev, ...updated } : null));
+    },
+    []
+  );
+
+  const setOnboardingComplete = useCallback((): void => {
+    setUser((prev) =>
+      prev ? { ...prev, hasCompletedOnboarding: true } : null
+    );
   }, []);
 
   const value: AuthContextValue = {
-    ...auth,
-    isAuthenticated: auth.token !== null,
+    token,
+    user,
+    isAuthenticated: token !== null,
+    isInitializing,
     login,
     logout,
-    updateDisplayInfo,
+    refreshCurrentUser,
+    updateCurrentUser,
     setOnboardingComplete,
   };
 

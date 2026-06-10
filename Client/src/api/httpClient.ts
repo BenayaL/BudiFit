@@ -28,30 +28,33 @@ async function request<T>(
     let message = `HTTP ${response.status} — ${path}`;
 
     try {
-      const errorBody = (await response.json()) as {
-        message?: string;
-      };
-
-      if (errorBody.message) {
-        message = errorBody.message;
-      }
+      const errorBody = (await response.json()) as { message?: string; error?: string };
+      const detail = errorBody.error ?? errorBody.message;
+      if (detail) message = detail;
     } catch {
-      // If the server did not return JSON, keep the default message.
+      // Server did not return JSON; keep the default message.
     }
 
     throw new Error(message);
+  }
+
+  // 204 No Content — nothing to parse
+  if (response.status === 204) {
+    return undefined as T;
   }
 
   return response.json() as Promise<T>;
 }
 
 export const httpClient = {
-  get: <T>(path: string, token?: string) => request<T>("GET", path, undefined, token),
+  get: <T>(path: string, token?: string) =>
+    request<T>("GET", path, undefined, token),
   post: <TResponse, TBody = unknown>(path: string, body: TBody, token?: string) =>
     request<TResponse>("POST", path, body, token),
   put: <TResponse, TBody = unknown>(path: string, body: TBody, token?: string) =>
     request<TResponse>("PUT", path, body, token),
   patch: <TResponse, TBody = unknown>(path: string, body: TBody, token?: string) =>
     request<TResponse>("PATCH", path, body, token),
-  delete: <T>(path: string, token?: string) => request<T>("DELETE", path, undefined, token),
+  delete: <T>(path: string, token?: string) =>
+    request<T>("DELETE", path, undefined, token),
 };

@@ -3,15 +3,24 @@
 
 export const ENDPOINTS = {
   auth: {
-  login: "/users/login",
-  register: "/users/register",
-  logout: "/users/logout",
-  currentUser: "/users/me",
-},
+    login: "/users/login",
+    register: "/users/register",
+    logout: "/users/logout",
+    currentUser: "/users/me",
+  },
 
   users: {
-    profile: "/users/profile",
-    updateProfile: "/users/profile",
+    updateMe: "/users/me",
+    settings: "/users/me/settings",
+  },
+
+  traineeProfiles: {
+    onboarding: "/trainee-profiles/me/onboarding",
+  },
+
+  coachConnections: {
+    me: "/coach-connections/me",
+    connect: "/coach-connections/connect",
   },
 
   workouts: {
@@ -39,7 +48,7 @@ export const ENDPOINTS = {
 
   progress: {
     dashboard: "/progress/dashboard",
-    history:   "/progress/history",
+    history: "/progress/history",
   },
 
   bot: {
@@ -47,8 +56,8 @@ export const ENDPOINTS = {
     history: (sessionId: string) => `/bot/history/${sessionId}`,
   },
 
-  export: {                                          
-    pdf:   "/export/workout-summary/pdf",
+  export: {
+    pdf: "/export/workout-summary/pdf",
     email: "/export/workout-summary/email",
   },
 };

@@ -8,6 +8,7 @@ import rateLimit from "express-rate-limit";
 
 import usersRouter from "./routes/users.route";
 import traineeProfileRouter from "./routes/TraineeProfile.route";
+import coachConnectionsRouter from "./routes/coachConnections.route";
 
 dotenv.config();
 
@@ -21,7 +22,7 @@ const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 100, 
+  max: 100,
   message: {
     success: false,
     message: "Too many requests. Please try again later.",
@@ -31,7 +32,6 @@ const apiLimiter = rateLimit({
 });
 
 app.use("/api", apiLimiter);
-// Middleware
 app.use(express.json());
 
 app.use(
@@ -40,13 +40,11 @@ app.use(
   })
 );
 
-//during development, we want to disable caching to see changes immediately
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.set("Cache-Control", "no-store");
   next();
 });
 
-// MongoDB connection
 if (!MONGO_URI) {
   console.error("MONGO_URI is missing from .env file");
 } else {
@@ -63,16 +61,14 @@ mongoose.connection.once("open", () => {
   console.log("Connected database host:", mongoose.connection.host);
 });
 
-// Basic route
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (_req: Request, res: Response) => {
   res.send("BudiFit TypeScript server is running");
 });
 
-// API routes
 app.use("/api/users", usersRouter);
 app.use("/api/trainee-profiles", traineeProfileRouter);
+app.use("/api/coach-connections", coachConnectionsRouter);
 
-// Start server
 app.listen(Number(PORT), "127.0.0.1", () => {
   console.log(`Server running on http://127.0.0.1:${PORT}`);
 });

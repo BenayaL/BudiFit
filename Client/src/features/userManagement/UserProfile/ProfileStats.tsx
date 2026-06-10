@@ -1,9 +1,6 @@
-import type { UserProfile } from "../user.models";
-
-interface ProfileStatsProps {
-  user: UserProfile;
-  earnedAchievementCount: number;
-}
+// Progress stats tile — shown on the profile page when progress data is available.
+// Backend for progress tracking is not yet implemented; this component is reserved
+// for future use.
 
 interface StatTileProps {
   label: string;
@@ -31,13 +28,21 @@ function StatTile({ label, value, sub, emoji, color, bg }: StatTileProps) {
   );
 }
 
-export function ProfileStats({ user, earnedAchievementCount }: ProfileStatsProps) {
+interface ProfileStatsData {
+  streak: number;
+  totalWorkouts: number;
+  totalMinutes: number;
+  achievementsEarned: number;
+  achievementsTotal: number;
+}
+
+export function ProfileStats({ data }: { data: ProfileStatsData }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-      <StatTile label="Day Streak" value={user.streak.toString()} sub="days" emoji="🔥" color="text-orange-500" bg="bg-orange-100" />
-      <StatTile label="Workouts" value={user.totalWorkouts.toString()} sub="sessions" emoji="🏋️" color="text-blue-500" bg="bg-blue-100" />
-      <StatTile label="Time Moved" value={Math.round(user.totalMinutes / 60).toString()} sub="hours" emoji="⏱️" color="text-emerald-500" bg="bg-emerald-100" />
-      <StatTile label="Badges" value={`${earnedAchievementCount}/${user.achievements.length}`} sub="earned" emoji="🏆" color="text-purple-500" bg="bg-purple-100" />
+      <StatTile label="Day Streak"   value={data.streak.toString()}        sub="days"    emoji="🔥" color="text-orange-500" bg="bg-orange-100" />
+      <StatTile label="Workouts"     value={data.totalWorkouts.toString()}  sub="sessions" emoji="🏋️" color="text-blue-500"   bg="bg-blue-100"   />
+      <StatTile label="Time Moved"   value={Math.round(data.totalMinutes / 60).toString()} sub="hours" emoji="⏱️" color="text-emerald-500" bg="bg-emerald-100" />
+      <StatTile label="Badges"       value={`${data.achievementsEarned}/${data.achievementsTotal}`} sub="earned" emoji="🏆" color="text-purple-500" bg="bg-purple-100" />
     </div>
   );
 }

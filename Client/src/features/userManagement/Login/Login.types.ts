@@ -5,7 +5,7 @@ export type LoginFormValues = {
 };
 
 export interface LoginPageProps {
-  onLoginSuccess: (role: "trainee" | "coach") => void;
+  onLoginSuccess: (role: "trainee" | "coach", hasCompletedOnboarding: boolean) => void;
   onGoToRegister: () => void;
   onBackToWelcome: () => void;
 }

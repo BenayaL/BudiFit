@@ -18,7 +18,7 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   isAuthenticated: boolean;
-  login: (response: AuthResponse) => void;
+  login: (response: AuthResponse, rememberMe: boolean) => void;
   logout: () => void;
   updateDisplayInfo: (displayName: string, streak: number) => void;
   setOnboardingComplete: () => void;
@@ -26,18 +26,45 @@ interface AuthContextValue extends AuthState {
 
 const STORAGE_KEY = "budifit_auth";
 
+const EMPTY_AUTH_STATE: AuthState = {
+  token: null,
+  userId: null,
+  role: null,
+  displayName: "",
+  streak: 0,
+  hasCompletedOnboarding: false,
+};
+
 function loadFromStorage(): AuthState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as AuthState;
+    /*
+     * localStorage is checked first because it represents
+     * a remembered login.
+     */
+    const storedAuth =
+      localStorage.getItem(STORAGE_KEY) ??
+      sessionStorage.getItem(STORAGE_KEY);
+
+    if (storedAuth) {
+      return JSON.parse(storedAuth) as AuthState;
+    }
   } catch {
-    // corrupted — start fresh
+    localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
   }
-  return { token: null, userId: null, role: null, displayName: "", streak: 0, hasCompletedOnboarding: false };
+
+  return EMPTY_AUTH_STATE;
 }
 
-function saveToStorage(state: AuthState) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+function saveToActiveStorage(state: AuthState) {
+  if (localStorage.getItem(STORAGE_KEY)) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    return;
+  }
+
+  if (sessionStorage.getItem(STORAGE_KEY)) {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -45,28 +72,45 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [auth, setAuth] = useState<AuthState>(loadFromStorage);
 
-  const login = useCallback((response: AuthResponse) => {
+const login = useCallback(
+  (response: AuthResponse, rememberMe: boolean) => {
     const next: AuthState = {
       token: response.token,
       userId: response.userId,
       role: response.role,
       displayName: "",
       streak: 0,
-      hasCompletedOnboarding: false,
+      hasCompletedOnboarding:
+        response.hasCompletedOnboarding ?? false,
     };
-    saveToStorage(next);
+
+    /*
+     * Remove an older session before choosing the new storage.
+     */
+    localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
+
+    if (rememberMe) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } else {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    }
+
     setAuth(next);
-  }, []);
+  },
+  []
+);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    setAuth({ token: null, userId: null, role: null, displayName: "", streak: 0, hasCompletedOnboarding: false });
-  }, []);
+  localStorage.removeItem(STORAGE_KEY);
+  sessionStorage.removeItem(STORAGE_KEY);
+  setAuth(EMPTY_AUTH_STATE);
+}, []);
 
   const updateDisplayInfo = useCallback((displayName: string, streak: number) => {
     setAuth((prev) => {
       const next = { ...prev, displayName, streak };
-      saveToStorage(next);
+      saveToActiveStorage(next);  
       return next;
     });
   }, []);
@@ -74,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const setOnboardingComplete = useCallback(() => {
     setAuth((prev) => {
       const next = { ...prev, hasCompletedOnboarding: true };
-      saveToStorage(next);
+      saveToActiveStorage(next);
       return next;
     });
   }, []);

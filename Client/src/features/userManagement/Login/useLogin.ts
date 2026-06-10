@@ -7,7 +7,7 @@ import { useAuth } from "../../../app/AuthContext";
 
 export function useLogin(onLoginSuccess: LoginPageProps["onLoginSuccess"]) {
   const auth = useAuth();
-  const [form, setForm] = useState<LoginFormValues>({ email: "", password: "" });
+  const [form, setForm] = useState<LoginFormValues>({email: "",password: "",rememberMe: false,});
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -30,10 +30,14 @@ export function useLogin(onLoginSuccess: LoginPageProps["onLoginSuccess"]) {
 
     try {
       const response = await userService.login({ email: form.email, password: form.password });
-      auth.login(response);
+      auth.login(response, form.rememberMe);
       onLoginSuccess(response.role);
-    } catch {
-      setError("Cannot connect to server. Please try again later.");
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Login failed. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }

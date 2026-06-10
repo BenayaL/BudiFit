@@ -15,7 +15,6 @@ export const userService = {
   login: (data: LoginRequest): Promise<AuthResponse> =>
     httpClient.post<AuthResponse, LoginRequest>(ENDPOINTS.auth.login, data),
 
-  // TODO: update to return a real token once the server implements JWT.
   register: (data: RegisterRequest): Promise<RegisterServerResponse> =>
     httpClient.post<RegisterServerResponse, RegisterRequest>(ENDPOINTS.auth.register, data),
 

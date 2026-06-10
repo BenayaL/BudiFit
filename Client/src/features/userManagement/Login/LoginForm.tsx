@@ -9,7 +9,7 @@ interface LoginFormProps {
   error: string;
   isLoading: boolean;
   isFormValid: boolean;
-  onInputChange: (field: keyof LoginFormValues, value: string) => void;
+  onInputChange: (field: keyof LoginFormValues,value: string | boolean) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onForgotPassword: () => void;
   onGoToRegister: () => void;
@@ -51,6 +51,18 @@ export function LoginForm({
             autoComplete="current-password"
           />
         </FormField>
+
+        <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-600">
+          <input
+            type="checkbox"
+            checked={form.rememberMe}
+            onChange={(event) =>
+              onInputChange("rememberMe", event.target.checked)
+            }
+            className="h-4 w-4 rounded border-slate-300 accent-purple-600"
+          />
+          <span>Keep me signed in</span>
+        </label>
 
         {error && (
           <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">{error}</p>

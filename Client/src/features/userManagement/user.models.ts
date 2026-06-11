@@ -5,7 +5,48 @@
 
 export type UserRole = "coach" | "trainee";
 
-export type Goal = "strength" | "cardio" | "flex" | "consistency" | "weightLoss";
+export type FitnessLevel = "beginner" | "intermediate" | "advanced";
+
+export type Goal =
+  | "strength"
+  | "cardio"
+  | "flex"
+  | "weightLoss"
+  | "consistency"
+  | "energy"
+  | "mood"
+  | "sleep";
+
+export type Equipment =
+  | "barbell"
+  | "cables"
+  | "dumbbells"
+  | "machines"
+  | "kettlebell"
+  | "pullup"
+  | "smith"
+  | "bench"
+  | "rack"
+  | "cardioMachines"
+  | "trx"
+  | "bands";
+
+export type MedicalCondition =
+  | "none"
+  | "knee"
+  | "back"
+  | "shoulder"
+  | "wrist_elbow"
+  | "hip_ankle"
+  | "cardiovascular_breathing"
+  | "mobility_balance"
+  | "other";
+
+export type PreferredWorkoutTime = "morning" | "afternoon" | "evening";
+
+export type SessionDurationMinutes = 30 | 45 | 60 | 90;
+
+export type Gender = "male" | "female" | "prefer_not_to_say";
 
 export type AuthStatus = "idle" | "loading" | "success" | "error";
 
@@ -31,8 +72,8 @@ export interface CurrentUser {
   username: string;
   email: string;
   role: UserRole;
-  fitnessLevel: "beginner" | "intermediate" | "advanced";
-  goals: string[];
+  fitnessLevel?: FitnessLevel;
+  goals: Goal[];
   hasCompletedOnboarding: boolean;
   settings?: UserSettings;
   coachConnectionCode?: string;
@@ -69,8 +110,6 @@ export interface RegisterRequest {
   email: string;
   password: string;
   role: UserRole;
-  fitnessLevel?: string;
-  goals?: string[];
 }
 
 export interface RegisterServerResponse {
@@ -96,24 +135,34 @@ export interface AuthResponse {
 // ─── Onboarding ───────────────────────────────────────────────────────────────
 
 export interface OnboardingRequest {
-  fitnessLevel: string;
-  goals: string[];
-  weeklyWorkouts: number;
+  age: number;
+  gender?: Gender;
   height?: number;
   weight?: number;
-  age?: number;
-  medicalConditions?: string[];
+  fitnessLevel: FitnessLevel;
+  goals: Goal[];
+  availableEquipment: Equipment[];
+  medicalConditions?: MedicalCondition[];
+  medicalNotes?: string;
+  weeklyWorkouts: number;
+  preferredWorkoutTime: PreferredWorkoutTime;
+  sessionDurationMinutes: SessionDurationMinutes;
 }
 
 export interface TraineeProfileData {
   userId: string;
-  fitnessLevel: "beginner" | "intermediate" | "advanced";
-  goals: string[];
-  weeklyWorkouts: number;
+  age: number;
+  gender?: Gender;
   height?: number;
   weight?: number;
-  age?: number;
-  medicalConditions: string[];
+  fitnessLevel: FitnessLevel;
+  goals: Goal[];
+  availableEquipment: Equipment[];
+  medicalConditions: MedicalCondition[];
+  medicalNotes?: string;
+  weeklyWorkouts: number;
+  preferredWorkoutTime: PreferredWorkoutTime;
+  sessionDurationMinutes: SessionDurationMinutes;
   createdAt: string;
   updatedAt: string;
 }

@@ -32,7 +32,12 @@ export interface IGeneratedWorkoutProfileSnapshot {
   height?: number;
   weight?: number;
   age?: number;
+  gender?: string;
+  availableEquipment: string[];
   medicalConditions: string[];
+  medicalNotes?: string;
+  preferredWorkoutTime?: string;
+  sessionDurationMinutes?: number;
 }
 
 /*
@@ -235,9 +240,30 @@ const GeneratedWorkoutProfileSnapshotSchema =
         min: 1,
       },
 
+      gender: {
+        type: String,
+      },
+
+      availableEquipment: {
+        type: [String],
+        default: [],
+      },
+
       medicalConditions: {
         type: [String],
         default: [],
+      },
+
+      medicalNotes: {
+        type: String,
+      },
+
+      preferredWorkoutTime: {
+        type: String,
+      },
+
+      sessionDurationMinutes: {
+        type: Number,
       },
     },
     {

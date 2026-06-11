@@ -39,17 +39,18 @@ export type GeneratedWorkoutPlanStatus =
   | "archived";
 
 export interface GeneratedWorkoutProfileSnapshot {
-  fitnessLevel:
-    | "beginner"
-    | "intermediate"
-    | "advanced";
-
+  fitnessLevel: "beginner" | "intermediate" | "advanced";
   goals: string[];
   weeklyWorkouts: number;
   height?: number;
   weight?: number;
   age?: number;
+  gender?: string;
+  availableEquipment: string[];
   medicalConditions: string[];
+  medicalNotes?: string;
+  preferredWorkoutTime?: string;
+  sessionDurationMinutes?: number;
 }
 
 export interface GeneratedWorkoutExercise {

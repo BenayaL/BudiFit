@@ -1,9 +1,24 @@
 import express, { Request, Response } from "express";
+import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { SignOptions } from "jsonwebtoken";
-import User, { generateCoachCode } from "../models/user.model";
+
+import User, {
+  generateCoachCode,
+} from "../models/user.model";
+
 import type { IUser } from "../models/user.model";
+
+import TraineeProfile from "../models/TraineeProfile.model";
+
+import {
+  FITNESS_LEVELS,
+  GOALS,
+  type FitnessLevel,
+  type Goal,
+} from "../models/TraineeProfile.types";
+
 import {
   authenticateToken,
   type AuthenticatedRequest,
@@ -16,6 +31,30 @@ const JWT_EXPIRES_IN = (
 ) as SignOptions["expiresIn"];
 
 const IS_DEV = process.env.NODE_ENV !== "production";
+
+/**
+ * Checks whether an unknown value is a supported fitness level.
+ */
+function isFitnessLevel(
+  value: unknown
+): value is FitnessLevel {
+  return (
+    typeof value === "string" &&
+    FITNESS_LEVELS.some(
+      (fitnessLevel) => fitnessLevel === value
+    )
+  );
+}
+
+/**
+ * Checks whether an unknown value is a supported trainee goal.
+ */
+function isGoal(value: unknown): value is Goal {
+  return (
+    typeof value === "string" &&
+    GOALS.some((goal) => goal === value)
+  );
+}
 
 // ─── DTO helper ──────────────────────────────────────────────────────────────
 
@@ -70,85 +109,298 @@ usersRouter.get(
 usersRouter.patch(
   "/me",
   authenticateToken,
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> => {
     try {
       const userId = req.authUser?.userId;
 
       if (!userId) {
-        res.status(401).json({ message: "Authenticated user was not found" });
+        res.status(401).json({
+          message:
+            "Authenticated user was not found",
+        });
         return;
       }
 
-      const { firstName, lastName, username, fitnessLevel, goals } = req.body;
+      const user = await User.findById(userId);
 
-      const updateFields: Partial<{
+      if (!user) {
+        res.status(404).json({
+          message: "User not found",
+        });
+        return;
+      }
+
+      const {
+        firstName,
+        lastName,
+        username,
+        fitnessLevel,
+        goals,
+      } = req.body;
+
+      const userUpdateFields: Partial<{
         firstName: string;
         lastName: string;
         username: string;
-        fitnessLevel: string;
-        goals: string[];
+        fitnessLevel: FitnessLevel;
+        goals: Goal[];
       }> = {};
 
+      /*
+       * These fields belong directly to the User account.
+       */
       if (firstName !== undefined) {
-        const trimmed = String(firstName).trim();
-        if (!trimmed) {
-          res.status(400).json({ message: "firstName cannot be empty" });
+        const trimmedFirstName =
+          String(firstName).trim();
+
+        if (!trimmedFirstName) {
+          res.status(400).json({
+            message:
+              "firstName cannot be empty",
+          });
           return;
         }
-        updateFields.firstName = trimmed;
+
+        userUpdateFields.firstName =
+          trimmedFirstName;
       }
 
       if (lastName !== undefined) {
-        const trimmed = String(lastName).trim();
-        if (!trimmed) {
-          res.status(400).json({ message: "lastName cannot be empty" });
+        const trimmedLastName =
+          String(lastName).trim();
+
+        if (!trimmedLastName) {
+          res.status(400).json({
+            message:
+              "lastName cannot be empty",
+          });
           return;
         }
-        updateFields.lastName = trimmed;
+
+        userUpdateFields.lastName =
+          trimmedLastName;
       }
 
       if (username !== undefined) {
-        const trimmed = String(username).trim();
-        if (!trimmed) {
-          res.status(400).json({ message: "username cannot be empty" });
+        const trimmedUsername =
+          String(username).trim();
+
+        if (!trimmedUsername) {
+          res.status(400).json({
+            message:
+              "username cannot be empty",
+          });
           return;
         }
-        const conflict = await User.findOne({ username: trimmed, _id: { $ne: userId } });
-        if (conflict) {
-          res.status(409).json({ message: "Username already taken" });
+
+        const usernameConflict =
+          await User.findOne({
+            username: trimmedUsername,
+            _id: {
+              $ne: userId,
+            },
+          });
+
+        if (usernameConflict) {
+          res.status(409).json({
+            message: "Username already taken",
+          });
           return;
         }
-        updateFields.username = trimmed;
+
+        userUpdateFields.username =
+          trimmedUsername;
       }
+
+      /*
+       * Fitness level and goals are stored in two places:
+       *
+       * 1. Users — summary data used by authentication and UI.
+       * 2. TraineeProfiles — full trainee profile used for workouts.
+       *
+       * Therefore, they must be updated together.
+       */
+      const traineeProfileUpdateFields: Partial<{
+        fitnessLevel: FitnessLevel;
+        goals: Goal[];
+      }> = {};
 
       if (fitnessLevel !== undefined) {
-        const valid = ["beginner", "intermediate", "advanced"];
-        if (!valid.includes(fitnessLevel)) {
-          res.status(400).json({ message: "Invalid fitnessLevel" });
+        if (!isFitnessLevel(fitnessLevel)) {
+          res.status(400).json({
+            message: "Invalid fitnessLevel",
+          });
           return;
         }
-        updateFields.fitnessLevel = fitnessLevel;
+
+        userUpdateFields.fitnessLevel =
+          fitnessLevel;
+
+        traineeProfileUpdateFields.fitnessLevel =
+          fitnessLevel;
       }
 
-      if (Array.isArray(goals)) {
-        updateFields.goals = goals.map(String);
+      if (goals !== undefined) {
+        if (!Array.isArray(goals)) {
+          res.status(400).json({
+            message: "goals must be an array",
+          });
+          return;
+        }
+
+        if (
+          goals.length < 1 ||
+          goals.length > 3
+        ) {
+          res.status(400).json({
+            message:
+              "Goals must contain between 1 and 3 values",
+          });
+          return;
+        }
+
+        const validatedGoals: Goal[] = [];
+
+        for (const goal of goals) {
+          if (!isGoal(goal)) {
+            res.status(400).json({
+              message: `Invalid goal value: ${String(
+                goal
+              )}`,
+            });
+            return;
+          }
+
+          validatedGoals.push(goal);
+        }
+
+        if (
+          new Set(validatedGoals).size !==
+          validatedGoals.length
+        ) {
+          res.status(400).json({
+            message:
+              "Goals must not contain duplicate values",
+          });
+          return;
+        }
+
+        userUpdateFields.goals =
+          validatedGoals;
+
+        traineeProfileUpdateFields.goals =
+          validatedGoals;
       }
 
-      const updated = await User.findByIdAndUpdate(
-        userId,
-        { $set: updateFields },
-        { new: true, runValidators: true, projection: { password: 0 } }
-      );
-
-      if (!updated) {
-        res.status(404).json({ message: "User not found" });
+      if (
+        Object.keys(userUpdateFields).length === 0
+      ) {
+        res.status(400).json({
+          message:
+            "No editable fields were provided",
+        });
         return;
       }
 
-      res.status(200).json(formatUser(updated));
+      /*
+       * Coaches do not have a trainee fitness profile.
+       */
+      if (
+        Object.keys(
+          traineeProfileUpdateFields
+        ).length > 0
+      ) {
+        if (user.role !== "trainee") {
+          res.status(403).json({
+            message:
+              "Only trainees can update fitness profile fields",
+          });
+          return;
+        }
+
+        /*
+         * Do not create an incomplete trainee profile through
+         * the generic user-edit route.
+         *
+         * A trainee profile must first be created through the
+         * onboarding endpoint.
+         */
+        const updatedProfile =
+          await TraineeProfile.findOneAndUpdate(
+            {
+              userId: user._id,
+            },
+            {
+              $set: traineeProfileUpdateFields,
+            },
+            {
+              new: true,
+              runValidators: true,
+            }
+          );
+
+        if (!updatedProfile) {
+          res.status(409).json({
+            message:
+              "Complete onboarding before editing fitness profile fields",
+          });
+          return;
+        }
+      }
+
+      const updatedUser =
+        await User.findByIdAndUpdate(
+          userId,
+          {
+            $set: userUpdateFields,
+          },
+          {
+            new: true,
+            runValidators: true,
+            projection: {
+              password: 0,
+            },
+          }
+        );
+
+      if (!updatedUser) {
+        res.status(404).json({
+          message: "User not found",
+        });
+        return;
+      }
+
+      res
+        .status(200)
+        .json(formatUser(updatedUser));
     } catch (error) {
-      console.error("Failed to update user:", error);
-      res.status(500).json({ message: "Failed to update user" });
+      console.error(
+        "Failed to update user:",
+        error
+      );
+
+      if (
+        error instanceof
+        mongoose.Error.ValidationError
+      ) {
+        res.status(400).json({
+          message: "Invalid user data",
+          errors: Object.values(
+            error.errors
+          ).map(
+            (validationError) =>
+              validationError.message
+          ),
+        });
+        return;
+      }
+
+      res.status(500).json({
+        message: "Failed to update user",
+      });
     }
   }
 );
@@ -291,8 +543,14 @@ usersRouter.post("/register", async (req: Request, res: Response) => {
   if (IS_DEV) console.log("[REGISTER] Request received");
 
   try {
-    const { firstName, lastName, username, email, password, role, fitnessLevel, goals } =
-      req.body;
+    const {
+      firstName,
+      lastName,
+      username,
+      email,
+      password,
+      role,
+    } = req.body;
 
     if (IS_DEV) {
       console.log(
@@ -312,10 +570,10 @@ usersRouter.post("/register", async (req: Request, res: Response) => {
       return;
     }
 
-    const normalizedEmail    = String(email).trim().toLowerCase();
+    const normalizedEmail = String(email).trim().toLowerCase();
     const normalizedUsername = String(username).trim();
-    const normalizedFirst    = String(firstName).trim();
-    const normalizedLast     = String(lastName).trim();
+    const normalizedFirst = String(firstName).trim();
+    const normalizedLast = String(lastName).trim();
 
     if (!normalizedEmail || !normalizedUsername || !normalizedFirst || !normalizedLast) {
       res.status(400).json({ message: "All required fields must be provided" });
@@ -382,9 +640,16 @@ usersRouter.post("/register", async (req: Request, res: Response) => {
       email: normalizedEmail,
       password: passwordHash,
       role,
-      ...(fitnessLevel !== undefined ? { fitnessLevel } : {}),
-      ...(Array.isArray(goals) ? { goals } : {}),
-      ...(coachConnectionCode !== undefined ? { coachConnectionCode } : {}),
+
+      /*
+       * Only coaches receive a connection code.
+       *
+       * fitnessLevel and goals are intentionally not accepted
+       * during registration. Trainees select them during onboarding.
+       */
+      ...(coachConnectionCode !== undefined
+        ? { coachConnectionCode }
+        : {}),
     });
 
     if (IS_DEV) console.log("[REGISTER] Saving user document");
@@ -394,17 +659,7 @@ usersRouter.post("/register", async (req: Request, res: Response) => {
     if (IS_DEV) console.log("[REGISTER] Sending success response");
     res.status(201).json({
       message: "User registered successfully",
-      user: {
-        id: user._id.toString(),
-        firstName: user.firstName,
-        lastName: user.lastName,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        fitnessLevel: user.fitnessLevel,
-        goals: user.goals,
-        hasCompletedOnboarding: user.hasCompletedOnboarding,
-      },
+      user: formatUser(user),
     });
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));

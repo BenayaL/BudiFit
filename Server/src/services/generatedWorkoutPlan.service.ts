@@ -18,7 +18,12 @@ export interface WorkoutGenerationTraineeContext {
   height?: number;
   weight?: number;
   age?: number;
+  gender?: string;
+  availableEquipment: string[];
   medicalConditions: string[];
+  medicalNotes?: string;
+  preferredWorkoutTime?: string;
+  sessionDurationMinutes?: number;
 }
 
 /*
@@ -237,6 +242,31 @@ function buildWorkoutGenerationPrompt(
         "Optional exercise fields: restSec (integer), notes (string).",
       ].join("\n");
 
+  const equipment =
+    trainee.availableEquipment.length > 0
+      ? trainee.availableEquipment.join(", ")
+      : "bodyweight only";
+
+  const medicalNotesLine =
+    trainee.medicalNotes?.trim()
+      ? `- Additional medical notes: ${trainee.medicalNotes.trim()}`
+      : "";
+
+  const sessionDurationLine =
+    trainee.sessionDurationMinutes !== undefined
+      ? `- Target session duration: ${trainee.sessionDurationMinutes} minutes`
+      : "";
+
+  const preferredTimeLine =
+    trainee.preferredWorkoutTime
+      ? `- Preferred workout time: ${trainee.preferredWorkoutTime}`
+      : "";
+
+  const medicalNote =
+    medicalConditions === "None reported"
+      ? "No limitations reported."
+      : `Reported limitations: ${medicalConditions}. Consider these when selecting exercises — avoid or modify movements that may aggravate the listed conditions. Do not provide medical diagnosis or claim this plan replaces professional medical advice.`;
+
   return `
 You are generating a personalized workout plan for the BudiFit application.
 
@@ -249,7 +279,20 @@ Trainee information:
 - Age: ${formatOptionalNumber(trainee.age, "years")}
 - Height: ${formatOptionalNumber(trainee.height, "cm")}
 - Weight: ${formatOptionalNumber(trainee.weight, "kg")}
-- Reported medical conditions or limitations: ${medicalConditions}
+- Available equipment: ${equipment}
+- Medical conditions or limitations: ${medicalNote}
+${medicalNotesLine}
+${sessionDurationLine}
+${preferredTimeLine}
+
+Equipment rules:
+- ONLY use exercises that require equipment listed in the "Available equipment" line above.
+- Do NOT assume the trainee has access to any other equipment.
+- Do NOT silently add barbells, dumbbells, cables, machines, benches, racks, or bands if they are not listed.
+- If a planned exercise requires unavailable equipment, replace it with a suitable bodyweight or available-equipment alternative.
+
+Session duration rules:
+- Each workout day durationMinutes should be as close as possible to the target session duration (if provided), accounting for warm-up, exercises, rest periods, and optional cool-down.
 
 Rules:
 1. workoutDaysPerWeek must be exactly ${trainee.weeklyWorkouts}.

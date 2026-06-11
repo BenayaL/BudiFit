@@ -82,8 +82,23 @@ function formatGeneratedWorkoutPlan(
             age:
                 plan.profileSnapshot.age,
 
+            gender:
+                plan.profileSnapshot.gender,
+
+            availableEquipment:
+                plan.profileSnapshot.availableEquipment,
+
             medicalConditions:
                 plan.profileSnapshot.medicalConditions,
+
+            medicalNotes:
+                plan.profileSnapshot.medicalNotes,
+
+            preferredWorkoutTime:
+                plan.profileSnapshot.preferredWorkoutTime,
+
+            sessionDurationMinutes:
+                plan.profileSnapshot.sessionDurationMinutes,
         },
 
         days: plan.days.map(
@@ -276,18 +291,25 @@ generatedWorkoutPlanRouter.post(
                 return;
             }
 
+            const missingFields: string[] = [];
+
+            if (!traineeProfile.fitnessLevel) missingFields.push("fitnessLevel");
+            if (!traineeProfile.age || !Number.isInteger(traineeProfile.age)) missingFields.push("age");
+            if (!traineeProfile.availableEquipment || traineeProfile.availableEquipment.length < 1) missingFields.push("availableEquipment");
+            if (!traineeProfile.preferredWorkoutTime) missingFields.push("preferredWorkoutTime");
+            if (!traineeProfile.sessionDurationMinutes) missingFields.push("sessionDurationMinutes");
             if (
-                !traineeProfile.fitnessLevel ||
-                !Number.isInteger(
-                    traineeProfile.weeklyWorkouts
-                ) ||
+                !Number.isInteger(traineeProfile.weeklyWorkouts) ||
                 traineeProfile.weeklyWorkouts < 1 ||
-                traineeProfile.weeklyWorkouts > 7
-            ) {
-                res.status(400).json({
+                traineeProfile.weeklyWorkouts > 6
+            ) missingFields.push("weeklyWorkouts");
+
+            if (missingFields.length > 0) {
+                res.status(409).json({
                     success: false,
                     message:
-                        "The trainee profile does not contain valid workout preferences",
+                        "Please complete your trainee profile before generating a workout plan",
+                    missingFields,
                 });
                 return;
             }
@@ -315,9 +337,23 @@ generatedWorkoutPlanRouter.post(
                 age:
                     traineeProfile.age,
 
+                gender:
+                    traineeProfile.gender,
+
+                availableEquipment:
+                    traineeProfile.availableEquipment ?? [],
+
                 medicalConditions:
-                    traineeProfile.medicalConditions ??
-                    [],
+                    traineeProfile.medicalConditions ?? [],
+
+                medicalNotes:
+                    traineeProfile.medicalNotes,
+
+                preferredWorkoutTime:
+                    traineeProfile.preferredWorkoutTime,
+
+                sessionDurationMinutes:
+                    traineeProfile.sessionDurationMinutes,
             };
 
             const generatedPlan =
@@ -375,9 +411,23 @@ generatedWorkoutPlanRouter.post(
                         age:
                             traineeProfile.age,
 
+                        gender:
+                            traineeProfile.gender,
+
+                        availableEquipment:
+                            traineeProfile.availableEquipment ?? [],
+
                         medicalConditions:
-                            traineeProfile.medicalConditions ??
-                            [],
+                            traineeProfile.medicalConditions ?? [],
+
+                        medicalNotes:
+                            traineeProfile.medicalNotes,
+
+                        preferredWorkoutTime:
+                            traineeProfile.preferredWorkoutTime,
+
+                        sessionDurationMinutes:
+                            traineeProfile.sessionDurationMinutes,
                     },
 
                     days: generatedPlan.days,

@@ -12,8 +12,9 @@ export function ProfileHeader({ user, onEditProfile }: ProfileHeaderProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
 
-  const fitnessLevelLabel =
-    user.fitnessLevel.charAt(0).toUpperCase() + user.fitnessLevel.slice(1);
+  const fitnessLevelLabel = user.fitnessLevel
+    ? user.fitnessLevel.charAt(0).toUpperCase() + user.fitnessLevel.slice(1)
+    : null;
 
   const memberSince = new Date(user.createdAt).toLocaleDateString("en-US", {
     month: "long",
@@ -45,7 +46,7 @@ export function ProfileHeader({ user, onEditProfile }: ProfileHeaderProps) {
               {user.firstName} {user.lastName}
             </h1>
             <p className="text-slate-400 text-sm mt-1">
-              @{user.username} · {fitnessLevelLabel} · Joined {memberSince}
+              @{user.username}{fitnessLevelLabel ? ` · ${fitnessLevelLabel}` : ""} · Joined {memberSince}
             </p>
             <p className="text-slate-400 text-sm mt-0.5">{user.email}</p>
           </div>

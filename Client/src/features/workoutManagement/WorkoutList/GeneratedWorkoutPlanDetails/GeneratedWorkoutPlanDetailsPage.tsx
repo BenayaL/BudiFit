@@ -31,6 +31,21 @@ const CATEGORY_LABELS: Record<
   weight_loss: "Weight Loss",
 };
 
+// 1-2 → easy (green), 3 → medium (amber), 4 → hard (red), 5 → epic (blue)
+const DIFFICULTY_ACCENT = {
+  easy:   { color: "#10B981", bg: "#D1FAE5" },
+  medium: { color: "#F59E0B", bg: "#FEF3C7" },
+  hard:   { color: "#E11D48", bg: "#FEE2E2" },
+  epic:   { color: "#1D4ED8", bg: "#DBEAFE" },
+} as const;
+
+function getDifficultyAccent(difficulty: number) {
+  if (difficulty <= 2) return DIFFICULTY_ACCENT.easy;
+  if (difficulty === 3) return DIFFICULTY_ACCENT.medium;
+  if (difficulty === 4) return DIFFICULTY_ACCENT.hard;
+  return DIFFICULTY_ACCENT.epic;
+}
+
 function getErrorMessage(
   error: unknown
 ): string {
@@ -139,6 +154,8 @@ export function GeneratedWorkoutPlanDetailsPage({
     );
   }
 
+  const accent = getDifficultyAccent(plan.difficulty);
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-8">
       <button
@@ -150,11 +167,20 @@ export function GeneratedWorkoutPlanDetailsPage({
       </button>
 
       <section className="mt-6 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-        <div className="h-3 bg-purple-500" />
+        <div
+          className="h-3"
+          style={{ backgroundColor: accent.color }}
+        />
 
         <div className="p-8">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-bold text-purple-700">
+            <span
+              className="rounded-full px-3 py-1 text-xs font-bold"
+              style={{
+                backgroundColor: accent.bg,
+                color: accent.color,
+              }}
+            >
               {CATEGORY_LABELS[plan.category]}
             </span>
 
@@ -166,11 +192,13 @@ export function GeneratedWorkoutPlanDetailsPage({
                 (_, index) => (
                   <span
                     key={index}
-                    className={`h-1.5 w-5 rounded-full ${
-                      index < plan.difficulty
-                        ? "bg-purple-500"
-                        : "bg-slate-200"
-                    }`}
+                    className="h-1.5 w-5 rounded-full"
+                    style={{
+                      backgroundColor:
+                        index < plan.difficulty
+                          ? accent.color
+                          : "#E2E8F0",
+                    }}
                   />
                 )
               )}
@@ -199,47 +227,34 @@ export function GeneratedWorkoutPlanDetailsPage({
           )}
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl bg-purple-50 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-purple-500">
-                Duration
-              </p>
-
-              <p className="mt-2 text-lg font-extrabold text-slate-900">
-                {plan.durationWeeks} weeks
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-purple-50 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-purple-500">
-                Days per week
-              </p>
-
-              <p className="mt-2 text-lg font-extrabold text-slate-900">
-                {plan.workoutDaysPerWeek}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-purple-50 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-purple-500">
-                Schedule
-              </p>
-
-              <p className="mt-2 text-lg font-extrabold text-slate-900">
-                {plan.days.length} days
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-purple-50 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-purple-500">
-                Equipment
-              </p>
-
-              <p className="mt-2 text-sm font-extrabold text-slate-900">
-                {plan.equipment.length > 0
+            {[
+              { label: "Duration",     value: `${plan.durationWeeks} weeks` },
+              { label: "Days per week", value: String(plan.workoutDaysPerWeek) },
+              { label: "Schedule",     value: `${plan.days.length} days` },
+              {
+                label: "Equipment",
+                value: plan.equipment.length > 0
                   ? plan.equipment.join(", ")
-                  : "No equipment"}
-              </p>
-            </div>
+                  : "No equipment",
+              },
+            ].map(({ label, value }) => (
+              <div
+                key={label}
+                className="rounded-2xl p-4"
+                style={{ backgroundColor: accent.bg }}
+              >
+                <p
+                  className="text-xs font-bold uppercase tracking-wide"
+                  style={{ color: accent.color }}
+                >
+                  {label}
+                </p>
+
+                <p className="mt-2 text-lg font-extrabold text-slate-900">
+                  {value}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type {
   GeneratedWorkoutPlan,
 } from "../workout.models";
@@ -37,17 +38,19 @@ const CATEGORY_STYLES: Record<
     "bg-orange-100 text-orange-700",
 };
 
-// difficulty 1-2 → easy (green), 3 → medium (amber), 4-5 → hard (bordeaux)
+// 1-2 → easy (green), 3 → medium (amber), 4 → hard (red), 5 → epic (blue)
 const DIFFICULTY_ACCENT = {
-  easy:   { bar: "bg-green-500", dot: "bg-green-500", button: "bg-green-600 hover:bg-green-700"  },
-  medium: { bar: "bg-amber-400", dot: "bg-amber-400", button: "bg-amber-500 hover:bg-amber-600"  },
-  hard:   { bar: "bg-rose-800",  dot: "bg-rose-800",  button: "bg-rose-800  hover:bg-rose-900"   },
+  easy:   { color: "#10B981", hover: "#059669" },
+  medium: { color: "#F59E0B", hover: "#D97706" },
+  hard:   { color: "#E11D48", hover: "#BE123C" },
+  epic:   { color: "#1D4ED8", hover: "#1E40AF" },
 } as const;
 
 function getDifficultyAccent(difficulty: number) {
   if (difficulty <= 2) return DIFFICULTY_ACCENT.easy;
   if (difficulty === 3) return DIFFICULTY_ACCENT.medium;
-  return DIFFICULTY_ACCENT.hard;
+  if (difficulty === 4) return DIFFICULTY_ACCENT.hard;
+  return DIFFICULTY_ACCENT.epic;
 }
 
 export function GeneratedWorkoutPlanCard({
@@ -55,10 +58,14 @@ export function GeneratedWorkoutPlanCard({
   onSelect,
 }: GeneratedWorkoutPlanCardProps) {
   const accent = getDifficultyAccent(plan.difficulty);
+  const [btnHover, setBtnHover] = useState(false);
 
   return (
     <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-      <div className={`h-2 ${accent.bar}`} />
+      <div
+        className="h-2"
+        style={{ backgroundColor: accent.color }}
+      />
 
       <div className="p-6">
         <div className="flex items-start justify-between gap-4">
@@ -78,11 +85,13 @@ export function GeneratedWorkoutPlanCard({
               (_, index) => (
                 <span
                   key={index}
-                  className={`h-1.5 w-5 rounded-full ${
-                    index < plan.difficulty
-                      ? accent.dot
-                      : "bg-slate-200"
-                  }`}
+                  className="h-1.5 w-5 rounded-full"
+                  style={{
+                    backgroundColor:
+                      index < plan.difficulty
+                        ? accent.color
+                        : "#E2E8F0",
+                  }}
                 />
               )
             )}
@@ -127,7 +136,14 @@ export function GeneratedWorkoutPlanCard({
         <button
           type="button"
           onClick={() => onSelect(plan.id)}
-          className={`mt-6 w-full rounded-2xl px-4 py-3 text-sm font-bold text-white transition ${accent.button}`}
+          onMouseEnter={() => setBtnHover(true)}
+          onMouseLeave={() => setBtnHover(false)}
+          className="mt-6 w-full rounded-2xl px-4 py-3 text-sm font-bold text-white transition"
+          style={{
+            backgroundColor: btnHover
+              ? accent.hover
+              : accent.color,
+          }}
         >
           View workout plan
         </button>

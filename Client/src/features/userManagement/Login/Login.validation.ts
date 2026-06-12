@@ -1,12 +1,12 @@
 import type { LoginFormValues } from "./Login.types";
 
 export function validateLoginForm(form: LoginFormValues): string {
-  if (!form.email.trim() || !form.password.trim()) {
-    return "Please enter both email and password.";
+  if (!form.username.trim() || !form.password.trim()) {
+    return "Please enter both username and password.";
   }
   return "";
 }
 
 export function isLoginFormValid(form: LoginFormValues): boolean {
-  return form.email.trim() !== "" && form.password.trim() !== "";
+  return form.username.trim() !== "" && form.password.trim() !== "";
 }

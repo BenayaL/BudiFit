@@ -775,26 +775,26 @@ usersRouter.post("/login", async (req: Request, res: Response) => {
   console.log("[LOGIN] Request received");
 
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    const emailProvided = Boolean(email);
+    const usernameProvided = Boolean(username);
     const passwordProvided = Boolean(password);
-    console.log(`[LOGIN] Fields — email: ${emailProvided}, password: ${passwordProvided}`);
+    console.log(`[LOGIN] Fields — username: ${usernameProvided}, password: ${passwordProvided}`);
 
-    if (!email || !password) {
-      res.status(400).json({ message: "Email and password are required" });
+    if (!username || !password) {
+      res.status(400).json({ message: "Username and password are required" });
       return;
     }
 
-    const normalizedEmail = String(email).trim().toLowerCase();
-    console.log(`[LOGIN] Normalized email: ${normalizedEmail}`);
+    const normalizedUsername = String(username).trim();
+    console.log(`[LOGIN] Normalized username: ${normalizedUsername}`);
 
     console.log("[LOGIN] MongoDB user lookup started");
-    const user = await User.findOne({ email: normalizedEmail });
+    const user = await User.findOne({ username: normalizedUsername });
     console.log(`[LOGIN] User found: ${Boolean(user)}`);
 
     if (!user) {
-      res.status(401).json({ message: "Invalid email or password" });
+      res.status(401).json({ message: "Invalid username or password" });
       return;
     }
 
@@ -808,9 +808,9 @@ usersRouter.post("/login", async (req: Request, res: Response) => {
 
     if (!storedPasswordExists || !hashFormatValid) {
       console.error(
-        `[LOGIN] User ${normalizedEmail} has no valid bcrypt hash stored — cannot authenticate`
+        `[LOGIN] User ${normalizedUsername} has no valid bcrypt hash stored — cannot authenticate`
       );
-      res.status(401).json({ message: "Invalid email or password" });
+      res.status(401).json({ message: "Invalid username or password" });
       return;
     }
 
@@ -819,7 +819,7 @@ usersRouter.post("/login", async (req: Request, res: Response) => {
     console.log(`[LOGIN] bcrypt comparison complete — match: ${passwordMatches}`);
 
     if (!passwordMatches) {
-      res.status(401).json({ message: "Invalid email or password" });
+      res.status(401).json({ message: "Invalid username or password" });
       return;
     }
 

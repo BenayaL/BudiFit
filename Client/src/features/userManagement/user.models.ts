@@ -99,7 +99,7 @@ export interface CoachConnectionResponse {
 // ─── Auth request / response shapes ──────────────────────────────────────────
 
 export interface LoginRequest {
-  email: string;
+  username: string;
   password: string;
 }
 

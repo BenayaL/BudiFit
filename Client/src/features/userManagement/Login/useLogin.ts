@@ -8,7 +8,7 @@ import { env } from "../../../config/env";
 
 export function useLogin(onLoginSuccess: LoginPageProps["onLoginSuccess"]) {
   const auth = useAuth();
-  const [form, setForm] = useState<LoginFormValues>({ email: "", password: "", rememberMe: false });
+  const [form, setForm] = useState<LoginFormValues>({ username: "", password: "", rememberMe: false });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -32,7 +32,7 @@ export function useLogin(onLoginSuccess: LoginPageProps["onLoginSuccess"]) {
     if (env.IS_DEV) console.log("[LOGIN] Login started");
 
     try {
-      const response = await userService.login({ email: form.email, password: form.password });
+      const response = await userService.login({ username: form.username.trim(), password: form.password });
       if (env.IS_DEV)
         console.log("[LOGIN] Login succeeded — role:", response.role, "onboarded:", response.hasCompletedOnboarding);
       await auth.login(response, form.rememberMe);

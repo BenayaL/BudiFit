@@ -33,13 +33,14 @@ export function LoginForm({
       </div>
 
       <form onSubmit={onSubmit} className="space-y-5">
-        <FormField id="email" label="Email">
+        <FormField id="username" label="Username">
           <input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            value={form.email}
-            onChange={(e) => onInputChange("email", e.target.value)}
+            id="username"
+            type="text"
+            placeholder="Enter your username"
+            value={form.username}
+            onChange={(e) => onInputChange("username", e.target.value)}
+            autoComplete="username"
             className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/15"
           />
         </FormField>

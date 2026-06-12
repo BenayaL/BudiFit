@@ -9,14 +9,13 @@ export type PlanStatus = "pending_approval" | "approved" | "rejected";
 export type ExerciseDifficulty = "easy" | "moderate" | "hard";
 export type ChallengeOutcome = "completed" | "partial" | "missed";
 
-// ─── Base user shape used by coach-dashboard mock/API data ────────────────────
+// ─── Base user shape used by coach-dashboard API data ─────────────────────────
 
 interface CoachBaseUser {
   userId: string;
   firstName: string;
   lastName: string;
   email: string;
-  level: string;
   role: UserRole;
 }
 
@@ -27,6 +26,7 @@ export interface Coach extends CoachBaseUser {
 }
 
 export interface Trainee extends CoachBaseUser {
+  level: string;
   color: string;
   status: TraineeStatus;
   streakDays: number;
@@ -61,4 +61,9 @@ export interface CoachDashboardData {
   coach: Coach;
   trainees: Trainee[];
   pendingPlans: CoachPlan[];
+}
+
+export interface TraineeDetailsData {
+  trainee: Trainee;
+  plans: CoachPlan[];
 }

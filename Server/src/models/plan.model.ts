@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
 
 export interface IPlanExercise {
+  _id?: Types.ObjectId;
   name: string;
   sets: number;
   reps?: number;

@@ -10,9 +10,11 @@ function TraineeDetailsPage({
   onChangePage,
   onReviewPlan,
 }: TraineeDetailsPageProps) {
-  const { trainee, plans, isLoading } = useTraineeDetails(selectedTraineeId);
+  const { trainee, plans, isLoading, error } = useTraineeDetails(selectedTraineeId);
 
   if (isLoading) return <div className="p-8 text-center text-slate-500">Loading trainee…</div>;
+
+  if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
 
   if (!trainee) {
     return (
@@ -55,7 +57,7 @@ function TraineeDetailsPage({
           className="flex h-20 w-20 items-center justify-center rounded-[1.7rem] text-2xl font-extrabold text-white shadow-sm"
           style={{ backgroundColor: trainee.color }}
         >
-          {trainee.firstName.charAt(0)}{trainee.lastName.charAt(0)}
+          {trainee.firstName?.charAt(0) || "?"}{trainee.lastName?.charAt(0) || ""}
         </div>
       </section>
 

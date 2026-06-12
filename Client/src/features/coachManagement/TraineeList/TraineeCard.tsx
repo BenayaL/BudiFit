@@ -18,6 +18,14 @@ function getStatusClasses(status: Trainee["status"]) {
 }
 
 export function TraineeCard({ trainee, onViewProfile }: TraineeCardProps) {
+  const goals = Array.isArray(trainee.goals) ? trainee.goals : [];
+  const weeklyActivity =
+    Array.isArray(trainee.weeklyActivity) && trainee.weeklyActivity.length === 7
+      ? trainee.weeklyActivity
+      : [0, 0, 0, 0, 0, 0, 0];
+  const firstInitial = trainee.firstName?.charAt(0) || "?";
+  const lastInitial = trainee.lastName?.charAt(0) || "";
+
   return (
     <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
@@ -26,7 +34,7 @@ export function TraineeCard({ trainee, onViewProfile }: TraineeCardProps) {
             className="flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-extrabold text-white"
             style={{ backgroundColor: trainee.color }}
           >
-            {trainee.firstName.charAt(0)}{trainee.lastName.charAt(0)}
+            {firstInitial}{lastInitial}
           </div>
           <div>
             <h3 className="font-bold text-slate-900">
@@ -52,7 +60,7 @@ export function TraineeCard({ trainee, onViewProfile }: TraineeCardProps) {
           <p className="text-xs font-medium text-slate-500">Missed</p>
         </div>
         <div className="rounded-2xl bg-slate-50 p-3">
-          <p className="text-xl font-extrabold text-slate-900">{trainee.goals.length}</p>
+          <p className="text-xl font-extrabold text-slate-900">{goals.length}</p>
           <p className="text-xs font-medium text-slate-500">Goals</p>
         </div>
       </div>
@@ -60,7 +68,7 @@ export function TraineeCard({ trainee, onViewProfile }: TraineeCardProps) {
       <div className="mt-4">
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">Weekly activity</p>
         <div className="flex gap-1.5">
-          {trainee.weeklyActivity.map((value, index) => (
+          {weeklyActivity.map((value, index) => (
             <div
               key={index}
               className={`h-8 flex-1 rounded-lg ${value > 0 ? "bg-purple-500" : "bg-slate-100"}`}

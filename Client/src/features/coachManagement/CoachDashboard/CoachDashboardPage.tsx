@@ -9,10 +9,14 @@ function CoachDashboardPage({
   onReviewPlan,
   onViewTraineeProfile,
 }: CoachDashboardPageProps) {
-  const { coach, trainees, pendingPlans, isLoading } = useCoachDashboard();
+  const { coach, trainees, pendingPlans, isLoading, error } = useCoachDashboard();
 
   if (isLoading) {
     return <div className="p-8 text-center text-slate-500">Loading dashboard…</div>;
+  }
+
+  if (error) {
+    return <div className="p-8 text-center text-red-600">{error}</div>;
   }
 
   const activeCount = trainees.filter((t) => t.status === "active").length;

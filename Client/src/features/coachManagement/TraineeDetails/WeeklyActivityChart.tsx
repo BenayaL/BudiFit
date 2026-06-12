@@ -3,7 +3,11 @@ interface WeeklyActivityChartProps {
 }
 
 export function WeeklyActivityChart({ weeklyActivity }: WeeklyActivityChartProps) {
-  const total = weeklyActivity.reduce((sum, v) => sum + v, 0);
+  const safeActivity =
+    Array.isArray(weeklyActivity) && weeklyActivity.length === 7
+      ? weeklyActivity
+      : [0, 0, 0, 0, 0, 0, 0];
+  const total = safeActivity.reduce((sum, v) => sum + v, 0);
 
   return (
     <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -14,7 +18,7 @@ export function WeeklyActivityChart({ weeklyActivity }: WeeklyActivityChartProps
       </p>
 
       <div className="mt-6 grid grid-cols-7 gap-2">
-        {weeklyActivity.map((value, index) => (
+        {safeActivity.map((value, index) => (
           <div key={index} className="text-center">
             <div
               className={`mx-auto flex h-20 items-end justify-center rounded-2xl px-2 ${

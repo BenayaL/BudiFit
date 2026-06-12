@@ -19,12 +19,9 @@ export function useTraineeDetails(traineeId: string | null): TraineeDetailsState
 
     (async () => {
       try {
-        const [t, allPlans] = await Promise.all([
-          coachService.getTraineeById(traineeId, token),
-          coachService.getPlans(token),
-        ]);
-        setTrainee(t);
-        setPlans(allPlans.filter((p) => p.traineeId === traineeId));
+        const data = await coachService.getTraineeById(traineeId, token);
+        setTrainee(data.trainee);
+        setPlans(data.plans);
       } catch (err) {
         console.error("[COACH] Failed to load trainee details:", err);
         setError("Failed to load trainee details.");

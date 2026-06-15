@@ -17,12 +17,6 @@ function TraineeDetailsPage({
   const { token } = useAuth();
   const { trainee, plans, isLoading, error } = useTraineeDetails(selectedTraineeId);
 
-  const [coachNotes, setCoachNotes] = useState("");
-  const [focusAreas, setFocusAreas] = useState("");
-  const [excludedExercises, setExcludedExercises] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generateError, setGenerateError] = useState<string | null>(null);
-
   const [changeRequests, setChangeRequests] = useState<WorkoutPlanChangeRequest[]>([]);
   const [requestsLoading, setRequestsLoading] = useState(false);
   const [requestsError, setRequestsError] = useState<string | null>(null);
@@ -70,32 +64,6 @@ function TraineeDetailsPage({
         </div>
       </main>
     );
-  }
-
-  async function handleGenerate() {
-    if (!token || !selectedTraineeId || isGenerating) return;
-    setIsGenerating(true);
-    setGenerateError(null);
-    try {
-      const splitCsv = (v: string) =>
-        v.split(",").map((s) => s.trim()).filter(Boolean);
-      const plan = await coachService.generatePlanForTrainee(
-        selectedTraineeId,
-        {
-          notes: coachNotes.trim() || undefined,
-          focusAreas: focusAreas.trim() ? splitCsv(focusAreas) : undefined,
-          excludedExercises: excludedExercises.trim() ? splitCsv(excludedExercises) : undefined,
-        },
-        token
-      );
-      onReviewPlan(plan.id);
-    } catch (err) {
-      setGenerateError(
-        err instanceof Error ? err.message : "Failed to generate plan"
-      );
-    } finally {
-      setIsGenerating(false);
-    }
   }
 
   return (
@@ -193,68 +161,16 @@ function TraineeDetailsPage({
 
           <div className="rounded-3xl border border-purple-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-extrabold text-slate-900">Generate plan with AI</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Create a new workout plan for this trainee using Gemini. The plan will be saved as a
-              pending draft for your review before the trainee can see it.
+            <p className="mt-2 text-sm text-slate-500">
+              Create plans for your trainees from the Coach Plans page, where you can select any
+              connected trainee and configure AI generation options.
             </p>
-
-            <div className="mt-4 space-y-3">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wide text-slate-600">
-                  Coach notes
-                </label>
-                <textarea
-                  rows={2}
-                  value={coachNotes}
-                  onChange={(e) => setCoachNotes(e.target.value)}
-                  disabled={isGenerating}
-                  placeholder="Any specific instructions for the AI..."
-                  className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wide text-slate-600">
-                  Focus areas <span className="font-normal text-slate-400">(comma-separated)</span>
-                </label>
-                <input
-                  type="text"
-                  value={focusAreas}
-                  onChange={(e) => setFocusAreas(e.target.value)}
-                  disabled={isGenerating}
-                  placeholder="e.g. upper body, core"
-                  className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wide text-slate-600">
-                  Exercises to avoid <span className="font-normal text-slate-400">(comma-separated)</span>
-                </label>
-                <input
-                  type="text"
-                  value={excludedExercises}
-                  onChange={(e) => setExcludedExercises(e.target.value)}
-                  disabled={isGenerating}
-                  placeholder="e.g. burpees, deadlifts"
-                  className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
-                />
-              </div>
-            </div>
-
-            {generateError && (
-              <p className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
-                {generateError}
-              </p>
-            )}
-
             <button
               type="button"
-              onClick={() => void handleGenerate()}
-              disabled={isGenerating}
-              className="mt-4 w-full rounded-2xl bg-purple-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => onChangePage("coach-plans")}
+              className="mt-4 rounded-2xl bg-purple-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-purple-700"
             >
-              {isGenerating ? "Generating plan…" : "Generate plan with AI"}
+              Go to Coach Plans
             </button>
           </div>
         </div>

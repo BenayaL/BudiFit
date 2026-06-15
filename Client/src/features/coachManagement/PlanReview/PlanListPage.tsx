@@ -2,6 +2,7 @@ import { usePlanList } from "./usePlanReview";
 import { useCoachChangeRequests } from "./useCoachChangeRequests";
 import { PlanCard } from "./PlanCard";
 import { ChangeRequestCard } from "./ChangeRequestCard";
+import { GeneratePlanForTraineePanel } from "./GeneratePlanForTraineePanel";
 import type { PlanListPageProps } from "./PlanReview.types";
 
 function PlanCounter({ label, value }: { label: string; value: number }) {
@@ -98,18 +99,39 @@ function PlanListPage({ onChangePage, onReviewPlan, onReviewPlanFromRequest }: P
         )}
       </section>
 
-      {/* ── Workout plan list ── */}
-      {plans.length === 0 ? (
-        <section className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-          <p className="text-slate-500">No plans yet. Plans appear here when trainees generate them.</p>
-        </section>
-      ) : (
-        <section className="grid gap-4 lg:grid-cols-3">
-          {plans.map((plan) => (
-            <PlanCard key={plan.id} plan={plan} onReviewPlan={onReviewPlan} />
-          ))}
-        </section>
-      )}
+      {/* ── AI generation panel ── */}
+      <section className="mb-10">
+        <div className="mb-4">
+          <h2 className="text-2xl font-extrabold text-slate-900">Generate plan with AI</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Select one of your connected trainees and create a personalized workout plan using
+            Gemini. The plan will be saved as a pending draft for your review.
+          </p>
+        </div>
+        <GeneratePlanForTraineePanel plans={plans} onReviewPlan={onReviewPlan} />
+      </section>
+
+      {/* ── Trainee plans ── */}
+      <section>
+        <div className="mb-4">
+          <h2 className="text-2xl font-extrabold text-slate-900">Trainee plans</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Review and manage workout plans created for your trainees.
+          </p>
+        </div>
+
+        {plans.length === 0 ? (
+          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+            <p className="text-slate-500">No plans yet. Plans appear here when trainees generate them.</p>
+          </div>
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-3">
+            {plans.map((plan) => (
+              <PlanCard key={plan.id} plan={plan} onReviewPlan={onReviewPlan} />
+            ))}
+          </div>
+        )}
+      </section>
     </main>
   );
 }

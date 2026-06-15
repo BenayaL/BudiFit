@@ -167,12 +167,12 @@ function App() {
   }
 
   if (currentPage === "profile") {
-    return withNav(<UserProfilePage onGoToSettings={() => setCurrentPage("settings")} />);
+    return withNav(<UserProfilePage onLogout={handleLogout} />);
   }
 
   if (currentPage === "settings") {
     return withNav(
-      <SettingsPage onLogout={handleLogout} onGoToProfile={() => setCurrentPage("profile")} />
+      <SettingsPage onGoToProfile={() => setCurrentPage("profile")} />
     );
   }
 

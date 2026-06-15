@@ -1,7 +1,7 @@
 import type { CurrentUser } from "../user.models";
 
 export interface UserProfilePageProps {
-  onGoToSettings?: () => void;
+  onLogout?: () => void | Promise<void>;
 }
 
 export type { CurrentUser };

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import AppButton from "../../../common/AppButton/AppButton";
 import { NotificationSettings } from "../NotificationSettings/NotificationSettings";
 import { CoachConnection } from "../CoachConnection/CoachConnection";
@@ -20,9 +19,8 @@ function SectionCard({
   );
 }
 
-function SettingsPage({ onLogout, onGoToProfile }: SettingsPageProps) {
+function SettingsPage({ onGoToProfile }: Omit<SettingsPageProps, "onLogout">) {
   const { user } = useAuth();
-  const [confirmLogout, setConfirmLogout] = useState(false);
 
   if (!user) return null;
 
@@ -68,41 +66,6 @@ function SettingsPage({ onLogout, onGoToProfile }: SettingsPageProps) {
         <CoachConnection />
       </SectionCard>
 
-      {/* ── D. Logout ───────────────────────────────────────────────────── */}
-      <SectionCard title="Sign out">
-        <p className="mb-4 text-sm text-slate-500">
-          You will be returned to the login screen and all local session data will be cleared.
-        </p>
-
-        {!confirmLogout ? (
-          <AppButton
-            type="button"
-            variant="secondary"
-            onClick={() => setConfirmLogout(true)}
-            className="border-red-200 text-red-600 hover:bg-red-50"
-          >
-            Log out
-          </AppButton>
-        ) : (
-          <div className="flex items-center gap-3">
-            <AppButton
-              type="button"
-              variant="primary"
-              onClick={onLogout}
-              className="!bg-red-600 hover:!bg-red-700"
-            >
-              Confirm logout
-            </AppButton>
-            <AppButton
-              type="button"
-              variant="secondary"
-              onClick={() => setConfirmLogout(false)}
-            >
-              Cancel
-            </AppButton>
-          </div>
-        )}
-      </SectionCard>
     </main>
   );
 }

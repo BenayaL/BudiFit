@@ -12,7 +12,7 @@ import PlanListPage from "../features/coachManagement/PlanReview/PlanListPage";
 import PlanReviewPage from "../features/coachManagement/PlanReview/PlanReviewPage";
 import BotChatPage from "../features/botManagement/BotChat/BotChatPage";
 import ProgressDashboardPage from "../features/progressManagement/ProgressDashboard/ProgressDashboardPage";
-import WorkoutListPage from "../features/workoutManagement/WorkoutList/WorkoutListPage";
+import WorkoutPage from "../features/workoutManagement/WorkoutPage";
 import GeneratedWorkoutPlanDetailsPage from "../features/workoutManagement/WorkoutList/GeneratedWorkoutPlanDetails/GeneratedWorkoutPlanDetailsPage";
 import TraineeOnboardingPage from "../features/userManagement/Onboarding/TraineeOnboardingPage";
 import WorkoutHistoryPage from "../features/workoutManagement/WorkoutHistory/WorkoutHistoryPage";
@@ -190,10 +190,8 @@ function App() {
 
   if (currentPage === "workout") {
     return withNav(
-      <WorkoutListPage
-        onGoToHistory={() =>
-          setCurrentPage("workout-history")
-        }
+      <WorkoutPage
+        onGoToPlansHistory={() => setCurrentPage("workout-history")}
         onSelectPlan={(planId) => {
           setSelectedWorkoutPlanId(planId);
           setCurrentPage("generated-workout-plan-details");

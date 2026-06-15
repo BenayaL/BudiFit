@@ -35,7 +35,7 @@ export function usePlanList(): PlanListState {
 
 interface UsePlanReviewResult extends PlanReviewState {
   isSaving: boolean;
-  saveChanges: (updates: CoachPlanUpdateBody) => Promise<boolean>;
+  saveChanges: (updates: CoachPlanUpdateBody) => Promise<CoachPlan | null>;
   approvePlan: () => Promise<boolean>;
   deletePlan: () => Promise<boolean>;
 }
@@ -70,17 +70,18 @@ export function usePlanReview(planId: string | null): UsePlanReviewResult {
   }, [planId, token]);
 
   const saveChanges = useCallback(
-    async (updates: CoachPlanUpdateBody): Promise<boolean> => {
-      if (!planId || !token) return false;
+    async (updates: CoachPlanUpdateBody): Promise<CoachPlan | null> => {
+      if (!planId || !token) return null;
       setIsSaving(true);
+      setError("");
       try {
         const updated = await coachService.updatePlan(planId, updates, token);
         setPlan(updated);
-        return true;
+        return updated;
       } catch (err) {
         console.error("[COACH] Failed to save plan:", err);
         setError(err instanceof Error ? err.message : "Failed to save changes");
-        return false;
+        return null;
       } finally {
         setIsSaving(false);
       }
@@ -91,6 +92,7 @@ export function usePlanReview(planId: string | null): UsePlanReviewResult {
   const approvePlan = useCallback(async (): Promise<boolean> => {
     if (!planId || !token) return false;
     setIsSaving(true);
+    setError("");
     try {
       const updated = await coachService.approvePlan(planId, token);
       setPlan(updated);

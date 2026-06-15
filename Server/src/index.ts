@@ -17,6 +17,7 @@ import botRouter              from "./routes/bot.routes";
 import exportRouter           from "./routes/export.routes";
 import generatedWorkoutPlanRouter from "./routes/generatedWorkoutPlan.routes";
 import notificationRouter         from "./routes/notification.routes";
+import dailyWorkoutRouter         from "./routes/dailyWorkout.routes";
 
 dotenv.config();
 
@@ -116,6 +117,7 @@ app.use("/api/bot",              botRouter);
 app.use("/api/export",           exportRouter);
 app.use("/api/generated-workout-plans", generatedWorkoutPlanRouter);
 app.use("/api/notifications",           notificationRouter);
+app.use("/api/daily-workouts",          dailyWorkoutRouter);
 /*
  * Handles requests that do not match any existing route.
  */

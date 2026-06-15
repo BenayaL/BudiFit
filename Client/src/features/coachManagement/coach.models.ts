@@ -78,6 +78,29 @@ export interface CoachPlan {
   updatedAt: string;
 }
 
+/** Exercise shape sent to PUT /api/coach/plans/:planId — id is optional for new exercises. */
+export interface CoachPlanExerciseUpdateBody {
+  id?: string;
+  order: number;
+  name: string;
+  sets?: number;
+  reps?: string;
+  durationSec?: number;
+  restSec?: number;
+  equipment: string;
+  notes?: string;
+}
+
+/** Day shape sent to PUT /api/coach/plans/:planId — id is optional for new days. */
+export interface CoachPlanDayUpdateBody {
+  id?: string;
+  dayNumber: number;
+  title: string;
+  restDay: boolean;
+  durationMinutes: number;
+  exercises: CoachPlanExerciseUpdateBody[];
+}
+
 export interface CoachPlanUpdateBody {
   title?: string;
   description?: string;
@@ -86,7 +109,7 @@ export interface CoachPlanUpdateBody {
   durationWeeks?: number;
   workoutDaysPerWeek?: number;
   equipment?: string[];
-  days?: CoachPlanDay[];
+  days?: CoachPlanDayUpdateBody[];
 }
 
 export interface GeneratePlanForTraineeBody {

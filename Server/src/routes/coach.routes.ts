@@ -120,37 +120,92 @@ interface CoachGeneratedPlanDTO {
 
 // ─── Plan update validation schema ───────────────────────────────────────────
 
-const exerciseUpdateSchema = z.object({
-  id: z.string().optional(),
-  order: z.number().int().min(1),
-  name: z.string().min(1),
-  sets: z.number().int().min(1).optional(),
-  reps: z.string().optional(),
-  durationSec: z.number().int().min(0).optional(),
-  restSec: z.number().int().min(0).optional(),
-  equipment: z.string().min(1),
-  notes: z.string().optional(),
-});
+const exerciseUpdateSchema = z
+  .object({
+    id: z.string().optional(),
+    order: z.number().int().min(1).max(50),
+    name: z.string().trim().min(1).max(120),
+    sets: z.number().int().min(1).max(20).optional(),
+    reps: z.string().trim().max(40).optional(),
+    durationSec: z.number().int().min(0).max(7200).optional(),
+    restSec: z.number().int().min(0).max(1800).optional(),
+    equipment: z.string().trim().min(1).max(100),
+    notes: z.string().trim().max(500).optional(),
+  })
+  .superRefine((ex, ctx) => {
+    if (ex.sets === undefined && ex.reps === undefined && ex.durationSec === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Exercise must include sets, reps, or durationSec",
+      });
+    }
+  });
 
-const dayUpdateSchema = z.object({
-  id: z.string().optional(),
-  dayNumber: z.number().int().min(1),
-  title: z.string().min(1),
-  restDay: z.boolean(),
-  durationMinutes: z.number().int().min(0),
-  exercises: z.array(exerciseUpdateSchema),
-});
+const dayUpdateSchema = z
+  .object({
+    id: z.string().optional(),
+    dayNumber: z.number().int().min(1).max(7),
+    title: z.string().trim().min(1).max(120),
+    restDay: z.boolean(),
+    durationMinutes: z.number().int().min(0).max(300),
+    exercises: z.array(exerciseUpdateSchema).max(20),
+  })
+  .superRefine((day, ctx) => {
+    if (day.restDay && day.exercises.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["exercises"],
+        message: "A rest day cannot contain exercises",
+      });
+    }
+    if (!day.restDay && day.exercises.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["exercises"],
+        message: "A workout day must contain at least one exercise",
+      });
+    }
+    if (day.restDay && day.durationMinutes !== 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["durationMinutes"],
+        message: "A rest day must have durationMinutes equal to 0",
+      });
+    }
+    if (!day.restDay && day.durationMinutes < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["durationMinutes"],
+        message: "A workout day must have a positive duration",
+      });
+    }
+  });
 
-const updatePlanBodySchema = z.object({
-  title: z.string().min(1).optional(),
-  description: z.string().optional(),
-  category: z.enum(["strength", "hypertrophy", "endurance", "general_fitness", "mobility", "weight_loss"]).optional(),
-  difficulty: z.number().int().min(1).max(5).optional(),
-  durationWeeks: z.number().int().min(1).max(12).optional(),
-  workoutDaysPerWeek: z.number().int().min(1).max(7).optional(),
-  equipment: z.array(z.string()).optional(),
-  days: z.array(dayUpdateSchema).optional(),
-});
+const updatePlanBodySchema = z
+  .object({
+    title: z.string().trim().min(1).max(150).optional(),
+    description: z.string().trim().max(5000).optional(),
+    category: z
+      .enum(["strength", "hypertrophy", "endurance", "general_fitness", "mobility", "weight_loss"])
+      .optional(),
+    difficulty: z.number().int().min(1).max(5).optional(),
+    durationWeeks: z.number().int().min(1).max(12).optional(),
+    workoutDaysPerWeek: z.number().int().min(1).max(7).optional(),
+    equipment: z.array(z.string().trim().min(1).max(100)).max(30).optional(),
+    days: z.array(dayUpdateSchema).min(1).max(7).optional(),
+  })
+  .superRefine((body, ctx) => {
+    if (body.days !== undefined && body.workoutDaysPerWeek !== undefined) {
+      const nonRestCount = body.days.filter((d) => !d.restDay).length;
+      if (nonRestCount !== body.workoutDaysPerWeek) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["days"],
+          message: `Non-rest days (${nonRestCount}) must equal workoutDaysPerWeek (${body.workoutDaysPerWeek})`,
+        });
+      }
+    }
+  });
 
 // ─── Deterministic avatar color from userId ───────────────────────────────────
 
@@ -570,15 +625,20 @@ router.put(
       const firstName = traineeUser?.firstName ?? "Unknown";
       const lastName = traineeUser?.lastName ?? "";
 
-      // Notify trainee if plan is already active (approved)
+      // Notify trainee if plan is already active (approved). Non-blocking —
+      // the plan is already saved, so a notification failure must not 500.
       const planDoc = plan as unknown as IGeneratedWorkoutPlan;
       if (planDoc.approvalStatus === "approved") {
-        await createNotification({
-          recipientId: plan.userId,
-          type: "plan_edited_by_coach",
-          message: "Your coach made changes to your workout plan.",
-          planId: plan._id as mongoose.Types.ObjectId,
-        });
+        try {
+          await createNotification({
+            recipientId: plan.userId,
+            type: "plan_edited_by_coach",
+            message: "Your coach made changes to your workout plan.",
+            planId: plan._id as mongoose.Types.ObjectId,
+          });
+        } catch (notifError) {
+          console.error("Update plan: notification failed:", notifError);
+        }
       }
 
       res.status(200).json(toCoachPlanDTO(planDoc, firstName, lastName));

@@ -70,6 +70,13 @@ export const ENDPOINTS = {
     markAllRead: "/notifications/read-all",
   },
 
+  dailyWorkouts: {
+    dashboard: "/daily-workouts/dashboard",
+    complete: "/daily-workouts/complete",
+    calendar: "/daily-workouts/calendar",
+    history: "/daily-workouts/history",
+  },
+
   progress: {
     dashboard: "/progress/dashboard",
     history: "/progress/history",

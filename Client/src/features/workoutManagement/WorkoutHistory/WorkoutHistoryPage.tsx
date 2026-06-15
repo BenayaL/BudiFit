@@ -6,6 +6,7 @@ import type { GeneratedWorkoutPlanSummary } from "../workout.models";
 import { GeneratedWorkoutPlanCard } from "../WorkoutList/GeneratedWorkoutPlanCard";
 import { useAuth } from "../../../app/AuthContext";
 import { ShareModal } from "../ShareModal";
+import type { ShareTarget } from "../ShareModal";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -62,6 +63,11 @@ function WorkoutHistoryPage({ onBack, onSelectPlan }: WorkoutHistoryPageProps) {
   const totalMinutes = sessions.reduce((sum, h) => sum + h.durationMinutes, 0);
   const avgMinutes = sessions.length > 0 ? Math.round(totalMinutes / sessions.length) : 0;
 
+  const loadingDone = !plansLoading && !sessionsLoading;
+  const hasHistory = completedPlans.length > 0 || sessions.length > 0;
+  const shareDisabled = !loadingDone || !hasHistory;
+  const historyTarget: ShareTarget = { type: "workout-history" };
+
   return (
     <main className="mx-auto max-w-7xl px-6 py-8">
       {/* ── Header ── */}
@@ -84,7 +90,9 @@ function WorkoutHistoryPage({ onBack, onSelectPlan }: WorkoutHistoryPageProps) {
         <button
           type="button"
           onClick={() => setShareOpen(true)}
-          className="flex shrink-0 items-center gap-2 self-start rounded-2xl bg-purple-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-purple-700"
+          disabled={shareDisabled}
+          title={shareDisabled ? "No completed history to share" : undefined}
+          className="flex shrink-0 items-center gap-2 self-start rounded-2xl bg-purple-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
@@ -190,7 +198,13 @@ function WorkoutHistoryPage({ onBack, onSelectPlan }: WorkoutHistoryPageProps) {
         </div>
       </section>
 
-      {shareOpen && <ShareModal title="Share — Workout History" onClose={() => setShareOpen(false)} />}
+      {shareOpen && (
+        <ShareModal
+          title="Share Workout History"
+          target={historyTarget}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
     </main>
   );
 }

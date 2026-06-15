@@ -2,6 +2,7 @@ import { useState } from "react";
 import { GeneratedWorkoutPlanCard } from "./GeneratedWorkoutPlanCard";
 import { useGeneratedWorkoutPlans } from "../useGeneratedWorkoutPlans";
 import { ShareModal } from "../ShareModal";
+import type { ShareTarget } from "../ShareModal";
 
 interface WorkoutListPageProps {
   onGoToHistory: () => void;
@@ -27,6 +28,17 @@ function WorkoutListPage({
   } = useGeneratedWorkoutPlans();
 
   const [shareOpen, setShareOpen] = useState(false);
+
+  const shareablePlan = plans.find(
+    (plan) =>
+      plan.status === "active" &&
+      plan.canViewDetails &&
+      plan.approvalStatus !== "pending_review"
+  );
+
+  const shareTarget: ShareTarget | null = shareablePlan
+    ? { type: "workout-plan", planId: shareablePlan.id, planTitle: shareablePlan.title }
+    : null;
 
   if (isLoading) {
     return (
@@ -91,7 +103,9 @@ function WorkoutListPage({
           <button
             type="button"
             onClick={() => setShareOpen(true)}
-            className="flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700"
+            disabled={!shareTarget}
+            title={!shareTarget ? "No shareable active plan" : undefined}
+            className="flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
@@ -178,9 +192,10 @@ function WorkoutListPage({
         </section>
       )}
 
-      {shareOpen && (
+      {shareOpen && shareTarget && (
         <ShareModal
-          title="Share — Workout Plan"
+          title="Share Workout Plan"
+          target={shareTarget}
           onClose={() => setShareOpen(false)}
         />
       )}

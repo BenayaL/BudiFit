@@ -83,5 +83,9 @@ export const ENDPOINTS = {
   export: {
     pdf: "/export/workout-summary/pdf",
     email: "/export/workout-summary/email",
+    workoutPlanPdf: (planId: string) => `/export/workout-plan/${planId}/pdf`,
+    workoutPlanEmail: (planId: string) => `/export/workout-plan/${planId}/email`,
+    workoutHistoryPdf: "/export/workout-history/pdf",
+    workoutHistoryEmail: "/export/workout-history/email",
   },
 };

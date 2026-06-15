@@ -34,9 +34,15 @@ export type GeneratedWorkoutPlanCategory =
   | "weight_loss";
 
 export type GeneratedWorkoutPlanStatus =
+  | "draft"
   | "active"
   | "completed"
   | "archived";
+
+export type GeneratedWorkoutPlanApprovalStatus =
+  | "not_required"
+  | "pending_review"
+  | "approved";
 
 export interface GeneratedWorkoutProfileSnapshot {
   fitnessLevel: "beginner" | "intermediate" | "advanced";
@@ -74,34 +80,40 @@ export interface GeneratedWorkoutDay {
   exercises: GeneratedWorkoutExercise[];
 }
 
-export interface GeneratedWorkoutPlan {
+// Summary returned by GET /generated-workout-plans (no days, no profileSnapshot)
+export interface GeneratedWorkoutPlanSummary {
   id: string;
   userId: string;
-
   title: string;
   description: string;
-
   category: GeneratedWorkoutPlanCategory;
   difficulty: number;
   durationWeeks: number;
   workoutDaysPerWeek: number;
-
   equipment: string[];
   status: GeneratedWorkoutPlanStatus;
-
+  approvalStatus: GeneratedWorkoutPlanApprovalStatus;
   requiresProfessionalReview: boolean;
-
-  profileSnapshot: GeneratedWorkoutProfileSnapshot;
-
-  days: GeneratedWorkoutDay[];
-
   createdAt: string;
   updatedAt: string;
+  // Server-computed capability flags
+  managedByCoach: boolean;
+  canViewDetails: boolean;
+  canComplete: boolean;
+  canRemove: boolean;
+  canRequestReplacement: boolean;
+  hasPendingChangeRequest: boolean;
+}
+
+// Full plan returned by GET /generated-workout-plans/:planId
+export interface GeneratedWorkoutPlan extends GeneratedWorkoutPlanSummary {
+  profileSnapshot: GeneratedWorkoutProfileSnapshot;
+  days: GeneratedWorkoutDay[];
 }
 
 export interface GeneratedWorkoutPlansResponse {
   success: boolean;
-  plans: GeneratedWorkoutPlan[];
+  plans: GeneratedWorkoutPlanSummary[];
 }
 
 export interface GeneratedWorkoutPlanResponse {
@@ -112,6 +124,5 @@ export interface GeneratedWorkoutPlanResponse {
 export interface GenerateWorkoutPlanResponse {
   success: boolean;
   message: string;
-  plan: GeneratedWorkoutPlan;
+  plan: GeneratedWorkoutPlanSummary;
 }
-

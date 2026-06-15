@@ -17,6 +17,7 @@ import GeneratedWorkoutPlanDetailsPage from "../features/workoutManagement/Worko
 import TraineeOnboardingPage from "../features/userManagement/Onboarding/TraineeOnboardingPage";
 import WorkoutHistoryPage from "../features/workoutManagement/WorkoutHistory/WorkoutHistoryPage";
 import SettingsPage from "../features/settingsManagement/Settings/SettingsPage";
+import NotificationPage from "../features/notificationManagement/NotificationPage";
 
 // common
 import TopNav from "../common/TopNav/TopNav";
@@ -47,6 +48,7 @@ function App() {
 
   const [currentPage, setCurrentPage] = useState<Page | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [selectedChangeRequestId, setSelectedChangeRequestId] = useState<string | null>(null);
   const [selectedTraineeId, setSelectedTraineeId] = useState<string | null>(null);
   const [selectedWorkoutPlanId, setSelectedWorkoutPlanId,] = useState<string | null>(null);
 
@@ -174,6 +176,10 @@ function App() {
     );
   }
 
+  if (currentPage === "notifications") {
+    return withNav(<NotificationPage />);
+  }
+
   if (currentPage === "chat") {
     return withNav(<BotChatPage />);
   }
@@ -238,7 +244,13 @@ function App() {
 
   if (currentPage === "workout-history") {
     return withNav(
-      <WorkoutHistoryPage onBack={() => setCurrentPage("workout")} />,
+      <WorkoutHistoryPage
+        onBack={() => setCurrentPage("workout")}
+        onSelectPlan={(planId) => {
+          setSelectedWorkoutPlanId(planId);
+          setCurrentPage("generated-workout-plan-details");
+        }}
+      />,
       "workout"
     );
   }
@@ -247,7 +259,11 @@ function App() {
     return withNav(
       <CoachDashboardPage
         onChangePage={(page) => setCurrentPage(page)}
-        onReviewPlan={(planId) => { setSelectedPlanId(planId); setCurrentPage("coach-plan-review"); }}
+        onReviewPlan={(planId) => {
+          setSelectedPlanId(planId);
+          setSelectedChangeRequestId(null);
+          setCurrentPage("coach-plan-review");
+        }}
         onViewTraineeProfile={(traineeId) => { setSelectedTraineeId(traineeId); setCurrentPage("coach-trainee-profile"); }}
       />
     );
@@ -266,7 +282,11 @@ function App() {
       <TraineeDetailsPage
         selectedTraineeId={selectedTraineeId}
         onChangePage={(page) => setCurrentPage(page)}
-        onReviewPlan={(planId) => { setSelectedPlanId(planId); setCurrentPage("coach-plan-review"); }}
+        onReviewPlan={(planId) => {
+          setSelectedPlanId(planId);
+          setSelectedChangeRequestId(null);
+          setCurrentPage("coach-plan-review");
+        }}
       />,
       "coach-trainees"
     );
@@ -276,7 +296,16 @@ function App() {
     return withNav(
       <PlanListPage
         onChangePage={(page) => setCurrentPage(page)}
-        onReviewPlan={(planId) => { setSelectedPlanId(planId); setCurrentPage("coach-plan-review"); }}
+        onReviewPlan={(planId) => {
+          setSelectedPlanId(planId);
+          setSelectedChangeRequestId(null);
+          setCurrentPage("coach-plan-review");
+        }}
+        onReviewPlanFromRequest={(planId, changeRequestId) => {
+          setSelectedPlanId(planId);
+          setSelectedChangeRequestId(changeRequestId);
+          setCurrentPage("coach-plan-review");
+        }}
       />
     );
   }
@@ -285,7 +314,11 @@ function App() {
     return withNav(
       <PlanReviewPage
         selectedPlanId={selectedPlanId}
-        onChangePage={(page) => setCurrentPage(page)}
+        changeRequestId={selectedChangeRequestId}
+        onChangePage={(page) => {
+          setSelectedChangeRequestId(null);
+          setCurrentPage(page);
+        }}
       />,
       "coach-plans"
     );

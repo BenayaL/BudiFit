@@ -5,7 +5,8 @@ import type { UserRole } from "../userManagement/user.models";
 // ─── Primitive types ──────────────────────────────────────────────────────────
 
 export type TraineeStatus = "active" | "needs_attention" | "inactive";
-export type PlanStatus = "pending_approval" | "approved" | "rejected";
+export type CoachPlanStatus = "draft" | "active" | "completed" | "archived";
+export type CoachPlanApprovalStatus = "not_required" | "pending_review" | "approved";
 export type ExerciseDifficulty = "easy" | "moderate" | "hard";
 export type ChallengeOutcome = "completed" | "partial" | "missed";
 
@@ -36,14 +37,25 @@ export interface Trainee extends CoachBaseUser {
   goals: string[];
 }
 
-export interface PlanExercise {
+export interface CoachPlanExercise {
   id: string;
+  order: number;
   name: string;
-  sets: number;
-  reps?: number;
+  sets?: number;
+  reps?: string;
   durationSec?: number;
+  restSec?: number;
   equipment: string;
-  difficulty: ExerciseDifficulty;
+  notes?: string;
+}
+
+export interface CoachPlanDay {
+  id: string;
+  dayNumber: number;
+  title: string;
+  restDay: boolean;
+  durationMinutes: number;
+  exercises: CoachPlanExercise[];
 }
 
 export interface CoachPlan {
@@ -51,8 +63,75 @@ export interface CoachPlan {
   traineeId: string;
   traineeName: string;
   title: string;
-  status: PlanStatus;
-  exercises: PlanExercise[];
+  description: string;
+  category: string;
+  difficulty: number;
+  durationWeeks: number;
+  workoutDaysPerWeek: number;
+  equipment: string[];
+  status: CoachPlanStatus;
+  approvalStatus: CoachPlanApprovalStatus;
+  requiresProfessionalReview: boolean;
+  days: CoachPlanDay[];
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CoachPlanUpdateBody {
+  title?: string;
+  description?: string;
+  category?: string;
+  difficulty?: number;
+  durationWeeks?: number;
+  workoutDaysPerWeek?: number;
+  equipment?: string[];
+  days?: CoachPlanDay[];
+}
+
+export interface GeneratePlanForTraineeBody {
+  notes?: string;
+  focusAreas?: string[];
+  excludedExercises?: string[];
+}
+
+// ─── Change requests ──────────────────────────────────────────────────────────
+
+export type WorkoutPlanChangeRequestStatus = "pending" | "resolved" | "rejected";
+
+/** Used by the per-trainee detail page (existing). */
+export interface WorkoutPlanChangeRequest {
+  id: string;
+  traineeId: string;
+  traineeName: string;
+  planId: string;
+  planTitle: string;
+  message: string;
+  status: WorkoutPlanChangeRequestStatus;
+  createdAt: string;
+}
+
+export interface ChangeRequestsResponse {
+  success: boolean;
+  changeRequests: WorkoutPlanChangeRequest[];
+}
+
+/** Used by the coach-level GET /change-requests endpoint. */
+export interface CoachChangeRequestDTO {
+  id: string;
+  traineeId: string;
+  traineeName: string;
+  planId: string;
+  planTitle: string;
+  message: string;
+  status: WorkoutPlanChangeRequestStatus;
+  createdAt: string;
+  reviewedAt?: string;
+}
+
+export interface CoachChangeRequestsResponse {
+  requests: CoachChangeRequestDTO[];
+  pendingCount: number;
 }
 
 // ─── API response shapes ──────────────────────────────────────────────────────

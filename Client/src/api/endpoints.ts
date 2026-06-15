@@ -30,11 +30,15 @@ export const ENDPOINTS = {
   },
 
   generatedWorkoutPlans: {
-  list: "/generated-workout-plans",
-  generate: "/generated-workout-plans/generate",
-  details: (planId: string) =>
-    `/generated-workout-plans/${planId}`,
-},
+    list: "/generated-workout-plans",
+    history: "/generated-workout-plans?status=completed",
+    generate: "/generated-workout-plans/generate",
+    details: (planId: string) => `/generated-workout-plans/${planId}`,
+    complete: (planId: string) => `/generated-workout-plans/${planId}/complete`,
+    remove: (planId: string) => `/generated-workout-plans/${planId}`,
+    replace: (planId: string) => `/generated-workout-plans/${planId}/replace`,
+    requestChange: (planId: string) => `/generated-workout-plans/${planId}/request-change`,
+  },
 
   challenges: {
     today: "/challenges/today",
@@ -49,8 +53,21 @@ export const ENDPOINTS = {
     traineeDetails: (traineeId: string) => `/coach/trainees/${traineeId}`,
     plans: "/coach/plans",
     planDetails: (planId: string) => `/coach/plans/${planId}`,
+    updatePlan: (planId: string) => `/coach/plans/${planId}`,
     approvePlan: (planId: string) => `/coach/plans/${planId}/approve`,
-    rejectPlan: (planId: string) => `/coach/plans/${planId}/reject`,
+    deletePlan: (planId: string) => `/coach/plans/${planId}`,
+    generatePlanForTrainee: (traineeId: string) => `/coach/trainees/${traineeId}/plans/generate`,
+    traineeChangeRequests: (traineeId: string) => `/coach/trainees/${traineeId}/change-requests`,
+    changeRequests: (status = "pending") => `/coach/change-requests?status=${status}`,
+    rejectChangeRequest: (requestId: string) => `/coach/change-requests/${requestId}/reject`,
+    resolveChangeRequest: (requestId: string) => `/coach/change-requests/${requestId}/resolve`,
+  },
+
+  notifications: {
+    list: "/notifications",
+    unreadCount: "/notifications/unread-count",
+    markRead: (id: string) => `/notifications/${id}/read`,
+    markAllRead: "/notifications/read-all",
   },
 
   progress: {

@@ -24,6 +24,9 @@ export interface WorkoutGenerationTraineeContext {
   medicalNotes?: string;
   preferredWorkoutTime?: string;
   sessionDurationMinutes?: number;
+  coachNotes?: string;
+  focusAreas?: string[];
+  excludedExercises?: string[];
 }
 
 /*
@@ -262,6 +265,21 @@ function buildWorkoutGenerationPrompt(
       ? `- Preferred workout time: ${trainee.preferredWorkoutTime}`
       : "";
 
+  const coachNotesLine =
+    trainee.coachNotes?.trim()
+      ? `- Coach notes: ${trainee.coachNotes.trim()}`
+      : "";
+
+  const focusAreasLine =
+    trainee.focusAreas && trainee.focusAreas.length > 0
+      ? `- Focus areas requested by coach: ${trainee.focusAreas.join(", ")}`
+      : "";
+
+  const excludedExercisesLine =
+    trainee.excludedExercises && trainee.excludedExercises.length > 0
+      ? `- Exercises to avoid (coach instruction): ${trainee.excludedExercises.join(", ")}`
+      : "";
+
   const medicalNote =
     medicalConditions === "None reported"
       ? "No limitations reported."
@@ -284,6 +302,9 @@ Trainee information:
 ${medicalNotesLine}
 ${sessionDurationLine}
 ${preferredTimeLine}
+${coachNotesLine}
+${focusAreasLine}
+${excludedExercisesLine}
 
 Equipment rules:
 - ONLY use exercises that require equipment listed in the "Available equipment" line above.

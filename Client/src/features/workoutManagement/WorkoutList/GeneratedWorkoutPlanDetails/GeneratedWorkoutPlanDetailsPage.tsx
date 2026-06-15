@@ -123,6 +123,9 @@ export function GeneratedWorkoutPlanDetailsPage({
   }
 
   if (error || !plan) {
+    const isPendingReview =
+      error?.includes("awaiting coach review") || error?.includes("coach review");
+
     return (
       <main className="mx-auto max-w-4xl px-6 py-10">
         <button
@@ -133,22 +136,30 @@ export function GeneratedWorkoutPlanDetailsPage({
           ← Back to plans
         </button>
 
-        <section className="mt-6 rounded-3xl border border-red-200 bg-red-50 p-6">
-          <h2 className="font-extrabold text-red-800">
-            Could not load workout plan
+        <section className={`mt-6 rounded-3xl border p-6 ${
+          isPendingReview
+            ? "border-orange-200 bg-orange-50"
+            : "border-red-200 bg-red-50"
+        }`}>
+          <h2 className={`font-extrabold ${isPendingReview ? "text-orange-800" : "text-red-800"}`}>
+            {isPendingReview ? "Plan awaiting coach review" : "Could not load workout plan"}
           </h2>
 
-          <p className="mt-2 text-sm text-red-700">
-            {error ?? "Workout plan not found"}
+          <p className={`mt-2 text-sm ${isPendingReview ? "text-orange-700" : "text-red-700"}`}>
+            {isPendingReview
+              ? "Your coach is reviewing this plan. You'll get a notification when it's approved."
+              : (error ?? "Workout plan not found")}
           </p>
 
-          <button
-            type="button"
-            onClick={() => void loadPlan()}
-            className="mt-4 text-sm font-bold text-red-700 underline"
-          >
-            Try again
-          </button>
+          {!isPendingReview && (
+            <button
+              type="button"
+              onClick={() => void loadPlan()}
+              className="mt-4 text-sm font-bold text-red-700 underline"
+            >
+              Try again
+            </button>
+          )}
         </section>
       </main>
     );

@@ -6,6 +6,11 @@ interface PendingPlanCardProps {
 }
 
 export function PendingPlanCard({ plan, onReviewPlan }: PendingPlanCardProps) {
+  const totalExercises = plan.days.reduce(
+    (s, d) => s + (d.restDay ? 0 : d.exercises.length),
+    0
+  );
+
   return (
     <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <div className="flex items-start justify-between gap-3">
@@ -18,7 +23,7 @@ export function PendingPlanCard({ plan, onReviewPlan }: PendingPlanCardProps) {
         </span>
       </div>
 
-      <p className="mt-3 text-sm text-slate-600">{plan.exercises.length} exercises in this plan.</p>
+      <p className="mt-3 text-sm text-slate-600">{totalExercises} exercises in this plan.</p>
 
       <button
         type="button"

@@ -1,7 +1,7 @@
-import type { PlanExercise } from "../coach.models";
+import type { CoachPlanExercise } from "../coach.models";
 
 interface ExerciseItemProps {
-  exercise: PlanExercise;
+  exercise: CoachPlanExercise;
 }
 
 function InfoBox({ label, value }: { label: string; value: string }) {
@@ -21,14 +21,11 @@ export function ExerciseItem({ exercise }: ExerciseItemProps) {
           <h3 className="text-lg font-extrabold text-slate-900">{exercise.name}</h3>
           <p className="mt-1 text-sm text-slate-500">Equipment: {exercise.equipment}</p>
         </div>
-        <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600">
-          {exercise.difficulty}
-        </span>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <InfoBox label="Sets" value={exercise.sets.toString()} />
-        <InfoBox label="Reps" value={exercise.reps?.toString() ?? "N/A"} />
+        <InfoBox label="Sets" value={exercise.sets?.toString() ?? "—"} />
+        <InfoBox label="Reps" value={exercise.reps ?? "—"} />
       </div>
     </article>
   );

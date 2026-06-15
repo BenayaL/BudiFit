@@ -1,22 +1,28 @@
-import type { PlanStatus } from "../coach.models";
+import type { CoachPlanApprovalStatus } from "../coach.models";
 
 interface PlanStatusBadgeProps {
-  status: PlanStatus;
+  approvalStatus: CoachPlanApprovalStatus;
 }
 
-export function PlanStatusBadge({ status }: PlanStatusBadgeProps) {
-  const classes =
-    status === "pending_approval"
-      ? "bg-orange-100 text-orange-700"
-      : status === "approved"
-        ? "bg-emerald-100 text-emerald-700"
-        : "bg-red-100 text-red-700";
-
-  const label =
-    status === "pending_approval" ? "Pending" : status === "approved" ? "Approved" : "Rejected";
-
+export function PlanStatusBadge({ approvalStatus }: PlanStatusBadgeProps) {
+  if (approvalStatus === "pending_review") {
+    return (
+      <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-700">
+        Pending review
+      </span>
+    );
+  }
+  if (approvalStatus === "approved") {
+    return (
+      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
+        Approved
+      </span>
+    );
+  }
   return (
-    <span className={`rounded-full px-3 py-1 text-xs font-bold ${classes}`}>{label}</span>
+    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">
+      No review required
+    </span>
   );
 }
 

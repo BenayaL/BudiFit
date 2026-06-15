@@ -1,9 +1,12 @@
 import express, { Response } from "express";
+import mongoose from "mongoose";
 import User, { generateCoachCode } from "../models/user.model";
+import GeneratedWorkoutPlan from "../models/generatedWorkoutPlan.model";
 import {
   authenticateToken,
   type AuthenticatedRequest,
 } from "../middleware/auth.middleware";
+import { createNotification } from "../helpers/notification.helper";
 
 const coachConnectionsRouter = express.Router();
 
@@ -146,6 +149,40 @@ coachConnectionsRouter.post(
 
       await User.findByIdAndUpdate(userId, { $set: { coachId: coach._id } });
 
+      // Transition any active plans to pending_review so the coach must approve them
+      await GeneratedWorkoutPlan.updateMany(
+        { userId, status: "active", approvalStatus: "not_required" },
+        {
+          $set: {
+            status: "draft",
+            approvalStatus: "pending_review",
+            coachId: coach._id,
+          },
+          $unset: { reviewedByCoachId: 1, reviewedAt: 1 },
+        }
+      );
+
+      // Send per-plan notifications to both coach and trainee
+      const transitionedPlans = await GeneratedWorkoutPlan.find(
+        { userId, status: "draft", approvalStatus: "pending_review", coachId: coach._id },
+        { _id: 1 }
+      );
+
+      for (const plan of transitionedPlans) {
+        await createNotification({
+          recipientId: coach._id as mongoose.Types.ObjectId,
+          type: "plan_pending_review",
+          message: "A trainee connected to you and has an existing plan awaiting your review.",
+          planId: plan._id as mongoose.Types.ObjectId,
+        });
+        await createNotification({
+          recipientId: userId,
+          type: "plan_pending_review",
+          message: "Your plan now requires coach approval.",
+          planId: plan._id as mongoose.Types.ObjectId,
+        });
+      }
+
       res.status(200).json({
         message: "Connected to coach successfully",
         coach: {
@@ -183,15 +220,78 @@ coachConnectionsRouter.delete(
         return;
       }
 
-      const result = await User.findByIdAndUpdate(
-        userId,
-        { $unset: { coachId: 1 } },
-        { new: true }
-      );
-
-      if (!result) {
+      // Save oldCoachId before clearing it
+      const traineeUser = await User.findById(userId, { coachId: 1 });
+      if (!traineeUser) {
         res.status(404).json({ message: "User not found" });
         return;
+      }
+
+      const oldCoachId = traineeUser.coachId;
+
+      // Clear coachId from user
+      await User.findByIdAndUpdate(userId, { $unset: { coachId: 1 } }, { new: true });
+
+      if (oldCoachId) {
+        // ── Pending drafts: never delete — always convert to self-managed active ──
+        //
+        // Find all pending-review drafts sorted newest-first.
+        // Convert the newest to active; permanently delete legacy duplicates (should not
+        // exist under normal operation but may exist in pre-fix data).
+        const pendingDrafts = await GeneratedWorkoutPlan.find(
+          { userId, status: "draft", approvalStatus: "pending_review" },
+          { _id: 1 }
+        ).sort({ updatedAt: -1 });
+
+        let pendingBecameActive = false;
+
+        if (pendingDrafts.length > 0) {
+          const [newest, ...olderDuplicates] = pendingDrafts;
+
+          await GeneratedWorkoutPlan.updateOne(
+            { _id: newest._id },
+            {
+              $set: { status: "active", approvalStatus: "not_required" },
+              $unset: { coachId: 1, reviewedByCoachId: 1, reviewedAt: 1, archivedAt: 1 },
+            }
+          );
+          pendingBecameActive = true;
+
+          if (olderDuplicates.length > 0) {
+            await GeneratedWorkoutPlan.deleteMany({
+              _id: { $in: olderDuplicates.map((p) => p._id) },
+            });
+          }
+        }
+
+        // ── Active plans: clear all coach-management fields ───────────────────────
+        //
+        // Covers both previously-approved plans and the plan just converted above.
+        await GeneratedWorkoutPlan.updateMany(
+          { userId, status: "active" },
+          {
+            $set: { approvalStatus: "not_required" },
+            $unset: { coachId: 1, reviewedByCoachId: 1, reviewedAt: 1 },
+          }
+        );
+
+        // ── Completed plans: clear coach-management fields ────────────────────────
+        await GeneratedWorkoutPlan.updateMany(
+          { userId, status: "completed", coachId: oldCoachId },
+          {
+            $set: { approvalStatus: "not_required" },
+            $unset: { coachId: 1, reviewedByCoachId: 1, reviewedAt: 1 },
+          }
+        );
+
+        // ── Notify trainee ────────────────────────────────────────────────────────
+        await createNotification({
+          recipientId: userId,
+          type: "coach_disconnected",
+          message: pendingBecameActive
+            ? "Your pending workout plan is now available and under your control."
+            : "You are now managing your workout plans independently.",
+        });
       }
 
       res.status(204).send();

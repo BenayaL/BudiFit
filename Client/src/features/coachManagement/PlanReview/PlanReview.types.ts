@@ -4,10 +4,12 @@ import type { CoachPlan } from "../coach.models";
 export interface PlanListPageProps {
   onChangePage: (page: Page) => void;
   onReviewPlan: (planId: string) => void;
+  onReviewPlanFromRequest: (planId: string, changeRequestId: string) => void;
 }
 
 export interface PlanReviewPageProps {
   selectedPlanId: string | null;
+  changeRequestId: string | null;
   onChangePage: (page: Page) => void;
 }
 

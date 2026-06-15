@@ -1,3 +1,7 @@
+// Routes for user-related operations, including registration, login, and profile management.
+// GET /api/users/me and PATCH /api/users/me are protected routes that require a valid JWT token.
+// GET /api/users/me/settings and PATCH /api/users/me/settings are also protected routes for managing user notification settings.
+
 import express, { Request, Response } from "express";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";

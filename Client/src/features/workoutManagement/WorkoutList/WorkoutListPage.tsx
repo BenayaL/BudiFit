@@ -16,9 +16,14 @@ function WorkoutListPage({
     plans,
     isLoading,
     isGenerating,
+    actionPlanId,
     error,
     generatePlan,
     loadPlans,
+    completePlan,
+    removePlan,
+    replacePlan,
+    requestChange,
   } = useGeneratedWorkoutPlans();
 
   const [shareOpen, setShareOpen] = useState(false);
@@ -64,7 +69,8 @@ function WorkoutListPage({
               isGenerating ||
               plans.some(
                 (plan) =>
-                  plan.status === "active"
+                  plan.status === "active" ||
+                  plan.approvalStatus === "pending_review"
               )
             }
             className="rounded-2xl bg-purple-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -162,6 +168,11 @@ function WorkoutListPage({
               key={plan.id}
               plan={plan}
               onSelect={onSelectPlan}
+              onComplete={(id) => void completePlan(id)}
+              onRemove={(id) => void removePlan(id)}
+              onReplace={(id, reason) => void replacePlan(id, reason)}
+              onRequestChange={(id, message) => requestChange(id, message)}
+              isActionInProgress={actionPlanId === plan.id}
             />
           ))}
         </section>

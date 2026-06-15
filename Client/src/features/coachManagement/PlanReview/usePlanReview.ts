@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import type { CoachPlan } from "../coach.models";
+import { useState, useEffect, useCallback } from "react";
+import type { CoachPlan, CoachPlanUpdateBody } from "../coach.models";
+// CoachPlanUpdateBody is exported from coach.models
 import type { PlanReviewState, PlanListState } from "./PlanReview.types";
 import { coachService } from "../coachService";
 import { useAuth } from "../../../app/AuthContext";
@@ -32,10 +33,18 @@ export function usePlanList(): PlanListState {
   return { plans, isLoading, error };
 }
 
-export function usePlanReview(planId: string | null): PlanReviewState {
+interface UsePlanReviewResult extends PlanReviewState {
+  isSaving: boolean;
+  saveChanges: (updates: CoachPlanUpdateBody) => Promise<boolean>;
+  approvePlan: () => Promise<boolean>;
+  deletePlan: () => Promise<boolean>;
+}
+
+export function usePlanReview(planId: string | null): UsePlanReviewResult {
   const { token } = useAuth();
   const [plan, setPlan] = useState<CoachPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -43,6 +52,9 @@ export function usePlanReview(planId: string | null): PlanReviewState {
       setIsLoading(false);
       return;
     }
+
+    setIsLoading(true);
+    setError("");
 
     (async () => {
       try {
@@ -57,5 +69,56 @@ export function usePlanReview(planId: string | null): PlanReviewState {
     })();
   }, [planId, token]);
 
-  return { plan, isLoading, error };
+  const saveChanges = useCallback(
+    async (updates: CoachPlanUpdateBody): Promise<boolean> => {
+      if (!planId || !token) return false;
+      setIsSaving(true);
+      try {
+        const updated = await coachService.updatePlan(planId, updates, token);
+        setPlan(updated);
+        return true;
+      } catch (err) {
+        console.error("[COACH] Failed to save plan:", err);
+        setError(err instanceof Error ? err.message : "Failed to save changes");
+        return false;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [planId, token]
+  );
+
+  const approvePlan = useCallback(async (): Promise<boolean> => {
+    if (!planId || !token) return false;
+    setIsSaving(true);
+    try {
+      const updated = await coachService.approvePlan(planId, token);
+      setPlan(updated);
+      return true;
+    } catch (err) {
+      console.error("[COACH] Failed to approve plan:", err);
+      setError(err instanceof Error ? err.message : "Failed to approve plan");
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  }, [planId, token]);
+
+  const deletePlan = useCallback(async (): Promise<boolean> => {
+    if (!planId || !token) return false;
+    setIsSaving(true);
+    setError("");
+    try {
+      await coachService.deletePlan(planId, token);
+      return true;
+    } catch (err) {
+      console.error("[COACH] Failed to delete plan:", err);
+      setError(err instanceof Error ? err.message : "Failed to delete plan");
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  }, [planId, token]);
+
+  return { plan, isLoading, error, isSaving, saveChanges, approvePlan, deletePlan };
 }

@@ -1,8 +1,8 @@
-import type { PlanExercise } from "../coach.models";
+import type { CoachPlanExercise } from "../coach.models";
 import { ExerciseItem } from "./ExerciseItem";
 
 interface ExerciseListProps {
-  exercises: PlanExercise[];
+  exercises: CoachPlanExercise[];
 }
 
 export function ExerciseList({ exercises }: ExerciseListProps) {

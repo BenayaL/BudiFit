@@ -15,9 +15,18 @@ export type GeneratedWorkoutPlanCategory =
  * The current lifecycle status of the plan.
  */
 export type GeneratedWorkoutPlanStatus =
+  | "draft"
   | "active"
   | "completed"
   | "archived";
+
+/*
+ * Coach review status for plans belonging to coached trainees.
+ */
+export type GeneratedWorkoutPlanApprovalStatus =
+  | "not_required"
+  | "pending_review"
+  | "approved";
 
 /*
  * The trainee data used when Gemini generated the plan.
@@ -72,6 +81,7 @@ export interface IGeneratedWorkoutDay {
  */
 export interface IGeneratedWorkoutPlan extends Document {
   userId: Types.ObjectId;
+  coachId?: Types.ObjectId;
   title: string;
   description: string;
   category: GeneratedWorkoutPlanCategory;
@@ -80,9 +90,15 @@ export interface IGeneratedWorkoutPlan extends Document {
   workoutDaysPerWeek: number;
   equipment: string[];
   status: GeneratedWorkoutPlanStatus;
+  approvalStatus: GeneratedWorkoutPlanApprovalStatus;
   requiresProfessionalReview: boolean;
   profileSnapshot: IGeneratedWorkoutProfileSnapshot;
   days: IGeneratedWorkoutDay[];
+  reviewedByCoachId?: Types.ObjectId;
+  reviewedAt?: Date;
+  lastModifiedBy: "gemini" | "coach";
+  version: number;
+  archivedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -337,8 +353,44 @@ const GeneratedWorkoutPlanSchema =
 
       status: {
         type: String,
-        enum: ["active", "completed", "archived"],
+        enum: ["draft", "active", "completed", "archived"],
         default: "active",
+      },
+
+      approvalStatus: {
+        type: String,
+        enum: ["not_required", "pending_review", "approved"],
+        default: "not_required",
+      },
+
+      coachId: {
+        type: Schema.Types.ObjectId,
+        ref: "Users",
+      },
+
+      reviewedByCoachId: {
+        type: Schema.Types.ObjectId,
+        ref: "Users",
+      },
+
+      reviewedAt: {
+        type: Date,
+      },
+
+      lastModifiedBy: {
+        type: String,
+        enum: ["gemini", "coach"],
+        default: "gemini",
+      },
+
+      version: {
+        type: Number,
+        default: 1,
+        min: 1,
+      },
+
+      archivedAt: {
+        type: Date,
       },
 
       requiresProfessionalReview: {
@@ -434,6 +486,20 @@ GeneratedWorkoutPlanSchema.index(
     partialFilterExpression: {
       status: "active",
     },
+  }
+);
+
+/*
+ * Only one draft plan pending coach review is allowed per trainee.
+ * The filter requires both status=draft AND approvalStatus=pending_review so
+ * that archived plans (status=archived) are never counted against this limit.
+ */
+GeneratedWorkoutPlanSchema.index(
+  { userId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: "draft", approvalStatus: "pending_review" },
+    name: "one_pending_review_draft_per_user",
   }
 );
 

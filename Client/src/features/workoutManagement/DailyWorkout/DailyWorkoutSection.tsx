@@ -7,7 +7,7 @@ import { WorkoutCalendar } from "./WorkoutCalendar";
 import { DailyWorkoutDetailsModal } from "./DailyWorkoutDetailsModal";
 import { DailyWorkoutHistoryModal } from "./DailyWorkoutHistoryModal";
 import { DailyShareButton } from "./DailyShareButton";
-import type { DailyPlanDay } from "./dailyWorkout.models";
+import type { DailyPlanDay, DailyDashboard } from "./dailyWorkout.models";
 
 type ModalMode =
   | { kind: "details"; day: DailyPlanDay; dateLabel: string; label: "Today" | "Tomorrow" }
@@ -98,7 +98,7 @@ export function DailyWorkoutSection() {
       ) : (
         /* Full daily workout UI */
         <ActivePlanUI
-          dashboard={dashboard}
+          dashboard={dashboard as DailyDashboard & { activePlan: NonNullable<DailyDashboard["activePlan"]> }}
           isCompleting={isCompleting}
           error={error}
           calendarRefreshKey={calendarRefreshKey}
@@ -128,21 +128,8 @@ export function DailyWorkoutSection() {
 
 // ─── Sub-component: renders when an active plan exists ────────────────────────
 
-interface DailyDashboard {
-  activePlan: {
-    id: string;
-    title: string;
-    workoutDaysPerWeek: number;
-    durationWeeks: number;
-    approvalStatus: string;
-  };
-  today: import("./dailyWorkout.models").DailyDayInfo;
-  tomorrow: import("./dailyWorkout.models").DailyDayInfo;
-  streak: number;
-}
-
 interface ActivePlanUIProps {
-  dashboard: DailyDashboard;
+  dashboard: DailyDashboard & { activePlan: NonNullable<DailyDashboard["activePlan"]> };
   isCompleting: boolean;
   error: string;
   calendarRefreshKey: number;

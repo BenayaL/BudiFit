@@ -18,8 +18,8 @@ import GeneratedWorkoutPlan from "../models/generatedWorkoutPlan.model";
 import type { IGeneratedWorkoutPlan, IGeneratedWorkoutDay, IGeneratedWorkoutExercise } from "../models/generatedWorkoutPlan.model";
 import TraineeProfile from "../models/TraineeProfile.model";
 import type { ITraineeProfile } from "../models/TraineeProfile.model";
-import Workout from "../models/workout.model";
-import type { IWorkout } from "../models/workout.model";
+import DailyWorkoutLog from "../models/dailyWorkoutLog.model";
+import type { IDailyWorkoutLog } from "../models/dailyWorkoutLog.model";
 import {
   authenticateToken,
   type AuthenticatedRequest,
@@ -31,6 +31,15 @@ import {
   WorkoutGenerationError,
   type WorkoutGenerationTraineeContext,
 } from "../services/generatedWorkoutPlan.service";
+import {
+  toDateString,
+  offsetDate,
+  getDayNumber,
+  findPlanDay,
+  getPlanWindow,
+  calculateStreak,
+  isValidLocalDate,
+} from "../utils/dailyWorkoutPlan.helpers";
 
 const router = Router();
 
@@ -223,31 +232,6 @@ function getAvatarColor(userId: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-// ─── Streak helper (same algorithm as progress.routes.ts) ─────────────────────
-
-const DAY_MS = 86_400_000;
-
-function calcStreak(completedWorkouts: Array<{ scheduledAt: Date }>): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const workoutDays = new Set(
-    completedWorkouts.map((w) => {
-      const d = new Date(w.scheduledAt);
-      d.setHours(0, 0, 0, 0);
-      return d.getTime();
-    })
-  );
-
-  let streak = 0;
-  let cursor = today.getTime();
-  while (workoutDays.has(cursor)) {
-    streak++;
-    cursor -= DAY_MS;
-  }
-  return streak;
-}
-
 // ─── DTO mappers ──────────────────────────────────────────────────────────────
 
 function toCoachDTO(coach: IUser, traineeIds: string[]): CoachDTO {
@@ -261,42 +245,64 @@ function toCoachDTO(coach: IUser, traineeIds: string[]): CoachDTO {
   };
 }
 
+/**
+ * Builds a trainee's stat DTO from their active generated plan and their
+ * DailyWorkoutLog completions. Mirrors the scheduling/streak/window rules
+ * used by dailyWorkout.routes.ts (shared via dailyWorkoutPlan.helpers) so
+ * the trainee-facing calendar and the coach dashboard never disagree.
+ */
 function toTraineeDTO(
   user: IUser,
   profile: ITraineeProfile | undefined,
-  workouts: IWorkout[]
+  activePlan: IGeneratedWorkoutPlan | null,
+  logs: IDailyWorkoutLog[],
+  todayStr: string
 ): TraineeDTO {
   const userId = user._id.toString();
-  const now = new Date();
 
-  const completedWorkouts = workouts.filter((w) => w.status === "completed");
-  const completedChallenges = completedWorkouts.length;
-  const missedWorkouts = workouts.filter(
-    (w) => w.scheduledAt < now && w.status !== "completed"
-  ).length;
+  // completedChallenges = all-time completed daily-workout logs (any plan)
+  const completedChallenges = logs.length;
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const sunday = new Date(todayStart.getTime() - todayStart.getDay() * DAY_MS);
-  const weeklyActivity: number[] = [0, 0, 0, 0, 0, 0, 0];
-  for (const w of completedWorkouts) {
-    const d = new Date(w.scheduledAt);
-    d.setHours(0, 0, 0, 0);
-    const idx = Math.round((d.getTime() - sunday.getTime()) / DAY_MS);
-    if (idx >= 0 && idx < 7) weeklyActivity[idx]++;
+  let missedWorkouts = 0;
+  let streakDays = 0;
+
+  if (activePlan) {
+    const planId = (activePlan as unknown as { _id: { toString(): string } })._id.toString();
+    const planCompletedDates = new Set(
+      logs.filter((l) => l.planId.toString() === planId).map((l) => l.workoutDate)
+    );
+
+    // Only past dates within the plan's active window count as missed.
+    const { startDate, endDate } = getPlanWindow(activePlan);
+    const missedRangeEnd = todayStr < endDate ? todayStr : endDate;
+    for (let cursor = startDate; cursor < missedRangeEnd; cursor = offsetDate(cursor, 1)) {
+      const planDay = findPlanDay(activePlan, cursor);
+      if (planDay && !planDay.restDay && !planCompletedDates.has(cursor)) {
+        missedWorkouts++;
+      }
+    }
+
+    streakDays = calculateStreak(planCompletedDates, activePlan, todayStr);
   }
 
-  const streakDays = calcStreak(completedWorkouts);
+  // weeklyActivity: Monday..Sunday of the current week, all completed logs (any plan)
+  const weekStart = offsetDate(todayStr, -(getDayNumber(todayStr) - 1));
+  const countsByDate = new Map<string, number>();
+  for (const l of logs) {
+    countsByDate.set(l.workoutDate, (countsByDate.get(l.workoutDate) ?? 0) + 1);
+  }
+  const weeklyActivity: number[] = [];
+  for (let i = 0; i < 7; i++) {
+    weeklyActivity.push(countsByDate.get(offsetDate(weekStart, i)) ?? 0);
+  }
 
   let status: "active" | "needs_attention" | "inactive";
-  if (workouts.length === 0) {
+  if (!activePlan) {
     status = "inactive";
   } else if (missedWorkouts > 0) {
     status = "needs_attention";
-  } else if (weeklyActivity.some((v) => v > 0)) {
-    status = "active";
   } else {
-    status = "inactive";
+    status = "active";
   }
 
   return {
@@ -361,7 +367,10 @@ function toCoachPlanDTO(
 
 // ─── Batch trainee data loader ────────────────────────────────────────────────
 
-async function loadTraineeDTOs(coachId: string): Promise<TraineeDTO[]> {
+async function loadTraineeDTOs(
+  coachId: string,
+  todayStr: string
+): Promise<TraineeDTO[]> {
   const traineeUsers = await User.find(
     { coachId, role: "trainee" },
     { password: 0 }
@@ -371,27 +380,36 @@ async function loadTraineeDTOs(coachId: string): Promise<TraineeDTO[]> {
 
   const traineeIds = traineeUsers.map((t) => t._id);
 
-  const [profiles, workouts] = await Promise.all([
+  const [profiles, activePlans, logs] = await Promise.all([
     TraineeProfile.find({ userId: { $in: traineeIds } }),
-    Workout.find({ userId: { $in: traineeIds } }),
+    GeneratedWorkoutPlan.find({ userId: { $in: traineeIds }, status: "active" }),
+    DailyWorkoutLog.find({ userId: { $in: traineeIds } }),
   ]);
 
   const profileMap = new Map<string, ITraineeProfile>(
     profiles.map((p) => [p.userId.toString(), p as unknown as ITraineeProfile])
   );
-  const workoutMap = new Map<string, IWorkout[]>();
-  for (const w of workouts) {
-    const uid = w.userId.toString();
-    const arr = workoutMap.get(uid) ?? [];
-    arr.push(w as unknown as IWorkout);
-    workoutMap.set(uid, arr);
+  const planMap = new Map<string, IGeneratedWorkoutPlan>(
+    activePlans.map((p) => [
+      p.userId.toString(),
+      p as unknown as IGeneratedWorkoutPlan,
+    ])
+  );
+  const logsMap = new Map<string, IDailyWorkoutLog[]>();
+  for (const log of logs) {
+    const uid = log.userId.toString();
+    const arr = logsMap.get(uid) ?? [];
+    arr.push(log as unknown as IDailyWorkoutLog);
+    logsMap.set(uid, arr);
   }
 
   return traineeUsers.map((user) =>
     toTraineeDTO(
       user as unknown as IUser,
       profileMap.get(user._id.toString()),
-      workoutMap.get(user._id.toString()) ?? []
+      planMap.get(user._id.toString()) ?? null,
+      logsMap.get(user._id.toString()) ?? [],
+      todayStr
     )
   );
 }
@@ -401,6 +419,12 @@ async function loadTraineeDTOs(coachId: string): Promise<TraineeDTO[]> {
 router.get("/dashboard", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const coachId = req.authUser!.userId;
+    const localDate = req.query.localDate;
+    if (localDate !== undefined && !isValidLocalDate(localDate)) {
+      res.status(400).json({ message: "Invalid localDate. Expected YYYY-MM-DD." });
+      return;
+    }
+    const todayStr = isValidLocalDate(localDate) ? localDate : toDateString(new Date());
 
     const coach = await User.findById(coachId, { password: 0 });
     if (!coach) {
@@ -409,7 +433,7 @@ router.get("/dashboard", async (req: AuthenticatedRequest, res: Response) => {
     }
 
     const [trainees, rawPendingPlans] = await Promise.all([
-      loadTraineeDTOs(coachId),
+      loadTraineeDTOs(coachId, todayStr),
       GeneratedWorkoutPlan.find({ coachId, approvalStatus: "pending_review" }),
     ]);
 
@@ -440,7 +464,14 @@ router.get("/dashboard", async (req: AuthenticatedRequest, res: Response) => {
 
 router.get("/trainees", async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const trainees = await loadTraineeDTOs(req.authUser!.userId);
+    const localDate = req.query.localDate;
+    if (localDate !== undefined && !isValidLocalDate(localDate)) {
+      res.status(400).json({ message: "Invalid localDate. Expected YYYY-MM-DD." });
+      return;
+    }
+    const todayStr = isValidLocalDate(localDate) ? localDate : toDateString(new Date());
+
+    const trainees = await loadTraineeDTOs(req.authUser!.userId, todayStr);
     res.status(200).json(trainees);
   } catch (error) {
     console.error("Get trainees error:", error);
@@ -454,6 +485,13 @@ router.get(
   "/trainees/:traineeId",
   async (req: AuthenticatedRequest, res: Response) => {
     try {
+      const localDate = req.query.localDate;
+      if (localDate !== undefined && !isValidLocalDate(localDate)) {
+        res.status(400).json({ message: "Invalid localDate. Expected YYYY-MM-DD." });
+        return;
+      }
+      const todayStr = isValidLocalDate(localDate) ? localDate : toDateString(new Date());
+
       const traineeUser = await User.findOne(
         {
           _id: (req.params.traineeId as string),
@@ -467,9 +505,10 @@ router.get(
         return;
       }
 
-      const [profile, workouts, rawPlans] = await Promise.all([
-        TraineeProfile.findOne({ userId: (req.params.traineeId as string) }),
-        Workout.find({ userId: (req.params.traineeId as string) }),
+      const [profile, activePlan, logs, rawPlans] = await Promise.all([
+        TraineeProfile.findOne({ userId: traineeUser._id }),
+        GeneratedWorkoutPlan.findOne({ userId: traineeUser._id, status: "active" }),
+        DailyWorkoutLog.find({ userId: traineeUser._id }),
         GeneratedWorkoutPlan.find({
           userId: (req.params.traineeId as string),
           status: { $ne: "archived" },
@@ -479,7 +518,9 @@ router.get(
       const traineeDTO = toTraineeDTO(
         traineeUser as unknown as IUser,
         profile ? (profile as unknown as ITraineeProfile) : undefined,
-        workouts as unknown as IWorkout[]
+        activePlan ? (activePlan as unknown as IGeneratedWorkoutPlan) : null,
+        logs as unknown as IDailyWorkoutLog[],
+        todayStr
       );
 
       const plans = rawPlans.map((p) =>

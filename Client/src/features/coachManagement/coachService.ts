@@ -15,15 +15,32 @@ import type {
   CoachChangeRequestsResponse,
 } from "./coach.models";
 
+function getLocalDateString(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export const coachService = {
   getCoachDashboard: (token: string): Promise<CoachDashboardData> =>
-    httpClient.get<CoachDashboardData>(ENDPOINTS.coach.dashboard, token),
+    httpClient.get<CoachDashboardData>(
+      `${ENDPOINTS.coach.dashboard}?localDate=${getLocalDateString()}`,
+      token
+    ),
 
   getTrainees: (token: string): Promise<Trainee[]> =>
-    httpClient.get<Trainee[]>(ENDPOINTS.coach.trainees, token),
+    httpClient.get<Trainee[]>(
+      `${ENDPOINTS.coach.trainees}?localDate=${getLocalDateString()}`,
+      token
+    ),
 
   getTraineeById: (traineeId: string, token: string): Promise<TraineeDetailsData> =>
-    httpClient.get<TraineeDetailsData>(ENDPOINTS.coach.traineeDetails(traineeId), token),
+    httpClient.get<TraineeDetailsData>(
+      `${ENDPOINTS.coach.traineeDetails(traineeId)}?localDate=${getLocalDateString()}`,
+      token
+    ),
 
   getPlans: (token: string): Promise<CoachPlan[]> =>
     httpClient.get<CoachPlan[]>(ENDPOINTS.coach.plans, token),

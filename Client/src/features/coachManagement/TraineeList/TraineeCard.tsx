@@ -53,7 +53,7 @@ export function TraineeCard({ trainee, onViewProfile }: TraineeCardProps) {
       <div className="mt-5 grid grid-cols-3 gap-3 text-center">
         <div className="rounded-2xl bg-slate-50 p-3">
           <p className="text-xl font-extrabold text-slate-900">{trainee.completedChallenges}</p>
-          <p className="text-xs font-medium text-slate-500">Challenges</p>
+          <p className="text-xs font-medium text-slate-500">Completed</p>
         </div>
         <div className="rounded-2xl bg-slate-50 p-3">
           <p className="text-xl font-extrabold text-slate-900">{trainee.missedWorkouts}</p>

@@ -11,38 +11,22 @@ import {
   authenticateToken,
   type AuthenticatedRequest,
 } from "../middleware/auth.middleware";
+import {
+  toDateString,
+  offsetDate,
+  getDayNumber,
+  findPlanDay,
+  getPlanWindow,
+  calculateStreak,
+} from "../utils/dailyWorkoutPlan.helpers";
 
 const router = Router();
 router.use(authenticateToken);
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
-function toDateString(date: Date): string {
-  return date.toISOString().split("T")[0];
-}
-
 function todayUTC(): string {
   return toDateString(new Date());
-}
-
-function offsetDate(dateStr: string, offsetDays: number): string {
-  const d = new Date(dateStr + "T00:00:00Z");
-  d.setUTCDate(d.getUTCDate() + offsetDays);
-  return toDateString(d);
-}
-
-/** Maps YYYY-MM-DD → dayNumber 1=Mon … 7=Sun */
-function getDayNumber(dateStr: string): number {
-  const d = new Date(dateStr + "T00:00:00Z");
-  return ((d.getUTCDay() + 6) % 7) + 1;
-}
-
-function findPlanDay(
-  plan: IGeneratedWorkoutPlan,
-  dateStr: string
-): IGeneratedWorkoutDay | null {
-  const dayNum = getDayNumber(dateStr);
-  return plan.days.find((d) => d.dayNumber === dayNum) ?? null;
 }
 
 function dayToDTO(day: IGeneratedWorkoutDay) {
@@ -63,46 +47,6 @@ function dayToDTO(day: IGeneratedWorkoutDay) {
       notes: ex.notes,
     })),
   };
-}
-
-function calculateStreak(
-  logs: IDailyWorkoutLog[],
-  plan: IGeneratedWorkoutPlan,
-  todayStr: string
-): number {
-  const DAY_MS = 86_400_000;
-  const completedSet = new Set(logs.map((l) => l.workoutDate));
-  let streak = 0;
-
-  // Walk backwards from yesterday
-  let cursorMs =
-    new Date(todayStr + "T00:00:00Z").getTime() - DAY_MS;
-
-  for (let i = 0; i < 400; i++) {
-    const dateStr = toDateString(new Date(cursorMs));
-    const planDay = findPlanDay(plan, dateStr);
-
-    // Rest day (explicit or implied): skip without breaking streak
-    if (!planDay || planDay.restDay) {
-      cursorMs -= DAY_MS;
-      continue;
-    }
-
-    if (completedSet.has(dateStr)) {
-      streak++;
-      cursorMs -= DAY_MS;
-    } else {
-      break;
-    }
-  }
-
-  // If today's workout is already done, include it
-  const todayDay = findPlanDay(plan, todayStr);
-  if (todayDay && !todayDay.restDay && completedSet.has(todayStr)) {
-    streak++;
-  }
-
-  return streak;
 }
 
 /**
@@ -172,7 +116,8 @@ router.get("/dashboard", async (req: AuthenticatedRequest, res: Response) => {
     const todayLog = allLogs.find((l) => l.workoutDate === todayStr) ?? null;
     const todayDay = findPlanDay(plan, todayStr);
     const tomorrowDay = findPlanDay(plan, tomorrowStr);
-    const streak = calculateStreak(allLogs, plan, todayStr);
+    const completedSet = new Set(allLogs.map((l) => l.workoutDate));
+    const streak = calculateStreak(completedSet, plan, todayStr);
 
     res.json({
       activePlan: {
@@ -341,25 +286,7 @@ router.get("/calendar", async (req: AuthenticatedRequest, res: Response) => {
     const endDate = toDateString(nextMonthDate);
 
     const planId = (plan as unknown as { _id: unknown })._id;
-
-    // Plan window: start = createdAt (or reviewedAt for coach-approved plans),
-    // end = start + durationWeeks * 7 days (exclusive)
-    const planMeta = plan as unknown as {
-      _id: unknown;
-      createdAt: Date;
-      reviewedAt?: Date;
-      approvalStatus: string;
-      durationWeeks: number;
-    };
-    const planStartDate = toDateString(
-      planMeta.approvalStatus === "approved" && planMeta.reviewedAt
-        ? planMeta.reviewedAt
-        : planMeta.createdAt
-    );
-    const planEndMs =
-      new Date(planStartDate + "T00:00:00Z").getTime() +
-      planMeta.durationWeeks * 7 * 86_400_000;
-    const planEndDate = toDateString(new Date(planEndMs));
+    const { startDate: planStartDate, endDate: planEndDate } = getPlanWindow(plan);
 
     const logs = (await DailyWorkoutLog.find({
       userId,

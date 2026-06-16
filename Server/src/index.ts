@@ -18,6 +18,7 @@ import exportRouter           from "./routes/export.routes";
 import generatedWorkoutPlanRouter from "./routes/generatedWorkoutPlan.routes";
 import notificationRouter         from "./routes/notification.routes";
 import dailyWorkoutRouter         from "./routes/dailyWorkout.routes";
+import exercisePreferenceRouter   from "./routes/exercisePreference.routes";
 
 dotenv.config();
 
@@ -59,7 +60,28 @@ if (IS_DEV) {
 }
 
 /*
+ * Allows requests from the React client.
+ *
+ * Must run before the rate limiter: every authenticated request carries an
+ * Authorization header, which forces the browser to send a CORS preflight
+ * (OPTIONS) first. If the limiter ran first, a blocked request would be
+ * answered with a 429 that never reaches this middleware — the response
+ * would be missing Access-Control-Allow-Origin, and the browser would
+ * report the failure as a CORS error instead of a clean 429. Running cors()
+ * first also lets it short-circuit OPTIONS preflights with 204 before they
+ * reach (and consume) the limiter's quota.
+ */
+app.use(
+  cors({
+    origin: CLIENT_URL,
+  })
+);
+
+/*
  * Limits the amount of requests sent to API routes.
+ * OPTIONS preflights are not real API calls and must never consume quota —
+ * cors() above already answers them directly, but skip is kept as a
+ * defense-in-depth guard in case a preflight ever reaches this far.
  */
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -70,6 +92,7 @@ const apiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req: Request) => req.method === "OPTIONS",
 });
 
 app.use("/api", apiLimiter);
@@ -78,15 +101,6 @@ app.use("/api", apiLimiter);
  * Allows the server to read JSON request bodies.
  */
 app.use(express.json());
-
-/*
- * Allows requests from the React client.
- */
-app.use(
-  cors({
-    origin: CLIENT_URL,
-  })
-);
 
 /*
  * Prevents responses from being stored in the browser cache.
@@ -118,6 +132,7 @@ app.use("/api/export",           exportRouter);
 app.use("/api/generated-workout-plans", generatedWorkoutPlanRouter);
 app.use("/api/notifications",           notificationRouter);
 app.use("/api/daily-workouts",          dailyWorkoutRouter);
+app.use("/api/exercise-preferences",    exercisePreferenceRouter);
 /*
  * Handles requests that do not match any existing route.
  */

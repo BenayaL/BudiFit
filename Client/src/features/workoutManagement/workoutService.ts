@@ -48,11 +48,11 @@ export const workoutService = {
   },
 
   /*
-   * Load all completed plans belonging to the logged-in trainee (summary DTOs).
+   * Load plan history (completed + archived) belonging to the logged-in trainee.
    */
-  async getCompletedWorkoutPlans(token: string): Promise<GeneratedWorkoutPlanSummary[]> {
+  async getPlanHistory(localDate: string, token: string): Promise<GeneratedWorkoutPlanSummary[]> {
     const response = await httpClient.get<GeneratedWorkoutPlansResponse>(
-      ENDPOINTS.generatedWorkoutPlans.history,
+      ENDPOINTS.generatedWorkoutPlans.history(localDate),
       token
     );
     return response.plans;
@@ -77,6 +77,9 @@ export const workoutService = {
 
   removePlan: (planId: string, token: string): Promise<void> =>
     httpClient.delete<void>(ENDPOINTS.generatedWorkoutPlans.remove(planId), token),
+
+  permanentlyDeletePlan: (planId: string, token: string): Promise<void> =>
+    httpClient.delete<void>(ENDPOINTS.generatedWorkoutPlans.permanentDelete(planId), token),
 
   async replacePlan(planId: string, reason: string, token: string): Promise<GeneratedWorkoutPlanSummary> {
     const response = await httpClient.post<

@@ -1,10 +1,18 @@
 import type { DailyPlanDay } from "./dailyWorkout.models";
+import type { ExercisePreference, ExercisePreferenceReason, ExercisePreferenceValue } from "../ExercisePreferences/exercisePreference.models";
+import { ExercisePreferenceButtons } from "../ExercisePreferences/ExercisePreferenceButtons";
 
 interface DailyWorkoutDetailsModalProps {
   day: DailyPlanDay;
   dateLabel: string;
   label: "Today" | "Tomorrow";
   onClose: () => void;
+  getPreference?: (exerciseName: string) => ExercisePreference | undefined;
+  onSetPreference?: (
+    exerciseName: string,
+    preference: ExercisePreferenceValue | null,
+    reason?: ExercisePreferenceReason
+  ) => void;
 }
 
 function buildTarget(ex: {
@@ -24,6 +32,8 @@ export function DailyWorkoutDetailsModal({
   dateLabel,
   label,
   onClose,
+  getPreference,
+  onSetPreference,
 }: DailyWorkoutDetailsModalProps) {
   return (
     <div
@@ -95,11 +105,22 @@ export function DailyWorkoutDetailsModal({
                           </p>
                         )}
                       </div>
-                      {target && (
-                        <span className="shrink-0 text-base font-extrabold text-slate-900">
-                          {target}
-                        </span>
-                      )}
+                      <div className="flex shrink-0 items-center gap-3">
+                        {target && (
+                          <span className="text-base font-extrabold text-slate-900">
+                            {target}
+                          </span>
+                        )}
+                        {onSetPreference && (
+                          <ExercisePreferenceButtons
+                            exerciseName={ex.name}
+                            preference={getPreference?.(ex.name)?.preference}
+                            onSetPreference={(preference, reason) =>
+                              onSetPreference(ex.name, preference, reason)
+                            }
+                          />
+                        )}
+                      </div>
                     </div>
 
                     <div className="mt-2 flex flex-wrap gap-2">

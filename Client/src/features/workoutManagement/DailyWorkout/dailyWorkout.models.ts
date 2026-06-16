@@ -64,12 +64,15 @@ export interface CalendarData {
 }
 
 export interface WorkoutHistoryEntry {
+  planId: string;
+  planTitle: string;
+  planStatus: string;
+  archiveReason?: string;
   date: string;
+  dayNumber: number;
   dayTitle: string;
-  isRestDay: boolean;
   status: "completed" | "missed";
   completedAt: string | null;
   durationMinutes: number;
   exerciseSummary: string;
-  planTitle: string;
 }

@@ -94,3 +94,104 @@ export function calculateStreak(
 export function isValidLocalDate(value: unknown): value is string {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
+
+/**
+ * The actual date a plan's history stopped accruing scheduled workouts:
+ * completedAt for completed plans, archivedAt for archived plans, otherwise
+ * the plan's natural end (start + durationWeeks * 7 days). Whichever of
+ * these is earliest still bounds the natural end.
+ */
+export function getHistoricalEndDate(
+  plan: Pick<
+    IGeneratedWorkoutPlan,
+    | "status"
+    | "completedAt"
+    | "archivedAt"
+    | "createdAt"
+    | "reviewedAt"
+    | "approvalStatus"
+    | "durationWeeks"
+  >
+): string {
+  const { endDate: naturalEnd } = getPlanWindow(plan);
+
+  if (plan.status === "completed" && plan.completedAt) {
+    const completedDate = toDateString(plan.completedAt);
+    return completedDate < naturalEnd ? completedDate : naturalEnd;
+  }
+
+  if (plan.status === "archived" && plan.archivedAt) {
+    const archivedDate = toDateString(plan.archivedAt);
+    return archivedDate < naturalEnd ? archivedDate : naturalEnd;
+  }
+
+  return naturalEnd;
+}
+
+export interface PlanScheduleStats {
+  scheduledWorkouts: number;
+  completedWorkouts: number;
+  missedWorkouts: number;
+  completionRate: number;
+}
+
+/**
+ * Scheduled/completed/missed counts for a plan within its actual lifecycle
+ * window, never counting dates after `localDate` or after `historicalEnd`
+ * (defaults to the plan's natural end when omitted — i.e. for the active
+ * plan). `completedDates` must already be scoped to this plan's logs.
+ */
+export function computePlanScheduleStats(
+  plan: IGeneratedWorkoutPlan,
+  completedDates: Set<string>,
+  localDate: string,
+  historicalEnd?: string
+): PlanScheduleStats {
+  const { startDate, endDate: naturalEnd } = getPlanWindow(plan);
+  const cappedEnd = historicalEnd ?? naturalEnd;
+  const tomorrowLocal = offsetDate(localDate, 1);
+  const iterEnd = cappedEnd < tomorrowLocal ? cappedEnd : tomorrowLocal;
+
+  let scheduledWorkouts = 0;
+  let completedWorkouts = 0;
+  let missedWorkouts = 0;
+
+  for (let cursor = startDate; cursor < iterEnd; cursor = offsetDate(cursor, 1)) {
+    const planDay = findPlanDay(plan, cursor);
+    if (!planDay || planDay.restDay) continue;
+
+    scheduledWorkouts++;
+    if (completedDates.has(cursor)) {
+      completedWorkouts++;
+    } else if (cursor < localDate) {
+      missedWorkouts++;
+    }
+  }
+
+  const completionRate =
+    scheduledWorkouts > 0
+      ? Math.round((completedWorkouts / scheduledWorkouts) * 100)
+      : 0;
+
+  return { scheduledWorkouts, completedWorkouts, missedWorkouts, completionRate };
+}
+
+/** Human label for a historical (completed/archived) plan card badge. */
+export function getHistoryLabel(status: string, archiveReason?: string): string {
+  if (status === "completed") return "Completed";
+  if (status !== "archived") return "Archived";
+
+  switch (archiveReason) {
+    case "removed_by_trainee":
+      return "Removed";
+    case "replaced":
+    case "replaced_not_suitable":
+      return "Replaced";
+    case "removed_by_coach":
+      return "Removed by coach";
+    case "superseded_by_new_plan":
+      return "Replaced by new plan";
+    default:
+      return "Archived";
+  }
+}

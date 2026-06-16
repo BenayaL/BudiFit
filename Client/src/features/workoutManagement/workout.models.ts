@@ -80,6 +80,14 @@ export interface GeneratedWorkoutDay {
   exercises: GeneratedWorkoutExercise[];
 }
 
+export type GeneratedWorkoutPlanArchiveReason =
+  | "removed_by_trainee"
+  | "replaced"
+  | "replaced_not_suitable"
+  | "removed_by_coach"
+  | "superseded_by_new_plan"
+  | "other";
+
 // Summary returned by GET /generated-workout-plans (no days, no profileSnapshot)
 export interface GeneratedWorkoutPlanSummary {
   id: string;
@@ -102,7 +110,18 @@ export interface GeneratedWorkoutPlanSummary {
   canComplete: boolean;
   canRemove: boolean;
   canRequestReplacement: boolean;
+  canPermanentlyDelete: boolean;
   hasPendingChangeRequest: boolean;
+  // Historical fields — only present when status is "completed" or "archived"
+  completedAt?: string;
+  archivedAt?: string;
+  archiveReason?: GeneratedWorkoutPlanArchiveReason;
+  historyEndedAt?: string;
+  historyLabel?: string;
+  scheduledWorkouts?: number;
+  completedWorkouts?: number;
+  missedWorkouts?: number;
+  completionRate?: number;
 }
 
 // Full plan returned by GET /generated-workout-plans/:planId

@@ -31,11 +31,12 @@ export const ENDPOINTS = {
 
   generatedWorkoutPlans: {
     list: "/generated-workout-plans",
-    history: "/generated-workout-plans?status=completed",
+    history: (localDate: string) => `/generated-workout-plans?status=history&localDate=${localDate}`,
     generate: "/generated-workout-plans/generate",
     details: (planId: string) => `/generated-workout-plans/${planId}`,
     complete: (planId: string) => `/generated-workout-plans/${planId}/complete`,
     remove: (planId: string) => `/generated-workout-plans/${planId}`,
+    permanentDelete: (planId: string) => `/generated-workout-plans/${planId}/permanent`,
     replace: (planId: string) => `/generated-workout-plans/${planId}/replace`,
     requestChange: (planId: string) => `/generated-workout-plans/${planId}/request-change`,
   },
@@ -74,7 +75,12 @@ export const ENDPOINTS = {
     dashboard: "/daily-workouts/dashboard",
     complete: "/daily-workouts/complete",
     calendar: "/daily-workouts/calendar",
-    history: "/daily-workouts/history",
+    history: (localDate: string) => `/daily-workouts/history?localDate=${localDate}`,
+  },
+
+  exercisePreferences: {
+    list: "/exercise-preferences",
+    update: "/exercise-preferences",
   },
 
   progress: {

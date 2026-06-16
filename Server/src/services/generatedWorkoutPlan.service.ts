@@ -27,6 +27,8 @@ export interface WorkoutGenerationTraineeContext {
   coachNotes?: string;
   focusAreas?: string[];
   excludedExercises?: string[];
+  likedExercises?: string[];
+  dislikedExercises?: Array<{ name: string; reason?: string }>;
 }
 
 /*
@@ -280,6 +282,40 @@ function buildWorkoutGenerationPrompt(
       ? `- Exercises to avoid (coach instruction): ${trainee.excludedExercises.join(", ")}`
       : "";
 
+  const likedExercises = trainee.likedExercises ?? [];
+  const dislikedExercises = trainee.dislikedExercises ?? [];
+
+  const preferencesSection =
+    likedExercises.length > 0 || dislikedExercises.length > 0
+      ? [
+          "",
+          "Exercise preferences explicitly provided by the trainee:",
+          "",
+          "Liked exercises:",
+          likedExercises.length > 0
+            ? likedExercises.map((name) => `- ${name}`).join("\n")
+            : "- (none)",
+          "",
+          "Disliked exercises:",
+          dislikedExercises.length > 0
+            ? dislikedExercises
+                .map((ex) => `- ${ex.name}${ex.reason ? ` — ${ex.reason}` : ""}`)
+                .join("\n")
+            : "- (none)",
+          "",
+          "Preference rules:",
+          "1. Prefer liked exercises when they safely match the trainee's goals, equipment, fitness level, and session structure.",
+          "2. Do not fill the entire plan with only liked exercises; keep the plan balanced.",
+          "3. Avoid disliked exercises when a safe and suitable alternative exists.",
+          "4. A disliked exercise with reason \"discomfort\" should be treated conservatively and avoided.",
+          "5. Available-equipment restrictions override preferences.",
+          "6. Medical limitations and safety always override preferences.",
+          "7. Coach excludedExercises and coach instructions override trainee likes.",
+          "8. A missed workout must never be interpreted as an exercise dislike.",
+          "9. Do not invent preferences not supplied here.",
+        ].join("\n")
+      : "";
+
   const medicalNote =
     medicalConditions === "None reported"
       ? "No limitations reported."
@@ -305,6 +341,7 @@ ${preferredTimeLine}
 ${coachNotesLine}
 ${focusAreasLine}
 ${excludedExercisesLine}
+${preferencesSection}
 
 Equipment rules:
 - ONLY use exercises that require equipment listed in the "Available equipment" line above.

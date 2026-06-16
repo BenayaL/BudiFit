@@ -81,7 +81,7 @@ export function DailyWorkoutHistoryModal({
             <div>
               {entries.map((entry) => (
                 <div
-                  key={entry.date}
+                  key={`${entry.planId}:${entry.date}`}
                   className="flex items-center gap-4 border-b border-slate-100 px-6 py-4 last:border-b-0"
                 >
                   <div
@@ -108,7 +108,7 @@ export function DailyWorkoutHistoryModal({
                       {entry.dayTitle}
                     </p>
                     <p className="text-xs text-slate-500">
-                      {formatDate(entry.date)}
+                      {formatDate(entry.date)} · {entry.planTitle}
                       {entry.durationMinutes > 0 &&
                         ` · ${entry.durationMinutes} min`}
                     </p>

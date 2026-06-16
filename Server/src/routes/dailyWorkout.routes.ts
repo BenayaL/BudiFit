@@ -18,6 +18,8 @@ import {
   findPlanDay,
   getPlanWindow,
   calculateStreak,
+  getHistoricalEndDate,
+  isValidLocalDate,
 } from "../utils/dailyWorkoutPlan.helpers";
 
 const router = Router();
@@ -349,97 +351,125 @@ router.get("/calendar", async (req: AuthenticatedRequest, res: Response) => {
 
 // ─── GET /api/daily-workouts/history ─────────────────────────────────────────
 
+interface DailyHistoryEntry {
+  planId: string;
+  planTitle: string;
+  planStatus: string;
+  archiveReason?: string;
+  date: string;
+  dayNumber: number;
+  dayTitle: string;
+  status: "completed" | "missed";
+  completedAt: Date | null;
+  durationMinutes: number;
+  exerciseSummary: string;
+}
+
 router.get("/history", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.authUser!.userId;
-    const todayStr = todayUTC();
+    const localDateParam = req.query.localDate;
+    if (localDateParam !== undefined && !isValidLocalDate(localDateParam)) {
+      res.status(400).json({ message: "Invalid localDate. Expected YYYY-MM-DD." });
+      return;
+    }
+    const localDate = isValidLocalDate(localDateParam) ? localDateParam : todayUTC();
 
-    const activePlan = await findActivePlan(userId);
+    // Derive history from every plan that could have scheduled a workout —
+    // active, completed, or archived (removed/replaced/superseded).
+    const plans = (await GeneratedWorkoutPlan.find({
+      userId,
+      status: { $in: ["active", "completed", "archived"] },
+    })) as unknown as IGeneratedWorkoutPlan[];
 
     const allLogs = (await DailyWorkoutLog.find({
       userId,
-    }).sort({ workoutDate: -1 })) as unknown as IDailyWorkoutLog[];
+    })) as unknown as IDailyWorkoutLog[];
 
-    const completedMap = new Map(allLogs.map((l) => [l.workoutDate, l]));
+    const logsByPlanId = new Map<string, IDailyWorkoutLog[]>();
+    for (const log of allLogs) {
+      const key = log.planId.toString();
+      const arr = logsByPlanId.get(key) ?? [];
+      arr.push(log);
+      logsByPlanId.set(key, arr);
+    }
 
-    const entries: {
-      date: string;
-      dayTitle: string;
-      isRestDay: boolean;
-      status: "completed" | "missed";
-      completedAt: Date | null;
-      durationMinutes: number;
-      exerciseSummary: string;
-      planTitle: string;
-    }[] = [];
+    const entries: DailyHistoryEntry[] = [];
+    const knownPlanIds = new Set<string>();
+    const tomorrowLocal = offsetDate(localDate, 1);
 
-    if (activePlan) {
-      const planStart = toDateString(
-        (activePlan as unknown as { createdAt: Date }).createdAt
+    for (const plan of plans) {
+      const planId = String((plan as unknown as { _id: unknown })._id);
+      knownPlanIds.add(planId);
+
+      const logsByDate = new Map(
+        (logsByPlanId.get(planId) ?? []).map((l) => [l.workoutDate, l])
       );
-      const sixtyDaysAgo = offsetDate(todayStr, -60);
-      const historyStart = planStart > sixtyDaysAgo ? planStart : sixtyDaysAgo;
-      const yesterday = offsetDate(todayStr, -1);
 
-      if (yesterday >= historyStart) {
-        const cursor = new Date(yesterday + "T00:00:00Z");
-        const start = new Date(historyStart + "T00:00:00Z");
+      const { startDate } = getPlanWindow(plan);
+      const historicalEnd = getHistoricalEndDate(plan);
+      const iterEnd = historicalEnd < tomorrowLocal ? historicalEnd : tomorrowLocal;
 
-        while (cursor >= start) {
-          const dateStr = toDateString(cursor);
-          const planDay = findPlanDay(activePlan, dateStr);
-          const log = completedMap.get(dateStr);
+      for (let cursor = startDate; cursor < iterEnd; cursor = offsetDate(cursor, 1)) {
+        const planDay = findPlanDay(plan, cursor);
+        if (!planDay || planDay.restDay) continue;
 
-          if (log) {
-            entries.push({
-              date: dateStr,
-              dayTitle: log.dayTitle,
-              isRestDay: log.restDay,
-              status: "completed",
-              completedAt: log.completedAt,
-              durationMinutes: log.durationMinutes,
-              exerciseSummary: log.exerciseSummary,
-              planTitle: log.planTitle,
-            });
-            completedMap.delete(dateStr);
-          } else if (planDay && !planDay.restDay) {
-            entries.push({
-              date: dateStr,
-              dayTitle: planDay.title,
-              isRestDay: false,
-              status: "missed",
-              completedAt: null,
-              durationMinutes: planDay.durationMinutes,
-              exerciseSummary: planDay.exercises
-                .slice(0, 3)
-                .map((e) => e.name)
-                .join(", "),
-              planTitle: activePlan.title,
-            });
-          }
-
-          cursor.setUTCDate(cursor.getUTCDate() - 1);
+        const log = logsByDate.get(cursor);
+        if (log) {
+          entries.push({
+            planId,
+            planTitle: plan.title,
+            planStatus: plan.status,
+            archiveReason: plan.archiveReason,
+            date: cursor,
+            dayNumber: planDay.dayNumber,
+            dayTitle: log.dayTitle,
+            status: "completed",
+            completedAt: log.completedAt,
+            durationMinutes: log.durationMinutes,
+            exerciseSummary: log.exerciseSummary,
+          });
+        } else if (cursor < localDate) {
+          entries.push({
+            planId,
+            planTitle: plan.title,
+            planStatus: plan.status,
+            archiveReason: plan.archiveReason,
+            date: cursor,
+            dayNumber: planDay.dayNumber,
+            dayTitle: planDay.title,
+            status: "missed",
+            completedAt: null,
+            durationMinutes: planDay.durationMinutes,
+            exerciseSummary: planDay.exercises.slice(0, 3).map((e) => e.name).join(", "),
+          });
         }
       }
     }
 
-    // Remaining completions from old plans or outside the history window
-    for (const log of completedMap.values()) {
-      if (log.workoutDate < todayStr) {
-        entries.push({
-          date: log.workoutDate,
-          dayTitle: log.dayTitle,
-          isRestDay: log.restDay,
-          status: "completed",
-          completedAt: log.completedAt,
-          durationMinutes: log.durationMinutes,
-          exerciseSummary: log.exerciseSummary,
-          planTitle: log.planTitle,
-        });
-      }
+    // Orphan logs: their plan was permanently deleted. Only the completion
+    // itself survives (via the log's own snapshot fields) — missed days for
+    // a deleted plan can never be reconstructed.
+    for (const log of allLogs) {
+      const planIdStr = log.planId.toString();
+      if (knownPlanIds.has(planIdStr)) continue;
+      entries.push({
+        planId: planIdStr,
+        planTitle: log.planTitle,
+        planStatus: "deleted",
+        date: log.workoutDate,
+        dayNumber: log.dayNumber,
+        dayTitle: log.dayTitle,
+        status: "completed",
+        completedAt: log.completedAt,
+        durationMinutes: log.durationMinutes,
+        exerciseSummary: log.exerciseSummary,
+      });
     }
 
-    entries.sort((a, b) => b.date.localeCompare(a.date));
+    entries.sort(
+      (a, b) => b.date.localeCompare(a.date) || a.planId.localeCompare(b.planId)
+    );
 
     res.json(entries);
   } catch (error) {

@@ -43,8 +43,9 @@ export const dailyWorkoutService = {
   },
 
   getHistory(token: string): Promise<WorkoutHistoryEntry[]> {
+    const localDate = getLocalDateString();
     return httpClient.get<WorkoutHistoryEntry[]>(
-      ENDPOINTS.dailyWorkouts.history,
+      ENDPOINTS.dailyWorkouts.history(localDate),
       token
     );
   },

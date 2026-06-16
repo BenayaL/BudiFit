@@ -11,6 +11,7 @@ import type {
 } from "../../workout.models";
 
 import { workoutService } from "../../workoutService";
+import { useExercisePreferences } from "../../ExercisePreferences/useExercisePreferences";
 
 import { GeneratedWorkoutDayRow } from "./GeneratedWorkoutDayRow";
 
@@ -61,6 +62,7 @@ export function GeneratedWorkoutPlanDetailsPage({
   onBack,
 }: GeneratedWorkoutPlanDetailsPageProps) {
   const { token } = useAuth();
+  const { getPreference, setPreference } = useExercisePreferences();
 
   const [plan, setPlan] =
     useState<GeneratedWorkoutPlan | null>(null);
@@ -295,6 +297,8 @@ export function GeneratedWorkoutPlanDetailsPage({
                   `day-${day.dayNumber}`
                 }
                 day={day}
+                getPreference={getPreference}
+                onSetPreference={setPreference}
               />
             ))}
         </div>

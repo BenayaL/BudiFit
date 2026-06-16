@@ -3,15 +3,24 @@ import { useState } from "react";
 import type {
   GeneratedWorkoutDay,
 } from "../../workout.models";
+import type { ExercisePreference, ExercisePreferenceReason, ExercisePreferenceValue } from "../../ExercisePreferences/exercisePreference.models";
 
 import { GeneratedWorkoutExerciseRow } from "./GeneratedWorkoutExerciseRow";
 
 interface GeneratedWorkoutDayRowProps {
   day: GeneratedWorkoutDay;
+  getPreference?: (exerciseName: string) => ExercisePreference | undefined;
+  onSetPreference?: (
+    exerciseName: string,
+    preference: ExercisePreferenceValue | null,
+    reason?: ExercisePreferenceReason
+  ) => void;
 }
 
 export function GeneratedWorkoutDayRow({
   day,
+  getPreference,
+  onSetPreference,
 }: GeneratedWorkoutDayRowProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -92,6 +101,12 @@ export function GeneratedWorkoutDayRow({
                 `${day.dayNumber}-${exercise.order}`
               }
               exercise={exercise}
+              preference={getPreference?.(exercise.name)?.preference}
+              onSetPreference={
+                onSetPreference
+                  ? (preference, reason) => onSetPreference(exercise.name, preference, reason)
+                  : undefined
+              }
             />
           ))}
         </div>

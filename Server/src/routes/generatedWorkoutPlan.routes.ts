@@ -26,6 +26,18 @@ import {
 import { createNotification } from "../helpers/notification.helper";
 import { withMongoTransaction } from "../helpers/withTransaction";
 import WorkoutPlanChangeRequest from "../models/workoutPlanChangeRequest.model";
+import DailyWorkoutLog from "../models/dailyWorkoutLog.model";
+import type { IDailyWorkoutLog } from "../models/dailyWorkoutLog.model";
+import Notification from "../models/notification.model";
+import { loadGeminiExercisePreferences } from "../services/exercisePreference.service";
+import {
+    isValidLocalDate,
+    toDateString,
+    getHistoricalEndDate,
+    computePlanScheduleStats,
+    getHistoryLabel,
+    type PlanScheduleStats,
+} from "../utils/dailyWorkoutPlan.helpers";
 
 const generatedWorkoutPlanRouter = express.Router();
 
@@ -49,15 +61,27 @@ const workoutGenerationLimiter = rateLimit({
  * Summary DTO — no days or profileSnapshot.
  * Used in GET / list responses to keep payloads small.
  */
-function formatSummaryDTO(plan: IGeneratedWorkoutPlan, hasPendingChangeRequest = false) {
+const HISTORICAL_STATUSES = new Set(["completed", "archived"]);
+
+function formatSummaryDTO(
+    plan: IGeneratedWorkoutPlan,
+    hasPendingChangeRequest = false,
+    historyStats?: PlanScheduleStats
+) {
     const managedByCoach = !!plan.coachId;
     const approvalStatus = plan.approvalStatus ?? "not_required";
     const canViewDetails = approvalStatus !== "pending_review";
-    const canComplete = !managedByCoach && plan.status === "active";
-    const canRemove = !managedByCoach && (plan.status === "active" || plan.status === "completed");
-    const canRequestReplacement = !managedByCoach && (plan.status === "active" || plan.status === "completed");
+    const isHistorical = HISTORICAL_STATUSES.has(plan.status);
 
-    return {
+    const canComplete = !managedByCoach && plan.status === "active";
+    const canRemove = !managedByCoach && plan.status === "active";
+    const canRequestReplacement = !managedByCoach && plan.status === "active";
+    // Permanently deleting a historical plan only clears the trainee's own
+    // history — it is not a plan-management action, so it's allowed even for
+    // coach-managed plans (e.g. one the coach removed or superseded).
+    const canPermanentlyDelete = isHistorical;
+
+    const base = {
         id: String(plan._id),
         userId: String(plan.userId),
         title: plan.title,
@@ -77,7 +101,24 @@ function formatSummaryDTO(plan: IGeneratedWorkoutPlan, hasPendingChangeRequest =
         canComplete,
         canRemove,
         canRequestReplacement,
+        canPermanentlyDelete,
         hasPendingChangeRequest,
+    };
+
+    if (!isHistorical) return base;
+
+    const historyEndedAt = getHistoricalEndDate(plan);
+    return {
+        ...base,
+        completedAt: plan.completedAt,
+        archivedAt: plan.archivedAt,
+        archiveReason: plan.archiveReason,
+        historyEndedAt,
+        historyLabel: getHistoryLabel(plan.status, plan.archiveReason),
+        scheduledWorkouts: historyStats?.scheduledWorkouts ?? 0,
+        completedWorkouts: historyStats?.completedWorkouts ?? 0,
+        missedWorkouts: historyStats?.missedWorkouts ?? 0,
+        completionRate: historyStats?.completionRate ?? 0,
     };
 }
 
@@ -254,6 +295,8 @@ generatedWorkoutPlanRouter.post(
                 return;
             }
 
+            const { likedExercises, dislikedExercises } = await loadGeminiExercisePreferences(user._id);
+
             const traineeContext: WorkoutGenerationTraineeContext = {
                 fitnessLevel: traineeProfile.fitnessLevel,
                 goals: traineeProfile.goals ?? [],
@@ -267,6 +310,8 @@ generatedWorkoutPlanRouter.post(
                 medicalNotes: traineeProfile.medicalNotes,
                 preferredWorkoutTime: traineeProfile.preferredWorkoutTime,
                 sessionDurationMinutes: traineeProfile.sessionDurationMinutes,
+                likedExercises,
+                dislikedExercises,
             };
 
             const generatedPlan = await generatePersonalizedWorkoutPlan(traineeContext);
@@ -367,22 +412,72 @@ generatedWorkoutPlanRouter.get(
             if (!requireTrainee(req, res)) return;
 
             const statusFilter = req.query.status as string | undefined;
+            const isHistoryRequest = statusFilter === "history" || statusFilter === "completed";
+
+            if (isHistoryRequest) {
+                const localDateParam = req.query.localDate;
+                if (localDateParam !== undefined && !isValidLocalDate(localDateParam)) {
+                    res.status(400).json({ success: false, message: "Invalid localDate. Expected YYYY-MM-DD." });
+                    return;
+                }
+                const localDate = isValidLocalDate(localDateParam) ? localDateParam : toDateString(new Date());
+
+                // Backward-compatible: status=completed returns only completed plans.
+                const historyStatusQuery =
+                    statusFilter === "completed" ? "completed" : { $in: ["completed", "archived"] };
+
+                const plans = await GeneratedWorkoutPlan.find({
+                    userId: req.authUser!.userId,
+                    status: historyStatusQuery,
+                });
+
+                if (plans.length === 0) {
+                    res.status(200).json({ success: true, plans: [] });
+                    return;
+                }
+
+                const planIds = plans.map((p) => p._id);
+                const logs = (await DailyWorkoutLog.find({
+                    userId: req.authUser!.userId,
+                    planId: { $in: planIds },
+                })) as unknown as IDailyWorkoutLog[];
+
+                const logsByPlanId = new Map<string, Set<string>>();
+                for (const log of logs) {
+                    const key = log.planId.toString();
+                    const set = logsByPlanId.get(key) ?? new Set<string>();
+                    set.add(log.workoutDate);
+                    logsByPlanId.set(key, set);
+                }
+
+                const planDTOs = plans.map((p) => {
+                    const plan = p as unknown as IGeneratedWorkoutPlan;
+                    const historicalEnd = getHistoricalEndDate(plan);
+                    const completedDates = logsByPlanId.get(String(plan._id)) ?? new Set<string>();
+                    const stats = computePlanScheduleStats(plan, completedDates, localDate, historicalEnd);
+                    return { plan, historicalEnd, stats };
+                });
+
+                // Sort newest historical end first
+                planDTOs.sort((a, b) => b.historicalEnd.localeCompare(a.historicalEnd));
+
+                res.status(200).json({
+                    success: true,
+                    plans: planDTOs.map(({ plan, stats }) => formatSummaryDTO(plan, false, stats)),
+                });
+                return;
+            }
 
             const planQuery: Record<string, unknown> = {
                 userId: req.authUser!.userId,
+                status: { $nin: ["archived", "completed"] },
             };
-
-            if (statusFilter === "completed") {
-                planQuery.status = "completed";
-            } else {
-                planQuery.status = { $nin: ["archived", "completed"] };
-            }
 
             const plans = await GeneratedWorkoutPlan.find(planQuery).sort({ createdAt: -1 });
 
             // Batch-load pending change requests so each plan DTO knows its pending state
             let pendingPlanIds = new Set<string>();
-            if (statusFilter !== "completed" && plans.length > 0) {
+            if (plans.length > 0) {
                 const pending = await WorkoutPlanChangeRequest.find(
                     {
                         traineeId: req.authUser!.userId,
@@ -429,7 +524,6 @@ generatedWorkoutPlanRouter.get(
             const plan = await GeneratedWorkoutPlan.findOne({
                 _id: planId,
                 userId: req.authUser!.userId,
-                status: { $ne: "archived" },
             });
 
             if (!plan) {
@@ -500,6 +594,7 @@ generatedWorkoutPlanRouter.post(
             }
 
             plan.set("status", "completed");
+            plan.set("completedAt", new Date());
             await plan.save();
 
             res.status(200).json({
@@ -542,21 +637,89 @@ generatedWorkoutPlanRouter.delete(
                 return;
             }
 
-            const deleted = await GeneratedWorkoutPlan.findOneAndDelete({
-                _id: planId,
-                userId: req.authUser!.userId,
-                status: { $in: ["active", "completed"] },
-            });
+            const archived = await GeneratedWorkoutPlan.findOneAndUpdate(
+                {
+                    _id: planId,
+                    userId: req.authUser!.userId,
+                    status: "active",
+                },
+                {
+                    $set: {
+                        status: "archived",
+                        archivedAt: new Date(),
+                        archiveReason: "removed_by_trainee",
+                    },
+                }
+            );
 
-            if (!deleted) {
-                res.status(404).json({ success: false, message: "Plan not found or cannot be deleted" });
+            if (!archived) {
+                res.status(404).json({ success: false, message: "Plan not found or cannot be removed" });
                 return;
             }
 
             res.status(204).send();
         } catch (error) {
-            console.error("Failed to delete plan:", error);
-            res.status(500).json({ success: false, message: "Failed to delete plan" });
+            console.error("Failed to remove plan:", error);
+            res.status(500).json({ success: false, message: "Failed to remove plan" });
+        }
+    }
+);
+
+// ─── DELETE /api/generated-workout-plans/:planId/permanent ────────────────────
+
+generatedWorkoutPlanRouter.delete(
+    "/:planId/permanent",
+    authenticateToken,
+    async (req: AuthenticatedRequest, res: Response) => {
+        try {
+            if (!requireTrainee(req, res)) return;
+
+            const planId = (req.params.planId as string);
+            if (!mongoose.Types.ObjectId.isValid(planId)) {
+                res.status(400).json({ success: false, message: "Invalid plan ID" });
+                return;
+            }
+
+            const plan = await GeneratedWorkoutPlan.findOne({
+                _id: planId,
+                userId: req.authUser!.userId,
+            });
+
+            if (!plan) {
+                res.status(404).json({ success: false, message: "Plan not found" });
+                return;
+            }
+
+            if (plan.status !== "completed" && plan.status !== "archived") {
+                res.status(409).json({
+                    success: false,
+                    message: "Only completed or archived plans can be permanently deleted",
+                });
+                return;
+            }
+
+            await withMongoTransaction(async (session) => {
+                const opts = { session: session ?? undefined };
+                await GeneratedWorkoutPlan.deleteOne({ _id: plan._id }, opts);
+                await DailyWorkoutLog.deleteMany(
+                    { userId: req.authUser!.userId, planId: plan._id },
+                    opts
+                );
+                await WorkoutPlanChangeRequest.deleteMany({ planId: plan._id }, opts);
+                // Notifications reference the plan informationally — unset the
+                // pointer rather than deleting the notification itself so the
+                // trainee's notification history stays intact.
+                await Notification.updateMany(
+                    { planId: plan._id },
+                    { $unset: { planId: 1 } },
+                    opts
+                );
+            });
+
+            res.status(204).send();
+        } catch (error) {
+            console.error("Failed to permanently delete plan:", error);
+            res.status(500).json({ success: false, message: "Failed to permanently delete plan" });
         }
     }
 );
@@ -591,6 +754,15 @@ generatedWorkoutPlanRouter.post(
                 return;
             }
 
+            const reason = req.body?.reason;
+            if (reason !== "completed" && reason !== "not_suitable") {
+                res.status(400).json({
+                    success: false,
+                    message: "reason must be \"completed\" or \"not_suitable\"",
+                });
+                return;
+            }
+
             const oldPlan = await GeneratedWorkoutPlan.findOne({
                 _id: planId,
                 userId: req.authUser!.userId,
@@ -608,6 +780,8 @@ generatedWorkoutPlanRouter.post(
                 return;
             }
 
+            const { likedExercises, dislikedExercises } = await loadGeminiExercisePreferences(user._id);
+
             const traineeContext: WorkoutGenerationTraineeContext = {
                 fitnessLevel: traineeProfile.fitnessLevel,
                 goals: traineeProfile.goals ?? [],
@@ -621,11 +795,13 @@ generatedWorkoutPlanRouter.post(
                 medicalNotes: traineeProfile.medicalNotes,
                 preferredWorkoutTime: traineeProfile.preferredWorkoutTime,
                 sessionDurationMinutes: traineeProfile.sessionDurationMinutes,
+                likedExercises,
+                dislikedExercises,
             };
 
             const generatedPlan = await generatePersonalizedWorkoutPlan(traineeContext);
 
-            // Archive old plan then create new one
+            // Archive (or complete) old plan, then create the new one
             const newPlanDoc = {
                 userId: user._id,
                 title: generatedPlan.title,
@@ -658,11 +834,27 @@ generatedWorkoutPlanRouter.post(
             };
 
             const [newPlan] = await withMongoTransaction(async (session) => {
-                await GeneratedWorkoutPlan.deleteOne(
-                    { _id: oldPlan._id },
-                    { session: session ?? undefined }
-                );
-                return GeneratedWorkoutPlan.create([newPlanDoc], { session: session ?? undefined });
+                const opts = { session: session ?? undefined };
+                if (reason === "completed") {
+                    await GeneratedWorkoutPlan.updateOne(
+                        { _id: oldPlan._id },
+                        { $set: { status: "completed", completedAt: new Date() } },
+                        opts
+                    );
+                } else {
+                    await GeneratedWorkoutPlan.updateOne(
+                        { _id: oldPlan._id },
+                        {
+                            $set: {
+                                status: "archived",
+                                archivedAt: new Date(),
+                                archiveReason: "replaced_not_suitable",
+                            },
+                        },
+                        opts
+                    );
+                }
+                return GeneratedWorkoutPlan.create([newPlanDoc], opts);
             });
 
             res.status(201).json({

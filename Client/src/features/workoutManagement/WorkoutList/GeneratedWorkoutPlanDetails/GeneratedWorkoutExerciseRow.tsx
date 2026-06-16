@@ -1,7 +1,14 @@
 import type { GeneratedWorkoutExercise } from "../../workout.models";
+import type { ExercisePreferenceReason, ExercisePreferenceValue } from "../../ExercisePreferences/exercisePreference.models";
+import { ExercisePreferenceButtons } from "../../ExercisePreferences/ExercisePreferenceButtons";
 
 interface GeneratedWorkoutExerciseRowProps {
   exercise: GeneratedWorkoutExercise;
+  preference?: ExercisePreferenceValue;
+  onSetPreference?: (
+    preference: ExercisePreferenceValue | null,
+    reason?: ExercisePreferenceReason
+  ) => void;
 }
 
 function buildExerciseTarget(
@@ -31,6 +38,8 @@ function buildExerciseTarget(
 
 export function GeneratedWorkoutExerciseRow({
   exercise,
+  preference,
+  onSetPreference,
 }: GeneratedWorkoutExerciseRowProps) {
   const exerciseTarget =
     buildExerciseTarget(exercise);
@@ -57,11 +66,20 @@ export function GeneratedWorkoutExerciseRow({
                 )}
             </div>
 
-            {exerciseTarget && (
-              <div className="shrink-0 text-base font-extrabold text-slate-900">
-                {exerciseTarget}
-              </div>
-            )}
+            <div className="flex shrink-0 items-center gap-3">
+              {exerciseTarget && (
+                <div className="text-base font-extrabold text-slate-900">
+                  {exerciseTarget}
+                </div>
+              )}
+              {onSetPreference && (
+                <ExercisePreferenceButtons
+                  exerciseName={exercise.name}
+                  preference={preference}
+                  onSetPreference={onSetPreference}
+                />
+              )}
+            </div>
           </div>
 
           <div className="mt-3 flex flex-wrap gap-2">

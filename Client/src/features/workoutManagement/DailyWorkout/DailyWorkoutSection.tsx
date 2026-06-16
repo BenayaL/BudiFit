@@ -7,6 +7,7 @@ import { WorkoutCalendar } from "./WorkoutCalendar";
 import { DailyWorkoutDetailsModal } from "./DailyWorkoutDetailsModal";
 import { DailyWorkoutHistoryModal } from "./DailyWorkoutHistoryModal";
 import { DailyShareButton } from "./DailyShareButton";
+import { useExercisePreferences } from "../ExercisePreferences/useExercisePreferences";
 import type { DailyPlanDay, DailyDashboard } from "./dailyWorkout.models";
 
 type ModalMode =
@@ -26,6 +27,7 @@ function formatDate(dateStr: string): string {
 export function DailyWorkoutSection() {
   const { dashboard, isLoading, isCompleting, error, completeToday, refresh } =
     useDailyWorkout();
+  const { getPreference, setPreference } = useExercisePreferences();
 
   const [modal, setModal] = useState<ModalMode>(null);
   const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
@@ -116,6 +118,10 @@ export function DailyWorkoutSection() {
           dateLabel={modal.dateLabel}
           label={modal.label}
           onClose={() => setModal(null)}
+          getPreference={getPreference}
+          onSetPreference={(exerciseName, preference, reason) =>
+            void setPreference(exerciseName, preference, reason)
+          }
         />
       )}
 

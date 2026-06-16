@@ -40,6 +40,7 @@ import {
   calculateStreak,
   isValidLocalDate,
 } from "../utils/dailyWorkoutPlan.helpers";
+import { loadGeminiExercisePreferences } from "../services/exercisePreference.service";
 
 const router = Router();
 
@@ -750,6 +751,7 @@ router.post(
           $set: {
             status: "archived",
             archivedAt: now,
+            archiveReason: "superseded_by_new_plan",
           },
         }
       );
@@ -873,14 +875,24 @@ router.delete(
         return;
       }
 
-      // Permanently delete
-      const deleteResult = await GeneratedWorkoutPlan.deleteOne({ _id: plan._id });
-      if (deleteResult.deletedCount !== 1) {
-        res.status(500).json({ message: "Failed to delete plan" });
+      // Archive instead of destroying — preserves DailyWorkoutLogs and lets
+      // the trainee still see this plan (and its missed days) in history.
+      const archiveResult = await GeneratedWorkoutPlan.updateOne(
+        { _id: plan._id },
+        {
+          $set: {
+            status: "archived",
+            archivedAt: new Date(),
+            archiveReason: "removed_by_coach",
+          },
+        }
+      );
+      if (archiveResult.matchedCount !== 1) {
+        res.status(500).json({ message: "Failed to remove plan" });
         return;
       }
 
-      // Notify trainee — non-blocking; plan is already deleted
+      // Notify trainee — non-blocking; plan is already archived
       try {
         await createNotification({
           recipientId: plan.userId,
@@ -888,7 +900,7 @@ router.delete(
           message: "Your coach removed your workout plan. You can generate a new one.",
         });
       } catch (notifError) {
-        console.error("Delete plan: notification failed:", notifError);
+        console.error("Archive plan: notification failed:", notifError);
       }
 
       res.status(204).send();
@@ -950,6 +962,8 @@ router.post(
         excludedExercises?: string[];
       };
 
+      const { likedExercises, dislikedExercises } = await loadGeminiExercisePreferences(trainee._id);
+
       const traineeContext: WorkoutGenerationTraineeContext = {
         fitnessLevel: traineeProfile.fitnessLevel,
         goals: traineeProfile.goals ?? [],
@@ -966,6 +980,8 @@ router.post(
         coachNotes: notes,
         focusAreas: Array.isArray(focusAreas) ? focusAreas : undefined,
         excludedExercises: Array.isArray(excludedExercises) ? excludedExercises : undefined,
+        likedExercises,
+        dislikedExercises,
       };
 
       const generatedPlan = await generatePersonalizedWorkoutPlan(traineeContext);

@@ -29,6 +29,18 @@ export type GeneratedWorkoutPlanApprovalStatus =
   | "approved";
 
 /*
+ * Why an archived plan stopped being active. Only meaningful when
+ * status="archived" — completed plans use completedAt instead.
+ */
+export type GeneratedWorkoutPlanArchiveReason =
+  | "removed_by_trainee"
+  | "replaced"
+  | "replaced_not_suitable"
+  | "removed_by_coach"
+  | "superseded_by_new_plan"
+  | "other";
+
+/*
  * The trainee data used when Gemini generated the plan.
  *
  * We save a snapshot because the trainee may change their
@@ -99,6 +111,8 @@ export interface IGeneratedWorkoutPlan extends Document {
   lastModifiedBy: "gemini" | "coach";
   version: number;
   archivedAt?: Date;
+  completedAt?: Date;
+  archiveReason?: GeneratedWorkoutPlanArchiveReason;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -391,6 +405,22 @@ const GeneratedWorkoutPlanSchema =
 
       archivedAt: {
         type: Date,
+      },
+
+      completedAt: {
+        type: Date,
+      },
+
+      archiveReason: {
+        type: String,
+        enum: [
+          "removed_by_trainee",
+          "replaced",
+          "replaced_not_suitable",
+          "removed_by_coach",
+          "superseded_by_new_plan",
+          "other",
+        ],
       },
 
       requiresProfessionalReview: {

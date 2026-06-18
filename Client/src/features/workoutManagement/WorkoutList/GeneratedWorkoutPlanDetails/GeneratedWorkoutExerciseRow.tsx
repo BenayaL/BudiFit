@@ -1,9 +1,16 @@
-import type { GeneratedWorkoutExercise } from "../../workout.models";
+import { useState } from "react";
+
+import type { GeneratedWorkoutExercise, ExerciseAlternative } from "../../workout.models";
 import type { ExercisePreferenceReason, ExercisePreferenceValue } from "../../ExercisePreferences/exercisePreference.models";
 import { ExercisePreferenceButtons } from "../../ExercisePreferences/ExercisePreferenceButtons";
+import { workoutService } from "../../workoutService";
 
 interface GeneratedWorkoutExerciseRowProps {
   exercise: GeneratedWorkoutExercise;
+  planId: string;
+  dayNumber: number;
+  managedByCoach: boolean;
+  token: string | null;
   preference?: ExercisePreferenceValue;
   onSetPreference?: (
     preference: ExercisePreferenceValue | null,
@@ -36,13 +43,76 @@ function buildExerciseTarget(
   return "";
 }
 
+function AlternativeCard({ alt }: { alt: ExerciseAlternative }) {
+  return (
+    <div className="rounded-2xl border border-purple-100 bg-purple-50 p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-bold text-slate-900">{alt.name}</span>
+
+        <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700">
+          {alt.suggestedTarget}
+        </span>
+      </div>
+
+      {alt.equipment && alt.equipment !== "none" && (
+        <p className="mt-1 text-xs text-slate-500">{alt.equipment}</p>
+      )}
+
+      <p className="mt-1 text-sm text-slate-600">{alt.reason}</p>
+
+      {alt.notes && (
+        <p className="mt-1 text-xs text-slate-500">{alt.notes}</p>
+      )}
+    </div>
+  );
+}
+
 export function GeneratedWorkoutExerciseRow({
   exercise,
+  planId,
+  dayNumber,
+  managedByCoach,
+  token,
   preference,
   onSetPreference,
 }: GeneratedWorkoutExerciseRowProps) {
-  const exerciseTarget =
-    buildExerciseTarget(exercise);
+  const exerciseTarget = buildExerciseTarget(exercise);
+
+  const [alternatives, setAlternatives] = useState<ExerciseAlternative[] | null>(null);
+  const [isLoadingAlternatives, setIsLoadingAlternatives] = useState(false);
+  const [alternativesError, setAlternativesError] = useState<string | null>(null);
+  const [showAlternatives, setShowAlternatives] = useState(false);
+
+  const canShowAlternatives = !managedByCoach && !!token;
+
+  async function handleAlternativesClick() {
+    if (showAlternatives) {
+      setShowAlternatives(false);
+      return;
+    }
+
+    if (alternatives !== null) {
+      setShowAlternatives(true);
+      return;
+    }
+
+    setIsLoadingAlternatives(true);
+    setAlternativesError(null);
+
+    try {
+      const response = await workoutService.getExerciseAlternatives(
+        planId,
+        { dayNumber, exerciseOrder: exercise.order },
+        token!
+      );
+      setAlternatives(response.alternatives);
+      setShowAlternatives(true);
+    } catch {
+      setAlternativesError("Could not load alternatives. Please try again.");
+    } finally {
+      setIsLoadingAlternatives(false);
+    }
+  }
 
   return (
     <div className="border-t border-slate-200 px-5 py-4 first:border-t-0">
@@ -101,6 +171,35 @@ export function GeneratedWorkoutExerciseRow({
             <p className="mt-3 text-sm leading-6 text-slate-500">
               {exercise.notes}
             </p>
+          )}
+
+          {canShowAlternatives && (
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={() => void handleAlternativesClick()}
+                disabled={isLoadingAlternatives}
+                className="rounded-xl border border-purple-200 bg-white px-3 py-1.5 text-xs font-semibold text-purple-700 transition hover:bg-purple-50 disabled:opacity-60"
+              >
+                {isLoadingAlternatives
+                  ? "Loading..."
+                  : showAlternatives
+                  ? "Hide alternatives"
+                  : "Show alternatives"}
+              </button>
+
+              {alternativesError && (
+                <p className="mt-2 text-xs text-red-600">{alternativesError}</p>
+              )}
+
+              {showAlternatives && alternatives && alternatives.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {alternatives.map((alt, index) => (
+                    <AlternativeCard key={index} alt={alt} />
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

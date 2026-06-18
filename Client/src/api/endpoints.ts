@@ -39,6 +39,7 @@ export const ENDPOINTS = {
     permanentDelete: (planId: string) => `/generated-workout-plans/${planId}/permanent`,
     replace: (planId: string) => `/generated-workout-plans/${planId}/replace`,
     requestChange: (planId: string) => `/generated-workout-plans/${planId}/request-change`,
+    exerciseAlternatives: (planId: string) => `/generated-workout-plans/${planId}/exercise-alternatives`,
   },
 
   challenges: {

@@ -145,3 +145,21 @@ export interface GenerateWorkoutPlanResponse {
   message: string;
   plan: GeneratedWorkoutPlanSummary;
 }
+
+export interface ExerciseAlternative {
+  name: string;
+  equipment: string;
+  reason: string;
+  suggestedTarget: string;
+  notes?: string;
+}
+
+export interface ExerciseAlternativesResponse {
+  success: boolean;
+  alternatives: ExerciseAlternative[];
+}
+
+export interface ExerciseAlternativesRequest {
+  dayNumber: number;
+  exerciseOrder: number;
+}

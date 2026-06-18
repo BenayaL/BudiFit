@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { GeneratedWorkoutPlanSummary } from "../workout.models";
 import { ChangeRequestModal } from "../ChangeRequestModal";
+import { ModalPortal } from "../../../common/ModalPortal";
 
 interface GeneratedWorkoutPlanCardProps {
   plan: GeneratedWorkoutPlanSummary;
@@ -102,6 +103,7 @@ export function GeneratedWorkoutPlanCard({
     canRequestChange;
 
   return (
+    <>
     <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
       <div className="h-2" style={{ backgroundColor: accent.color }} />
 
@@ -220,8 +222,11 @@ export function GeneratedWorkoutPlanCard({
         )}
       </div>
 
-      {showRemoveConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    </article>
+
+    {showRemoveConfirm && (
+      <ModalPortal>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl">
             <h3 className="text-lg font-extrabold text-slate-900">Remove plan?</h3>
             <p className="mt-2 text-sm text-slate-500">
@@ -248,19 +253,23 @@ export function GeneratedWorkoutPlanCard({
             </div>
           </div>
         </div>
-      )}
+      </ModalPortal>
+    )}
 
-      {showChangeModal && onRequestChange && (
+    {showChangeModal && onRequestChange && (
+      <ModalPortal>
         <ChangeRequestModal
           planTitle={plan.title}
           isOpen={showChangeModal}
           onClose={() => setShowChangeModal(false)}
           onSubmit={(message) => onRequestChange(plan.id, message)}
         />
-      )}
+      </ModalPortal>
+    )}
 
-      {showReplaceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    {showReplaceModal && (
+      <ModalPortal>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl">
             <h3 className="text-lg font-extrabold text-slate-900">Why are you replacing?</h3>
             <div className="mt-4 flex flex-col gap-3">
@@ -294,8 +303,9 @@ export function GeneratedWorkoutPlanCard({
             </div>
           </div>
         </div>
-      )}
-    </article>
+      </ModalPortal>
+    )}
+    </>
   );
 }
 

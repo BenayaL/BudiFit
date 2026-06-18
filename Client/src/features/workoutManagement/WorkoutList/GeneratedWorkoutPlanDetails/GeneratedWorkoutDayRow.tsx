@@ -9,6 +9,9 @@ import { GeneratedWorkoutExerciseRow } from "./GeneratedWorkoutExerciseRow";
 
 interface GeneratedWorkoutDayRowProps {
   day: GeneratedWorkoutDay;
+  planId: string;
+  managedByCoach: boolean;
+  token: string | null;
   getPreference?: (exerciseName: string) => ExercisePreference | undefined;
   onSetPreference?: (
     exerciseName: string,
@@ -19,6 +22,9 @@ interface GeneratedWorkoutDayRowProps {
 
 export function GeneratedWorkoutDayRow({
   day,
+  planId,
+  managedByCoach,
+  token,
   getPreference,
   onSetPreference,
 }: GeneratedWorkoutDayRowProps) {
@@ -101,6 +107,10 @@ export function GeneratedWorkoutDayRow({
                 `${day.dayNumber}-${exercise.order}`
               }
               exercise={exercise}
+              planId={planId}
+              dayNumber={day.dayNumber}
+              managedByCoach={managedByCoach}
+              token={token}
               preference={getPreference?.(exercise.name)?.preference}
               onSetPreference={
                 onSetPreference

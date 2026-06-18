@@ -297,6 +297,9 @@ export function GeneratedWorkoutPlanDetailsPage({
                   `day-${day.dayNumber}`
                 }
                 day={day}
+                planId={planId}
+                managedByCoach={plan.managedByCoach}
+                token={token}
                 getPreference={getPreference}
                 onSetPreference={setPreference}
               />

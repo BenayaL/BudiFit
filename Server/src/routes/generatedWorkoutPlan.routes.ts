@@ -31,6 +31,9 @@ import type { IDailyWorkoutLog } from "../models/dailyWorkoutLog.model";
 import Notification from "../models/notification.model";
 import { loadGeminiExercisePreferences } from "../services/exercisePreference.service";
 import {
+    getExerciseAlternatives,
+} from "../services/exerciseAlternatives.service";
+import {
     isValidLocalDate,
     toDateString,
     getHistoricalEndDate,
@@ -990,6 +993,96 @@ generatedWorkoutPlanRouter.post(
             res.status(500).json({
                 success: false,
                 message: "The request could not be sent. Please try again.",
+            });
+        }
+    }
+);
+
+// ─── POST /api/generated-workout-plans/:planId/exercise-alternatives ──────────
+
+const exerciseAlternativesLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: {
+        success: false,
+        message: "Too many alternative exercise requests. Please try again later.",
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+generatedWorkoutPlanRouter.post(
+    "/:planId/exercise-alternatives",
+    authenticateToken,
+    exerciseAlternativesLimiter,
+    async (req: AuthenticatedRequest, res: Response) => {
+        try {
+            if (!requireTrainee(req, res)) return;
+
+            const planId = req.params.planId as string;
+            if (!mongoose.Types.ObjectId.isValid(planId)) {
+                res.status(400).json({ success: false, message: "Invalid plan ID" });
+                return;
+            }
+
+            const { dayNumber, exerciseOrder } = req.body as {
+                dayNumber?: unknown;
+                exerciseOrder?: unknown;
+            };
+            if (typeof dayNumber !== "number" || typeof exerciseOrder !== "number") {
+                res.status(400).json({
+                    success: false,
+                    message: "dayNumber and exerciseOrder are required numbers",
+                });
+                return;
+            }
+
+            const plan = await GeneratedWorkoutPlan.findOne({
+                _id: planId,
+                userId: req.authUser!.userId,
+            });
+
+            if (!plan) {
+                res.status(404).json({ success: false, message: "Workout plan not found" });
+                return;
+            }
+
+            const typedPlan = plan as unknown as IGeneratedWorkoutPlan;
+
+            if (typedPlan.coachId || typedPlan.approvalStatus === "pending_review") {
+                res.status(403).json({
+                    success: false,
+                    message: "Exercise alternatives are only available for self-managed plans",
+                });
+                return;
+            }
+
+            const day = typedPlan.days.find((d) => d.dayNumber === dayNumber);
+            if (!day) {
+                res.status(404).json({ success: false, message: "Workout day not found" });
+                return;
+            }
+
+            const exercise = day.exercises.find((e) => e.order === exerciseOrder);
+            if (!exercise) {
+                res.status(404).json({ success: false, message: "Exercise not found" });
+                return;
+            }
+
+            const alternatives = await getExerciseAlternatives({
+                exercise,
+                dayTitle: day.title,
+                planCategory: typedPlan.category,
+                planDifficulty: typedPlan.difficulty,
+                profileSnapshot: typedPlan.profileSnapshot,
+            });
+
+            res.status(200).json({ success: true, alternatives });
+        } catch (error) {
+            console.error("Failed to get exercise alternatives:", error);
+            res.status(500).json({
+                success: false,
+                message: "Failed to get exercise alternatives. Please try again.",
             });
         }
     }

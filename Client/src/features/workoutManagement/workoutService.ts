@@ -10,6 +10,8 @@ import type {
   GeneratedWorkoutPlanResponse,
   GeneratedWorkoutPlansResponse,
   GenerateWorkoutPlanResponse,
+  ExerciseAlternativesRequest,
+  ExerciseAlternativesResponse,
 } from "./workout.models";
 
 export const workoutService = {
@@ -95,4 +97,16 @@ export const workoutService = {
       { message },
       token
     ),
+
+  async getExerciseAlternatives(
+    planId: string,
+    body: ExerciseAlternativesRequest,
+    token: string
+  ): Promise<ExerciseAlternativesResponse> {
+    return httpClient.post<ExerciseAlternativesResponse, ExerciseAlternativesRequest>(
+      ENDPOINTS.generatedWorkoutPlans.exerciseAlternatives(planId),
+      body,
+      token
+    );
+  },
 };

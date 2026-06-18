@@ -14,6 +14,7 @@ export type Page =
   | "workout-history"
   | "dashboard"
   | "profile"
+  | "profile-personal-details"
   | "settings"
   | "social"
   | "notifications"

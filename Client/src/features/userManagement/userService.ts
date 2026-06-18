@@ -13,6 +13,7 @@ import type {
   UserSettings,
   OnboardingRequest,
   OnboardingResponse,
+  TraineeProfileResponse,
   CoachConnectionResponse,
 } from "./user.models";
 
@@ -75,6 +76,21 @@ export const userService = {
   ): Promise<UserSettings> =>
     httpClient.patch<UserSettings, Partial<UserSettings>>(
       ENDPOINTS.users.settings,
+      data,
+      token
+    ),
+
+  /** GET /api/trainee-profiles/me */
+  getTraineeProfile: (token: string): Promise<TraineeProfileResponse> =>
+    httpClient.get<TraineeProfileResponse>(ENDPOINTS.traineeProfiles.me, token),
+
+  /** PATCH /api/trainee-profiles/me */
+  updateTraineeProfile: (
+    data: OnboardingRequest,
+    token: string
+  ): Promise<OnboardingResponse> =>
+    httpClient.patch<OnboardingResponse, OnboardingRequest>(
+      ENDPOINTS.traineeProfiles.me,
       data,
       token
     ),

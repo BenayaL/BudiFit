@@ -15,6 +15,7 @@ export const ENDPOINTS = {
   },
 
   traineeProfiles: {
+    me: "/trainee-profiles/me",
     onboarding: "/trainee-profiles/me/onboarding",
   },
 

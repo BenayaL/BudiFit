@@ -15,6 +15,7 @@ import ProgressDashboardPage from "../features/progressManagement/ProgressDashbo
 import WorkoutPage from "../features/workoutManagement/WorkoutPage";
 import GeneratedWorkoutPlanDetailsPage from "../features/workoutManagement/WorkoutList/GeneratedWorkoutPlanDetails/GeneratedWorkoutPlanDetailsPage";
 import TraineeOnboardingPage from "../features/userManagement/Onboarding/TraineeOnboardingPage";
+import EditPersonalDetailsPage from "../features/userManagement/EditPersonalDetails/EditPersonalDetailsPage";
 import WorkoutHistoryPage from "../features/workoutManagement/WorkoutHistory/WorkoutHistoryPage";
 import SettingsPage from "../features/settingsManagement/Settings/SettingsPage";
 import NotificationPage from "../features/notificationManagement/NotificationPage";
@@ -167,7 +168,23 @@ function App() {
   }
 
   if (currentPage === "profile") {
-    return withNav(<UserProfilePage onLogout={handleLogout} />);
+    return withNav(
+      <UserProfilePage
+        onLogout={handleLogout}
+        onEditPersonalDetails={
+          user.role === "trainee"
+            ? () => setCurrentPage("profile-personal-details")
+            : undefined
+        }
+      />
+    );
+  }
+
+  if (currentPage === "profile-personal-details") {
+    return withNav(
+      <EditPersonalDetailsPage onBack={() => setCurrentPage("profile")} />,
+      "profile"
+    );
   }
 
   if (currentPage === "settings") {

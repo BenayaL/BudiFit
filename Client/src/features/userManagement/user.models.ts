@@ -173,6 +173,11 @@ export interface OnboardingResponse {
   user: CurrentUser;
 }
 
+export interface TraineeProfileResponse {
+  success: boolean;
+  profile: TraineeProfileData;
+}
+
 // ─── Achievement (used by progress/coach features) ───────────────────────────
 
 export interface Achievement {

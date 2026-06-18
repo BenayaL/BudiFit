@@ -76,6 +76,7 @@ export interface CurrentUser {
   goals: Goal[];
   hasCompletedOnboarding: boolean;
   settings?: UserSettings;
+  avatarIcon?: string;
   coachConnectionCode?: string;
   createdAt: string;
 }

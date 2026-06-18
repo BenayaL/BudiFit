@@ -74,10 +74,17 @@ export function formatUser(user: IUser) {
     goals: user.goals,
     hasCompletedOnboarding: user.hasCompletedOnboarding,
     settings: user.settings,
+    avatarIcon: user.avatarIcon,
     coachConnectionCode: user.coachConnectionCode,
     createdAt: user.createdAt,
   };
 }
+
+const VALID_AVATAR_ICONS = [
+  "🏋️‍♂️", "🏃‍♂️", "🚴‍♂️", "🧘‍♂️",
+  "🥊", "🏊‍♂️", "🤸‍♂️", "🧗‍♂️",
+  "🔥", "💪", "🏆", "👟",
+];
 
 // ─── /me routes must be registered before /:email ────────────────────────────
 
@@ -405,6 +412,45 @@ usersRouter.patch(
       res.status(500).json({
         message: "Failed to update user",
       });
+    }
+  }
+);
+
+// PATCH /api/users/me/avatar
+usersRouter.patch(
+  "/me/avatar",
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const userId = req.authUser?.userId;
+
+      if (!userId) {
+        res.status(401).json({ message: "Authenticated user was not found" });
+        return;
+      }
+
+      const { avatarIcon } = req.body as { avatarIcon?: unknown };
+
+      if (typeof avatarIcon !== "string" || !VALID_AVATAR_ICONS.includes(avatarIcon)) {
+        res.status(400).json({ message: "Invalid avatarIcon value" });
+        return;
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { $set: { avatarIcon } },
+        { new: true, runValidators: true, projection: { password: 0 } }
+      );
+
+      if (!updatedUser) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+
+      res.status(200).json(formatUser(updatedUser));
+    } catch (error) {
+      console.error("Failed to update avatar:", error);
+      res.status(500).json({ message: "Failed to update avatar" });
     }
   }
 );

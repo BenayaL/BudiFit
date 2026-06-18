@@ -1,97 +1,74 @@
-import React from 'react';
+import { ModalPortal } from "../../../common/ModalPortal";
+
+export const FITNESS_AVATARS = [
+  "🏋️‍♂️", "🏃‍♂️", "🚴‍♂️", "🧘‍♂️",
+  "🥊", "🏊‍♂️", "🤸‍♂️", "🧗‍♂️",
+  "🔥", "💪", "🏆", "👟",
+];
 
 interface AvatarModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectAvatar: (avatar: string) => void;
+  onSelectAvatar: (avatar: string) => Promise<void>;
+  isSaving?: boolean;
+  saveError?: string;
 }
 
-// Available sports and fitness avatars for the user to choose from
-const FITNESS_AVATARS = ['🏋️‍♂️', '🏃‍♂️', '🚴‍♂️', '🧘‍♂️', '🥊', '🏊‍♂️', '🤸‍♂️', '🧗‍♂️', '🔥', '💪', '🏆', '👟'];
-
-const AvatarModal: React.FC<AvatarModalProps> = ({ isOpen, onClose, onSelectAvatar }) => {
+function AvatarModal({ isOpen, onClose, onSelectAvatar, isSaving, saveError }: AvatarModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.6)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      backdropFilter: 'blur(4px)'
-    }}>
-      <div style={{
-        backgroundColor: '#1e293b', // Matches the dark/slate theme of BudiFit
-        padding: '24px',
-        borderRadius: '16px',
-        width: '320px',
-        textAlign: 'center',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
-        border: '1px solid #334155'
-      }}>
-        <h3 style={{ color: '#f8fafc', fontSize: '20px', fontWeight: 'bold', marginBottom: '8px' }}>
-          Choose Your Avatar
-        </h3>
-        <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '20px' }}>
-          Select an icon that fits your training vibe today
-        </p>
-
-        {/* Avatar Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '12px',
-          marginBottom: '20px'
-        }}>
-          {FITNESS_AVATARS.map((avatar) => (
-            <button
-              key={avatar}
-              onClick={() => {
-                onSelectAvatar(avatar);
-                onClose();
-              }}
-              style={{
-                fontSize: '28px',
-                padding: '8px',
-                background: '#334155',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                transition: 'transform 0.1s ease, background 0.2s',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#475569'}
-              onMouseLeave={(e) => e.currentTarget.style.background = '#334155'}
-            >
-              {avatar}
-            </button>
-          ))}
-        </div>
-
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          style={{
-            backgroundColor: '#ef4444',
-            color: 'white',
-            padding: '8px 16px',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: '6px',
-            fontSize: '14px'
-          }}
+    <ModalPortal>
+      <div
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <div
+          className="w-full max-w-sm rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
         >
-          Close
-        </button>
+          <div className="mb-5 text-center">
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-100">
+              <span className="text-xl">🎭</span>
+            </div>
+            <h3 className="text-lg font-extrabold text-slate-900">Choose your avatar</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Pick an avatar that fits your training vibe
+            </p>
+          </div>
+
+          {saveError && (
+            <p className="mb-4 rounded-2xl bg-red-50 px-3 py-2 text-center text-sm font-medium text-red-600">
+              {saveError}
+            </p>
+          )}
+
+          <div className="mb-6 grid grid-cols-4 gap-3">
+            {FITNESS_AVATARS.map((avatar) => (
+              <button
+                key={avatar}
+                type="button"
+                disabled={isSaving}
+                onClick={() => void onSelectAvatar(avatar)}
+                className="flex h-14 w-full items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-2xl transition hover:border-purple-300 hover:bg-purple-50 hover:ring-2 hover:ring-purple-500/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {avatar}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSaving}
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+          >
+            {isSaving ? "Saving…" : "Close"}
+          </button>
+        </div>
       </div>
-    </div>
+    </ModalPortal>
   );
-};
+}
 
 export default AvatarModal;

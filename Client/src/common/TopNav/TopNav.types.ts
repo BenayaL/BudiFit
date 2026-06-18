@@ -13,6 +13,7 @@ export interface TopNavProps {
   user: {
     name: string;
     avatarLetter: string;
+    avatarIcon?: string;
   };
   onStartWorkout: () => void;
   onGoToProfile: () => void;

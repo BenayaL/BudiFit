@@ -53,6 +53,8 @@ export interface IUser extends Document {
 
   settings: UserSettings;
 
+  avatarIcon?: string;
+
   coachConnectionCode?: string;
   coachId?: Types.ObjectId;
 
@@ -225,6 +227,11 @@ const UserSchema = new Schema<IUser>(
      * The sparse unique index prevents missing values from
      * conflicting with one another.
      */
+    avatarIcon: {
+      type: String,
+      required: false,
+    },
+
     coachConnectionCode: {
       type: String,
       unique: true,

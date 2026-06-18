@@ -65,6 +65,14 @@ export const userService = {
       token
     ),
 
+  /** PATCH /api/users/me/avatar */
+  updateAvatar: (avatarIcon: string, token: string): Promise<CurrentUser> =>
+    httpClient.patch<CurrentUser, { avatarIcon: string }>(
+      ENDPOINTS.users.avatar,
+      { avatarIcon },
+      token
+    ),
+
   /** GET /api/users/me/settings */
   getSettings: (token: string): Promise<UserSettings> =>
     httpClient.get<UserSettings>(ENDPOINTS.users.settings, token),

@@ -1,16 +1,92 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Pencil } from "lucide-react";
 import { ProfileHeader } from "./ProfileHeader";
 import { useUserProfile } from "./useUserProfile";
-import { EditProfileForm } from "../EditProfile/EditProfileForm";
+import { ModalPortal } from "../../../common/ModalPortal";
+import { EditPersonalDetailsForm } from "../EditPersonalDetails/EditPersonalDetailsForm";
+import { userService } from "../userService";
+import { useAuth } from "../../../app/AuthContext";
 import type { UserProfilePageProps } from "./UserProfile.types";
-import type { Goal } from "../user.models";
+import type { TraineeProfileData } from "../user.models";
 
-function UserProfilePage({ onLogout, onEditPersonalDetails }: UserProfilePageProps) {
+// ─── Display helpers ──────────────────────────────────────────────────────────
+
+const EQUIPMENT_LABELS: Record<string, string> = {
+  barbell: "Barbell",
+  cables: "Cables",
+  dumbbells: "Dumbbells",
+  machines: "Machines",
+  kettlebell: "Kettlebell",
+  pullup: "Pull-up bar",
+  smith: "Smith machine",
+  bench: "Bench",
+  rack: "Power rack",
+  cardioMachines: "Cardio machines",
+  trx: "TRX",
+  bands: "Resistance bands",
+};
+
+const GENDER_LABELS: Record<string, string> = {
+  male: "Male",
+  female: "Female",
+  prefer_not_to_say: "Prefer not to say",
+};
+
+const TIME_LABELS: Record<string, string> = {
+  morning: "Morning",
+  afternoon: "Afternoon",
+  evening: "Evening",
+};
+
+const MEDICAL_LABELS: Record<string, string> = {
+  knee: "Knee",
+  back: "Back",
+  shoulder: "Shoulder",
+  wrist_elbow: "Wrist / Elbow",
+  hip_ankle: "Hip / Ankle",
+  cardiovascular_breathing: "Cardiovascular",
+  mobility_balance: "Mobility / Balance",
+  other: "Other",
+};
+
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between border-b border-slate-100 py-2.5 last:border-0">
+      <span className="text-sm text-slate-500">{label}</span>
+      <span className="text-sm font-semibold text-slate-800">{value}</span>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+function UserProfilePage({ onLogout }: UserProfilePageProps) {
   const { user, isLoading, error } = useUserProfile();
-  const [isEditing, setIsEditing] = useState(false);
+  const { token } = useAuth();
+
+  const [isEditingPersonalDetails, setIsEditingPersonalDetails] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState("");
+  const [traineeProfile, setTraineeProfile] = useState<TraineeProfileData | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    if (!token || !user || user.role !== "trainee") return;
+    let cancelled = false;
+    userService
+      .getTraineeProfile(token)
+      .then((res) => {
+        if (!cancelled) setTraineeProfile(res.profile);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [token, user, refreshKey]);
 
   if (isLoading) {
     return <div className="p-8 text-center text-slate-500">Loading profile…</div>;
@@ -36,13 +112,24 @@ function UserProfilePage({ onLogout, onEditPersonalDetails }: UserProfilePagePro
     }
   }
 
+  function handleSaved() {
+    setIsEditingPersonalDetails(false);
+    setRefreshKey((k) => k + 1);
+  }
+
+  const isTrainee = user.role === "trainee";
+  const realConditions =
+    traineeProfile?.medicalConditions.filter((c) => c !== "none") ?? [];
+
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="mx-auto max-w-3xl px-6 py-8">
+      {/* ── Page header ────────────────────────────────────────────── */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Profile</h1>
           <p className="mt-1 text-slate-500">
-            Role: <span className="font-semibold capitalize text-purple-700">{user.role}</span>
+            Role:{" "}
+            <span className="font-semibold capitalize text-purple-700">{user.role}</span>
           </p>
           {logoutError && (
             <p className="mt-2 text-sm font-medium text-red-600">{logoutError}</p>
@@ -50,10 +137,10 @@ function UserProfilePage({ onLogout, onEditPersonalDetails }: UserProfilePagePro
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {user.role === "trainee" && onEditPersonalDetails && (
+          {isTrainee && (
             <button
               type="button"
-              onClick={onEditPersonalDetails}
+              onClick={() => setIsEditingPersonalDetails(true)}
               className="flex items-center gap-2 rounded-xl border border-purple-200 bg-purple-50 px-4 py-2 text-sm font-semibold text-purple-700 transition hover:bg-purple-100"
             >
               <Pencil size={16} />
@@ -78,9 +165,10 @@ function UserProfilePage({ onLogout, onEditPersonalDetails }: UserProfilePagePro
         </div>
       </div>
 
-      <ProfileHeader user={user} onEditProfile={() => setIsEditing(true)} />
+      {/* ── Hero card ──────────────────────────────────────────────── */}
+      <ProfileHeader user={user} />
 
-      {/* Goals */}
+      {/* ── Fitness goals ──────────────────────────────────────────── */}
       {user.goals.length > 0 && (
         <div className="mt-6 rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="mb-3 text-base font-extrabold text-slate-900">Fitness goals</h2>
@@ -90,26 +178,119 @@ function UserProfilePage({ onLogout, onEditPersonalDetails }: UserProfilePagePro
                 key={goal}
                 className="rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-sm font-semibold text-purple-700"
               >
-                {goal}
+                {capitalize(goal)}
               </span>
             ))}
           </div>
         </div>
       )}
 
-      {/* Edit name / goals form */}
-      {isEditing && (
-        <div className="mt-6">
-          <EditProfileForm
-            initialValues={{
-              firstName: user.firstName,
-              lastName: user.lastName,
-              goals: user.goals as Goal[],
-            }}
-            onSaved={() => setIsEditing(false)}
-            onCancel={() => setIsEditing(false)}
-          />
-        </div>
+      {/* ── Trainee info cards ─────────────────────────────────────── */}
+      {isTrainee && traineeProfile && (
+        <>
+          {/* Training summary */}
+          <div className="mt-6 rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-base font-extrabold text-slate-900">Training summary</h2>
+            <InfoRow label="Fitness level" value={capitalize(traineeProfile.fitnessLevel)} />
+            <InfoRow label="Days per week" value={`${traineeProfile.weeklyWorkouts} days`} />
+            <InfoRow label="Session duration" value={`${traineeProfile.sessionDurationMinutes} min`} />
+            <InfoRow
+              label="Preferred time"
+              value={TIME_LABELS[traineeProfile.preferredWorkoutTime] ?? capitalize(traineeProfile.preferredWorkoutTime)}
+            />
+            {traineeProfile.availableEquipment.length > 0 && (
+              <div className="mt-4 pt-3 border-t border-slate-100">
+                <p className="mb-2 text-sm text-slate-500">Available equipment</p>
+                <div className="flex flex-wrap gap-2">
+                  {traineeProfile.availableEquipment.map((eq) => (
+                    <span
+                      key={eq}
+                      className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700"
+                    >
+                      {EQUIPMENT_LABELS[eq] ?? eq}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Body details */}
+          <div className="mt-6 rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-base font-extrabold text-slate-900">Body details</h2>
+            <InfoRow label="Age" value={`${traineeProfile.age} years`} />
+            <InfoRow
+              label="Gender"
+              value={
+                traineeProfile.gender
+                  ? (GENDER_LABELS[traineeProfile.gender] ?? capitalize(traineeProfile.gender))
+                  : "Not set"
+              }
+            />
+            <InfoRow
+              label="Height"
+              value={traineeProfile.height !== undefined ? `${traineeProfile.height} cm` : "Not set"}
+            />
+            <InfoRow
+              label="Weight"
+              value={traineeProfile.weight !== undefined ? `${traineeProfile.weight} kg` : "Not set"}
+            />
+          </div>
+
+          {/* Health & limitations */}
+          <div className="mt-6 rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <h2 className="text-base font-extrabold text-slate-900">Health &amp; limitations</h2>
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">
+                Private
+              </span>
+            </div>
+            {realConditions.length > 0 ? (
+              <>
+                <p className="mb-2 text-sm text-slate-600">
+                  {realConditions.length} limitation{realConditions.length !== 1 ? "s" : ""} noted
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {realConditions.map((c) => (
+                    <span
+                      key={c}
+                      className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700"
+                    >
+                      {MEDICAL_LABELS[c] ?? c}
+                    </span>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-slate-500">No limitations selected</p>
+            )}
+            <p className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-400">
+              This information is used only to improve workout safety and recommendations.
+            </p>
+          </div>
+        </>
+      )}
+
+      {/* ── Edit personal details modal ────────────────────────────── */}
+      {isEditingPersonalDetails && (
+        <ModalPortal>
+          <div
+            className="fixed inset-0 z-[9999] overflow-y-auto bg-slate-900/50 backdrop-blur-sm"
+            onClick={() => setIsEditingPersonalDetails(false)}
+          >
+            <div className="flex min-h-full items-start justify-center p-4 sm:p-8">
+              <div
+                className="relative w-full max-w-2xl rounded-3xl bg-[#fbfaf7] p-6 shadow-2xl sm:p-8"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <EditPersonalDetailsForm
+                  onSaved={handleSaved}
+                  onCancel={() => setIsEditingPersonalDetails(false)}
+                />
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
       )}
     </div>
   );

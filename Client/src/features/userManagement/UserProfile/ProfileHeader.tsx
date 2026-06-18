@@ -1,16 +1,18 @@
-import AppButton from "../../../common/AppButton/AppButton";
-import type { CurrentUser } from "../user.models";
 import { useState } from "react";
+import type { CurrentUser } from "../user.models";
+import { useAuth } from "../../../app/AuthContext";
+import { userService } from "../userService";
 import AvatarModal from "./AvatarModal";
 
 interface ProfileHeaderProps {
   user: CurrentUser;
-  onEditProfile: () => void;
 }
 
-export function ProfileHeader({ user, onEditProfile }: ProfileHeaderProps) {
+export function ProfileHeader({ user }: ProfileHeaderProps) {
+  const { token, updateCurrentUser } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | undefined>();
 
   const fitnessLevelLabel = user.fitnessLevel
     ? user.fitnessLevel.charAt(0).toUpperCase() + user.fitnessLevel.slice(1)
@@ -21,50 +23,65 @@ export function ProfileHeader({ user, onEditProfile }: ProfileHeaderProps) {
     year: "numeric",
   });
 
+  const displayAvatar = user.avatarIcon || user.firstName.charAt(0).toUpperCase();
+
+  async function handleSelectAvatar(avatar: string) {
+    if (!token) return;
+    setIsSaving(true);
+    setSaveError(undefined);
+    try {
+      const updatedUser = await userService.updateAvatar(avatar, token);
+      updateCurrentUser(updatedUser);
+      setIsModalOpen(false);
+    } catch {
+      setSaveError("Failed to save avatar. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return (
     <div className="relative overflow-hidden rounded-[24px] bg-slate-900 shadow-lg">
       <div className="h-32 w-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-orange-400 opacity-90" />
 
-      <div className="px-8 pb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-6 -mt-12 relative z-10">
-        <div className="flex flex-col sm:flex-row gap-6 sm:items-end">
+      <div className="-mt-12 relative z-10 flex flex-col gap-6 px-8 pb-8 sm:flex-row sm:items-end">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end">
           <div
-            onClick={() => setIsModalOpen(true)}
-            className="w-24 h-24 rounded-full bg-purple-600 border-4 border-slate-900 flex items-center justify-center text-4xl font-extrabold text-white shadow-md cursor-pointer hover:scale-105 active:scale-95 transition-all duration-200 relative z-50 group"
+            onClick={() => { setSaveError(undefined); setIsModalOpen(true); }}
+            className="group relative flex h-24 w-24 cursor-pointer items-center justify-center rounded-full border-4 border-slate-900 bg-purple-600 text-4xl font-extrabold text-white shadow-md transition-all duration-200 hover:scale-105 active:scale-95"
             title="Click to change avatar"
+            role="button"
+            aria-label="Change avatar"
           >
-            {selectedAvatar || user.firstName.charAt(0).toUpperCase()}
-            <span className="absolute bottom-0 right-0 bg-slate-800 text-xs rounded-full p-1 border border-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+            {displayAvatar}
+            <span className="absolute bottom-0 right-0 rounded-full border border-purple-500 bg-slate-800 p-1 text-xs opacity-0 transition-opacity duration-200 group-hover:opacity-100">
               ✏️
             </span>
           </div>
 
-          <div className="mb-1 text-white translate-y-4">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-xs font-medium backdrop-blur-sm mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Active now
+          <div className="mb-1 translate-y-4 text-white">
+            <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium backdrop-blur-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Active now
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight">
+            <h2 className="text-3xl font-extrabold tracking-tight">
               {user.firstName} {user.lastName}
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              @{user.username}{fitnessLevelLabel ? ` · ${fitnessLevelLabel}` : ""} · Joined {memberSince}
+            </h2>
+            <p className="mt-1 text-sm text-slate-400">
+              @{user.username}
+              {fitnessLevelLabel ? ` · ${fitnessLevelLabel}` : ""}
+              {" · "}Joined {memberSince}
             </p>
-            <p className="text-slate-400 text-sm mt-0.5">{user.email}</p>
+            <p className="mt-0.5 text-sm text-slate-400">{user.email}</p>
           </div>
         </div>
-
-        <AppButton
-          variant="secondary"
-          onClick={onEditProfile}
-          className="bg-white/10 border-none text-white hover:bg-white/20 translate-y-4"
-        >
-          Edit Profile
-        </AppButton>
       </div>
 
       <AvatarModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSelectAvatar={(avatar) => setSelectedAvatar(avatar)}
+        onSelectAvatar={handleSelectAvatar}
+        isSaving={isSaving}
+        saveError={saveError}
       />
     </div>
   );

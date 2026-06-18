@@ -12,6 +12,7 @@ export const ENDPOINTS = {
   users: {
     updateMe: "/users/me",
     settings: "/users/me/settings",
+    avatar: "/users/me/avatar",
   },
 
   traineeProfiles: {

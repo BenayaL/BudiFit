@@ -49,7 +49,7 @@ export function TopNav({
   }, []);
 
   return (
-    <nav className="sticky top-0 z-10 px-6 pt-4 backdrop-blur-md bg-[#fbfaf7]/85">
+    <nav className="sticky top-0 z-50 px-6 pt-4 backdrop-blur-md bg-[#fbfaf7]/85">
       <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4 rounded-[22px] border border-slate-200/50 bg-white p-2.5 shadow-sm">
         {/* Left — logo */}
         <div className="pl-2 pr-3 shrink-0">
@@ -165,7 +165,11 @@ export function TopNav({
             aria-label={`Go to profile — ${user.name}`}
             className="relative flex h-10 w-10 items-center justify-center rounded-full bg-purple-600 text-sm font-bold text-white hover:bg-purple-700 transition-colors"
           >
-            {user.avatarLetter}
+            {user.avatarIcon ? (
+              <span className="text-lg leading-none">{user.avatarIcon}</span>
+            ) : (
+              user.avatarLetter
+            )}
             <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
           </button>
         </div>

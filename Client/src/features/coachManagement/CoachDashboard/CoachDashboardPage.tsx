@@ -1,6 +1,6 @@
 import { useCoachDashboard } from "./useCoachDashboard";
 import { CoachStatsCard } from "./CoachStatsCard";
-import { PendingPlansList } from "./PendingPlansList";
+import { NeedsAttentionCard } from "./NeedsAttentionCard";
 import TraineeCard from "../TraineeList/TraineeCard";
 import type { CoachDashboardPageProps } from "./CoachDashboard.types";
 
@@ -9,7 +9,7 @@ function CoachDashboardPage({
   onReviewPlan,
   onViewTraineeProfile,
 }: CoachDashboardPageProps) {
-  const { coach, trainees, pendingPlans, isLoading, error } = useCoachDashboard();
+  const { coach, trainees, pendingPlans, pendingChangeRequests, isLoading, error } = useCoachDashboard();
 
   if (isLoading) {
     return <div className="p-8 text-center text-slate-500">Loading dashboard…</div>;
@@ -39,6 +39,7 @@ function CoachDashboardPage({
         activeTrainees={activeCount}
         traineesNeedingAttention={attentionCount}
         pendingPlansCount={pendingPlans.length}
+        pendingRequestsCount={pendingChangeRequests.length}
       />
 
       <section className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_0.9fr]">
@@ -68,10 +69,11 @@ function CoachDashboardPage({
           </div>
         </div>
 
-        <PendingPlansList
-          plans={pendingPlans}
+        <NeedsAttentionCard
+          plans={pendingPlans.slice(0, 3)}
+          requests={pendingChangeRequests.slice(0, 3)}
           onReviewPlan={onReviewPlan}
-          onViewAllPlans={onChangePage}
+          onViewPlans={onChangePage}
         />
       </section>
     </main>

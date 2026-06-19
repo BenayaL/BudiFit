@@ -35,6 +35,17 @@ export interface Trainee extends CoachBaseUser {
   missedWorkouts: number;
   weeklyActivity: number[];
   goals: string[];
+  // Profile details — optional, absent when trainee has no profile yet
+  age?: number;
+  gender?: string;
+  height?: number;
+  weight?: number;
+  availableEquipment?: string[];
+  medicalConditions?: string[];
+  medicalNotes?: string;
+  weeklyWorkouts?: number;
+  preferredWorkoutTime?: string;
+  sessionDurationMinutes?: number;
 }
 
 export interface CoachPlanExercise {

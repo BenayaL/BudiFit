@@ -26,6 +26,7 @@ import {
 import { PlanDetailsEditor } from "./PlanDetailsEditor";
 import { PlanDayEditor } from "./PlanDayEditor";
 import { DeleteEditorItemModal } from "./DeleteEditorItemModal";
+import { SuccessModal } from "./SuccessModal";
 
 interface DeleteTarget {
   type: "day" | "exercise";
@@ -52,6 +53,7 @@ function PlanReviewPage({
   const [saveError, setSaveError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [resolveWarning, setResolveWarning] = useState("");
+  const [successModal, setSuccessModal] = useState<{ title: string; message: string } | null>(null);
 
   // ─── UI state ──────────────────────────────────────────────────────────────
   const [expandedDayNumber, setExpandedDayNumber] = useState<number | null>(1);
@@ -269,7 +271,10 @@ function PlanReviewPage({
     setResolveWarning("");
     const ok = await approvePlan();
     if (ok) {
-      setSuccessMsg("Plan approved. The trainee can now access it.");
+      setSuccessModal({
+        title: "Plan approved successfully",
+        message: "The trainee can now access this workout plan.",
+      });
     } else {
       setSaveError("Failed to approve plan.");
     }
@@ -549,6 +554,17 @@ function PlanReviewPage({
               : confirmRemoveExercise
           }
           onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {/* ── Success modal ───────────────────────────────────────────────── */}
+      {successModal && (
+        <SuccessModal
+          title={successModal.title}
+          message={successModal.message}
+          primaryLabel="Back to plans"
+          onPrimary={() => onChangePage("coach-plans")}
+          onClose={() => setSuccessModal(null)}
         />
       )}
     </>

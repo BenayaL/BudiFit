@@ -29,6 +29,7 @@ export interface WorkoutGenerationTraineeContext {
   excludedExercises?: string[];
   likedExercises?: string[];
   dislikedExercises?: Array<{ name: string; reason?: string }>;
+  replacementReason?: string;
 }
 
 /*
@@ -130,6 +131,20 @@ const GEMINI_WORKOUT_SCHEMA = {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+const REPLACEMENT_REASON_DESCRIPTIONS: Record<string, string> = {
+  not_suitable: "The previous plan did not suit the trainee",
+  too_difficult: "The workouts felt too hard — make the new plan easier and more accessible",
+  too_easy: "The plan was not challenging enough — make the new plan more demanding",
+  wrong_goals: "The plan did not match the trainee's goals — align the new plan more closely with their stated goals",
+  wrong_split: "The workout split structure did not suit the trainee — consider a different split (full body, upper/lower, push-pull, etc.)",
+  too_many_days: "The weekly schedule was too demanding — reduce the number of workout days",
+  too_few_days: "The trainee wants to train more often — increase the number of workout days if possible",
+  missing_equipment: "The trainee lacked access to some required equipment — stay strictly within the available equipment list",
+  unsuitable_exercises: "Some exercises were not a good fit — choose exercises that feel comfortable and accessible",
+  too_long: "The workout sessions were too long — keep sessions shorter",
+  different_focus: "The trainee wants a different training focus — adjust the category and exercise selection accordingly",
+};
 
 /*
  * Convert optional profile values into clear prompt text.
@@ -272,6 +287,11 @@ function buildWorkoutGenerationPrompt(
       ? `- Coach notes: ${trainee.coachNotes.trim()}`
       : "";
 
+  const replacementReasonLine =
+    trainee.replacementReason && REPLACEMENT_REASON_DESCRIPTIONS[trainee.replacementReason]
+      ? `- Replacement context: ${REPLACEMENT_REASON_DESCRIPTIONS[trainee.replacementReason]}`
+      : "";
+
   const focusAreasLine =
     trainee.focusAreas && trainee.focusAreas.length > 0
       ? `- Focus areas requested by coach: ${trainee.focusAreas.join(", ")}`
@@ -339,6 +359,7 @@ ${medicalNotesLine}
 ${sessionDurationLine}
 ${preferredTimeLine}
 ${coachNotesLine}
+${replacementReasonLine}
 ${focusAreasLine}
 ${excludedExercisesLine}
 ${preferencesSection}

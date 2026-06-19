@@ -757,11 +757,17 @@ generatedWorkoutPlanRouter.post(
                 return;
             }
 
-            const reason = req.body?.reason;
-            if (reason !== "completed" && reason !== "not_suitable") {
+            const VALID_REPLACEMENT_REASONS = new Set([
+                "not_suitable", "too_difficult", "too_easy", "wrong_goals", "wrong_split",
+                "too_many_days", "too_few_days", "missing_equipment",
+                "unsuitable_exercises", "too_long", "different_focus",
+            ]);
+
+            const reason = (req.body?.reason as string | undefined) ?? undefined;
+            if (reason !== undefined && reason !== "completed" && !VALID_REPLACEMENT_REASONS.has(reason)) {
                 res.status(400).json({
                     success: false,
-                    message: "reason must be \"completed\" or \"not_suitable\"",
+                    message: "Invalid replacement reason",
                 });
                 return;
             }
@@ -800,6 +806,7 @@ generatedWorkoutPlanRouter.post(
                 sessionDurationMinutes: traineeProfile.sessionDurationMinutes,
                 likedExercises,
                 dislikedExercises,
+                replacementReason: reason !== undefined && reason !== "completed" ? reason : undefined,
             };
 
             const generatedPlan = await generatePersonalizedWorkoutPlan(traineeContext);

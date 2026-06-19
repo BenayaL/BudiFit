@@ -85,6 +85,17 @@ interface TraineeDTO {
   missedWorkouts: number;
   weeklyActivity: number[];
   goals: string[];
+  // Profile details — absent when no TraineeProfile exists yet
+  age?: number;
+  gender?: string;
+  height?: number;
+  weight?: number;
+  availableEquipment?: string[];
+  medicalConditions?: string[];
+  medicalNotes?: string;
+  weeklyWorkouts?: number;
+  preferredWorkoutTime?: string;
+  sessionDurationMinutes?: number;
 }
 
 interface CoachPlanExerciseDTO {
@@ -320,6 +331,16 @@ function toTraineeDTO(
     missedWorkouts,
     weeklyActivity,
     goals: (profile?.goals ?? user.goals ?? []) as string[],
+    age: profile?.age,
+    gender: profile?.gender,
+    height: profile?.height,
+    weight: profile?.weight,
+    availableEquipment: profile?.availableEquipment as string[] | undefined,
+    medicalConditions: profile?.medicalConditions as string[] | undefined,
+    medicalNotes: profile?.medicalNotes,
+    weeklyWorkouts: profile?.weeklyWorkouts,
+    preferredWorkoutTime: profile?.preferredWorkoutTime,
+    sessionDurationMinutes: profile?.sessionDurationMinutes,
   };
 }
 

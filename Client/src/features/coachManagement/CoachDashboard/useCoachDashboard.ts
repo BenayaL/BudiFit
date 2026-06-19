@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { Coach, Trainee, CoachPlan } from "../coach.models";
+import type { Coach, Trainee, CoachPlan, CoachChangeRequestDTO } from "../coach.models";
 import type { CoachDashboardState } from "./CoachDashboard.types";
 import { coachService } from "../coachService";
 import { useAuth } from "../../../app/AuthContext";
@@ -9,6 +9,7 @@ export function useCoachDashboard(): CoachDashboardState {
   const [coach, setCoach] = useState<Coach | null>(null);
   const [trainees, setTrainees] = useState<Trainee[]>([]);
   const [pendingPlans, setPendingPlans] = useState<CoachPlan[]>([]);
+  const [pendingChangeRequests, setPendingChangeRequests] = useState<CoachChangeRequestDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -20,10 +21,14 @@ export function useCoachDashboard(): CoachDashboardState {
 
     (async () => {
       try {
-        const data = await coachService.getCoachDashboard(token);
-        setCoach(data.coach);
-        setTrainees(data.trainees);
-        setPendingPlans(data.pendingPlans);
+        const [dashData, changeData] = await Promise.all([
+          coachService.getCoachDashboard(token),
+          coachService.getCoachChangeRequests(token, "pending"),
+        ]);
+        setCoach(dashData.coach);
+        setTrainees(dashData.trainees);
+        setPendingPlans(dashData.pendingPlans);
+        setPendingChangeRequests(changeData.requests);
       } catch (err) {
         console.error("[COACH] Failed to load dashboard:", err);
         setError("Failed to load coach dashboard.");
@@ -33,5 +38,5 @@ export function useCoachDashboard(): CoachDashboardState {
     })();
   }, [token]);
 
-  return { coach, trainees, pendingPlans, isLoading, error };
+  return { coach, trainees, pendingPlans, pendingChangeRequests, isLoading, error };
 }

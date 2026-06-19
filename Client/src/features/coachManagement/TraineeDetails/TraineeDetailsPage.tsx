@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useTraineeDetails } from "./useTraineeDetails";
 import { TraineeSummary } from "./TraineeSummary";
 import { WeeklyActivityChart } from "./WeeklyActivityChart";
-import { TraineeGoals } from "./TraineeGoals";
+import { TraineePersonalDetails } from "./TraineePersonalDetails";
 import { TraineePlansList } from "./TraineePlansList";
 import type { TraineeDetailsPageProps } from "./TraineeDetails.types";
 import { coachService } from "../coachService";
@@ -98,7 +98,7 @@ function TraineeDetailsPage({
       <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-6">
           <WeeklyActivityChart weeklyActivity={trainee.weeklyActivity} />
-          <TraineeGoals goals={trainee.goals} />
+          <TraineePersonalDetails trainee={trainee} />
         </div>
         <div className="space-y-6">
           <TraineePlansList plans={plans} onReviewPlan={onReviewPlan} />

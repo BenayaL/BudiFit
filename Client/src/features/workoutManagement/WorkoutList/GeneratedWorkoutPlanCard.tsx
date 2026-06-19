@@ -3,6 +3,59 @@ import type { GeneratedWorkoutPlanSummary } from "../workout.models";
 import { ChangeRequestModal } from "../ChangeRequestModal";
 import { ModalPortal } from "../../../common/ModalPortal";
 
+const REPLACE_REASONS = [
+  {
+    id: "too_difficult",
+    label: "Too difficult / too intense",
+    description: "The workouts feel too hard for my current level.",
+  },
+  {
+    id: "too_easy",
+    label: "Too easy / not challenging enough",
+    description: "The plan does not push me enough.",
+  },
+  {
+    id: "wrong_goals",
+    label: "Doesn't match my goals",
+    description: "I want a plan that better fits my current fitness goal.",
+  },
+  {
+    id: "wrong_split",
+    label: "Wrong workout split",
+    description: "I want a different structure, like full body, upper/lower, push-pull, etc.",
+  },
+  {
+    id: "too_many_days",
+    label: "Too many workouts per week",
+    description: "The weekly schedule is too demanding.",
+  },
+  {
+    id: "too_few_days",
+    label: "Too few workouts per week",
+    description: "I want to train more often.",
+  },
+  {
+    id: "missing_equipment",
+    label: "Missing equipment",
+    description: "I don't have access to some of the required equipment.",
+  },
+  {
+    id: "unsuitable_exercises",
+    label: "Exercises don't suit me",
+    description: "Some exercises feel uncomfortable or are not a good fit for me.",
+  },
+  {
+    id: "too_long",
+    label: "Workouts are too long",
+    description: "I need shorter sessions.",
+  },
+  {
+    id: "different_focus",
+    label: "I want a different focus",
+    description: "For example more strength, hypertrophy, weight loss, endurance, or mobility.",
+  },
+] as const;
+
 interface GeneratedWorkoutPlanCardProps {
   plan: GeneratedWorkoutPlanSummary;
   onSelect: (planId: string) => void;
@@ -270,29 +323,24 @@ export function GeneratedWorkoutPlanCard({
     {showReplaceModal && (
       <ModalPortal>
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-extrabold text-slate-900">Why are you replacing?</h3>
-            <div className="mt-4 flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowReplaceModal(false);
-                  onReplace?.(plan.id, "completed");
-                }}
-                className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100"
-              >
-                I completed this plan
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowReplaceModal(false);
-                  onReplace?.(plan.id, "not_suitable");
-                }}
-                className="rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-bold text-orange-700 transition hover:bg-orange-100"
-              >
-                This plan doesn't suit me
-              </button>
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-extrabold text-slate-900">Why do you want to replace this plan?</h3>
+            <p className="mt-1 text-sm text-slate-500">Choose the main reason so Budi can create a better plan for you.</p>
+            <div className="mt-4 flex flex-col gap-2">
+              {REPLACE_REASONS.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => {
+                    setShowReplaceModal(false);
+                    onReplace?.(plan.id, r.id);
+                  }}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition hover:border-purple-300 hover:bg-purple-50"
+                >
+                  <p className="text-sm font-bold text-slate-900">{r.label}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">{r.description}</p>
+                </button>
+              ))}
               <button
                 type="button"
                 onClick={() => setShowReplaceModal(false)}

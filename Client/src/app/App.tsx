@@ -212,7 +212,7 @@ function App() {
   }
 
   if (currentPage === "dashboard") {
-    return withNav(<ProgressDashboardPage />);
+    return withNav(<ProgressDashboardPage onChangePage={setCurrentPage} />);
   }
 
   if (currentPage === "workout") {

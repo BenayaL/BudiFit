@@ -25,6 +25,12 @@ async function request<T>(
   });
 
   if (!response.ok) {
+    if (response.status === 429) {
+      const retryAfter = response.headers.get("Retry-After");
+      const wait = retryAfter ? ` Please wait ${retryAfter} seconds.` : " Please wait a moment and try again.";
+      throw new Error(`Too many requests.${wait}`);
+    }
+
     let message = `HTTP ${response.status} — ${path}`;
 
     try {
@@ -68,6 +74,12 @@ async function requestBlob(
   });
 
   if (!response.ok) {
+    if (response.status === 429) {
+      const retryAfter = response.headers.get("Retry-After");
+      const wait = retryAfter ? ` Please wait ${retryAfter} seconds.` : " Please wait a moment and try again.";
+      throw new Error(`Too many requests.${wait}`);
+    }
+
     let message = `HTTP ${response.status} — ${path}`;
 
     try {

@@ -354,13 +354,30 @@ generatedWorkoutPlanRouter.post(
 
             console.log("[WORKOUT_GEN] Generated workout plan saved");
 
-            // Notify coach if plan needs review
             if (hasCoach) {
+                // Notify coach that plan needs review
                 await createNotification({
                     recipientId: user.coachId!,
                     type: "plan_pending_review",
                     message: `${user.firstName} ${user.lastName} generated a new workout plan for your review.`,
                     planId: savedPlan._id as mongoose.Types.ObjectId,
+                    title: "Plan waiting for review",
+                    actionUrl: "coach-plan-review",
+                    category: "coach_action",
+                    dedupeKey: `plan_pending_review:${user.coachId!.toString()}:${(savedPlan._id as mongoose.Types.ObjectId).toString()}`,
+                });
+            } else {
+                // Notify uncoached trainee that their AI plan is ready
+                await createNotification({
+                    recipientId: user._id,
+                    type: "ai_plan_generated",
+                    message: "Budi created a new workout plan for you.",
+                    planId: savedPlan._id as mongoose.Types.ObjectId,
+                    title: "Your AI workout plan is ready",
+                    actionUrl: "workout",
+                    category: "trainee_update",
+                    priority: "normal",
+                    dedupeKey: `ai_plan_generated:${user._id.toString()}:${(savedPlan._id as mongoose.Types.ObjectId).toString()}`,
                 });
             }
 
@@ -867,6 +884,22 @@ generatedWorkoutPlanRouter.post(
                 return GeneratedWorkoutPlan.create([newPlanDoc], opts);
             });
 
+            // Notify uncoached trainee that replacement plan is ready
+            if (!user.coachId) {
+                const newPlanId = (newPlan as unknown as { _id: mongoose.Types.ObjectId })._id;
+                await createNotification({
+                    recipientId: user._id,
+                    type: "ai_plan_replaced",
+                    message: "Budi created a new plan based on your feedback.",
+                    planId: newPlanId,
+                    title: "Your replacement plan is ready",
+                    actionUrl: "workout",
+                    category: "trainee_update",
+                    priority: "normal",
+                    dedupeKey: `ai_plan_replaced:${user._id.toString()}:${newPlanId.toString()}`,
+                });
+            }
+
             res.status(201).json({
                 success: true,
                 message: "Workout plan replaced successfully",
@@ -975,6 +1008,11 @@ generatedWorkoutPlanRouter.post(
                 type: "plan_change_requested",
                 message: `${user.firstName} ${user.lastName} requested changes to "${plan.title}".`,
                 planId: plan._id as mongoose.Types.ObjectId,
+                requestId: changeRequest._id as mongoose.Types.ObjectId,
+                title: "Change request from trainee",
+                actionUrl: "coach-plans",
+                category: "coach_action",
+                dedupeKey: `change_request:${user.coachId.toString()}:${changeRequest._id.toString()}`,
             });
 
             res.status(201).json({

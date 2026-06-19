@@ -698,6 +698,9 @@ router.put(
             type: "plan_edited_by_coach",
             message: "Your coach made changes to your workout plan.",
             planId: plan._id as mongoose.Types.ObjectId,
+            title: "Plan updated by coach",
+            actionUrl: "workout",
+            category: "trainee_update",
           });
         } catch (notifError) {
           console.error("Update plan: notification failed:", notifError);
@@ -814,6 +817,10 @@ router.post(
         type: "plan_approved",
         message: "Your coach approved your workout plan. You can now view and start it.",
         planId: plan._id as mongoose.Types.ObjectId,
+        title: "Plan approved",
+        actionUrl: "workout",
+        category: "trainee_update",
+        dedupeKey: `plan_approved:${plan.userId.toString()}:${(plan._id as mongoose.Types.ObjectId).toString()}`,
       });
 
       // Build the response DTO from the in-memory document with the known changes
@@ -919,6 +926,8 @@ router.delete(
           recipientId: plan.userId,
           type: "plan_deleted_by_coach",
           message: "Your coach removed your workout plan. You can generate a new one.",
+          title: "Plan removed",
+          category: "trainee_update",
         });
       } catch (notifError) {
         console.error("Archive plan: notification failed:", notifError);
@@ -1044,6 +1053,10 @@ router.post(
         type: "plan_generated_by_coach",
         message: "Your coach is preparing a new workout plan for you.",
         planId: savedPlan._id as mongoose.Types.ObjectId,
+        title: "New plan from your coach",
+        actionUrl: "workout",
+        category: "trainee_update",
+        dedupeKey: `plan_generated_by_coach:${(trainee._id as mongoose.Types.ObjectId).toString()}:${(savedPlan._id as mongoose.Types.ObjectId).toString()}`,
       });
 
       res.status(201).json(
@@ -1181,6 +1194,10 @@ router.patch(
         type: "plan_change_rejected",
         message: `Your coach declined the change request for "${planDoc?.title ?? "your workout plan"}". You can submit a new request if needed.`,
         planId: updated.planId,
+        requestId: updated._id as mongoose.Types.ObjectId,
+        title: "Change request declined",
+        actionUrl: "workout",
+        category: "trainee_update",
       });
 
       res.json({ success: true });
@@ -1245,6 +1262,10 @@ router.patch(
         type: "plan_change_resolved",
         message: `Your coach updated "${planDoc?.title ?? "your workout plan"}" based on your change request.`,
         planId: updated.planId,
+        requestId: updated._id as mongoose.Types.ObjectId,
+        title: "Change request completed",
+        actionUrl: "workout",
+        category: "trainee_update",
       });
 
       res.json({ success: true });

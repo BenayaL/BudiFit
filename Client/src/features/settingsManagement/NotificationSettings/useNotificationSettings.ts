@@ -13,7 +13,7 @@ const DEFAULT_SETTINGS: UserSettings = {
 };
 
 export function useNotificationSettings() {
-  const { token } = useAuth();
+  const { token, updateCurrentUser } = useAuth();
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -58,6 +58,7 @@ export function useNotificationSettings() {
     try {
       const updated = await userService.updateSettings(settings, token);
       setSettings(updated);
+      updateCurrentUser({ settings: updated });
       setSuccess(true);
     } catch (err) {
       setError(

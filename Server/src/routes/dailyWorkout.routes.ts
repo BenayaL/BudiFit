@@ -7,6 +7,7 @@ import type {
 } from "../models/generatedWorkoutPlan.model";
 import DailyWorkoutLog from "../models/dailyWorkoutLog.model";
 import type { IDailyWorkoutLog } from "../models/dailyWorkoutLog.model";
+import User from "../models/user.model";
 import {
   authenticateToken,
   type AuthenticatedRequest,
@@ -21,9 +22,123 @@ import {
   getHistoricalEndDate,
   isValidLocalDate,
 } from "../utils/dailyWorkoutPlan.helpers";
+import { createNotification } from "../helpers/notification.helper";
 
 const router = Router();
 router.use(authenticateToken);
+
+// ─── AI-only notification helpers ────────────────────────────────────────────
+
+async function triggerDashboardNotifications(
+  userId: string,
+  todayStr: string,
+  plan: IGeneratedWorkoutPlan | null,
+  completedSet: Set<string>
+): Promise<void> {
+  try {
+    const user = await User.findById(userId, { coachId: 1, "settings.notifications": 1 });
+    if (!user || user.coachId) return;
+
+    const prefs = user.settings?.notifications;
+    const reminderOn = prefs?.dailyWorkoutReminder !== false;
+    const challengesOn = prefs?.challengeUpdates !== false;
+
+    if (!plan) {
+      if (challengesOn) {
+        await createNotification({
+          recipientId: userId,
+          type: "no_active_plan",
+          message: "You don't have an active workout plan right now. Budi can create one for you.",
+          title: "Ready for a new plan?",
+          actionUrl: "workout",
+          category: "system",
+          priority: "normal",
+          dedupeKey: `no_active_plan:${userId}:${todayStr}`,
+        });
+      }
+      return;
+    }
+
+    if (reminderOn) {
+      const todayDay = findPlanDay(plan, todayStr);
+      if (todayDay && !todayDay.restDay && !completedSet.has(todayStr)) {
+        await createNotification({
+          recipientId: userId,
+          type: "today_workout_ready",
+          message: "You have a workout scheduled for today.",
+          title: "Today's workout is ready",
+          actionUrl: "workout",
+          category: "workout_reminder",
+          priority: "normal",
+          dedupeKey: `today_workout_ready:${userId}:${todayStr}`,
+        });
+      }
+
+      const yesterdayStr = offsetDate(todayStr, -1);
+      const yesterdayDay = findPlanDay(plan, yesterdayStr);
+      if (yesterdayDay && !yesterdayDay.restDay && !completedSet.has(yesterdayStr)) {
+        await createNotification({
+          recipientId: userId,
+          type: "missed_workout",
+          message: "You missed yesterday's workout. No worries — let's get back on track today.",
+          title: "Workout missed",
+          actionUrl: "workout",
+          category: "workout_reminder",
+          priority: "normal",
+          dedupeKey: `missed_workout:${userId}:${yesterdayStr}`,
+        });
+      }
+    }
+  } catch (err) {
+    console.error("[DAILY] Dashboard notification trigger failed:", err);
+  }
+}
+
+async function triggerCompletionNotifications(
+  userId: string,
+  planId: string,
+  workoutDate: string
+): Promise<void> {
+  try {
+    const user = await User.findById(userId, { coachId: 1, "settings.notifications.challengeUpdates": 1 });
+    if (!user || user.coachId) return;
+    if (user.settings?.notifications?.challengeUpdates === false) return;
+
+    await createNotification({
+      recipientId: userId,
+      type: "workout_completed",
+      message: "Great job completing today's workout.",
+      title: "Workout completed",
+      actionUrl: "dashboard",
+      category: "progress",
+      priority: "low",
+      dedupeKey: `workout_completed:${userId}:${workoutDate}`,
+    });
+
+    const plan = await GeneratedWorkoutPlan.findById(planId);
+    if (!plan) return;
+
+    const allLogs = await DailyWorkoutLog.find({ userId, planId }) as unknown as IDailyWorkoutLog[];
+    const completedSet = new Set(allLogs.map((l) => l.workoutDate));
+    const streak = calculateStreak(completedSet, plan as unknown as IGeneratedWorkoutPlan, toDateString(new Date()));
+
+    const MILESTONES = [3, 7, 14, 30];
+    if (MILESTONES.includes(streak)) {
+      await createNotification({
+        recipientId: userId,
+        type: "streak_milestone",
+        message: "Great job. You're building real consistency.",
+        title: `${streak}-day streak!`,
+        actionUrl: "dashboard",
+        category: "progress",
+        priority: "normal",
+        dedupeKey: `streak_milestone:${userId}:${streak}`,
+      });
+    }
+  } catch (err) {
+    console.error("[DAILY] Completion notification trigger failed:", err);
+  }
+}
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
@@ -107,6 +222,7 @@ router.get("/dashboard", async (req: AuthenticatedRequest, res: Response) => {
         },
         streak: 0,
       });
+      void triggerDashboardNotifications(userId, todayStr, null, new Set());
       return;
     }
 
@@ -148,6 +264,7 @@ router.get("/dashboard", async (req: AuthenticatedRequest, res: Response) => {
       },
       streak,
     });
+    void triggerDashboardNotifications(userId, todayStr, plan, completedSet);
   } catch (error) {
     console.error("[DAILY] Dashboard error:", error);
     res.status(500).json({ message: "Failed to load daily workout dashboard" });
@@ -236,6 +353,7 @@ router.post("/complete", async (req: AuthenticatedRequest, res: Response) => {
         planTitle: logDoc.planTitle,
         dayTitle: logDoc.dayTitle,
       });
+      void triggerCompletionNotifications(userId, planId, workoutDate);
     } catch (err) {
       if (
         typeof err === "object" &&

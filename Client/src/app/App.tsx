@@ -18,6 +18,7 @@ import TraineeOnboardingPage from "../features/userManagement/Onboarding/Trainee
 import WorkoutHistoryPage from "../features/workoutManagement/WorkoutHistory/WorkoutHistoryPage";
 import SettingsPage from "../features/settingsManagement/Settings/SettingsPage";
 import NotificationPage from "../features/notificationManagement/NotificationPage";
+import { NotificationToastContainer } from "../features/notificationManagement/NotificationToastContainer";
 
 // common
 import TopNav from "../common/TopNav/TopNav";
@@ -113,6 +114,18 @@ function App() {
           onStartWorkout={() => setCurrentPage("workout")}
           onGoToProfile={() => setCurrentPage("profile")}
         />
+        <NotificationToastContainer
+          onChangePage={(page) => setCurrentPage(page)}
+          onReviewPlan={(planId) => {
+            setSelectedPlanId(planId);
+            setSelectedChangeRequestId(null);
+            setCurrentPage("coach-plan-review");
+          }}
+          onViewTraineeProfile={(traineeId) => {
+            setSelectedTraineeId(traineeId);
+            setCurrentPage("coach-trainee-profile");
+          }}
+        />
         {content}
       </div>
     );
@@ -178,7 +191,20 @@ function App() {
   }
 
   if (currentPage === "notifications") {
-    return withNav(<NotificationPage />);
+    return withNav(
+      <NotificationPage
+        onChangePage={(page) => setCurrentPage(page)}
+        onReviewPlan={(planId) => {
+          setSelectedPlanId(planId);
+          setSelectedChangeRequestId(null);
+          setCurrentPage("coach-plan-review");
+        }}
+        onViewTraineeProfile={(traineeId) => {
+          setSelectedTraineeId(traineeId);
+          setCurrentPage("coach-trainee-profile");
+        }}
+      />
+    );
   }
 
   if (currentPage === "chat") {

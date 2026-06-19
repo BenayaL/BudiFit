@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { SignOptions } from "jsonwebtoken";
+import rateLimit from "express-rate-limit";
 
 import User, {
   generateCoachCode,
@@ -29,6 +30,17 @@ import {
 } from "../middleware/auth.middleware";
 
 const usersRouter = express.Router();
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: {
+    success: false,
+    message: "Too many login attempts. Please try again in 15 minutes.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const JWT_EXPIRES_IN = (
   process.env.JWT_EXPIRES_IN ?? "7d"
@@ -589,7 +601,7 @@ usersRouter.get("/:email", async (req: Request, res: Response) => {
 });
 
 // POST /api/users/register
-usersRouter.post("/register", async (req: Request, res: Response) => {
+usersRouter.post("/register", authLimiter, async (req: Request, res: Response) => {
   if (IS_DEV) console.log("[REGISTER] Request received");
 
   try {
@@ -821,7 +833,7 @@ usersRouter.post("/register", async (req: Request, res: Response) => {
 });
 
 // POST /api/users/login
-usersRouter.post("/login", async (req: Request, res: Response) => {
+usersRouter.post("/login", authLimiter, async (req: Request, res: Response) => {
   console.log("[LOGIN] Request received");
 
   try {

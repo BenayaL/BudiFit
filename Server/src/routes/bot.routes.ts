@@ -10,9 +10,21 @@
 
 import { Router, Response } from "express";
 import { GoogleGenAI } from "@google/genai";
+import rateLimit from "express-rate-limit";
 import { authenticateToken, AuthenticatedRequest } from "../middleware/auth.middleware";
 
 const router = Router();
+
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: {
+    success: false,
+    message: "AI request limit reached. Please wait a moment and try again.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -50,7 +62,7 @@ You do NOT:
 
 // ─── POST /api/bot/chat ───────────────────────────────────────────────────────
 
-router.post("/chat", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/chat", authenticateToken, aiLimiter, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { sessionId, message } = req.body as {
       sessionId?: string;

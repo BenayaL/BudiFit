@@ -78,24 +78,31 @@ app.use(
 );
 
 /*
- * Limits the amount of requests sent to API routes.
+ * General rate limiter covering all /api routes.
+ * Intentionally generous — it is a backstop against runaway clients, not a
+ * per-feature throttle. Expensive endpoints (AI generation, auth) carry their
+ * own stricter limiters defined in their respective route files.
+ *
+ * Development gets a higher cap so React StrictMode double-invocation and
+ * hot-reload never trigger 429s during normal development work.
+ *
  * OPTIONS preflights are not real API calls and must never consume quota —
  * cors() above already answers them directly, but skip is kept as a
  * defense-in-depth guard in case a preflight ever reaches this far.
  */
-const apiLimiter = rateLimit({
+const generalApiLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 100,
+  max: IS_DEV ? 600 : 300,
   message: {
     success: false,
-    message: "Too many requests. Please try again later.",
+    message: "Too many requests. Please wait a moment and try again.",
   },
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req: Request) => req.method === "OPTIONS",
 });
 
-app.use("/api", apiLimiter);
+app.use("/api", generalApiLimiter);
 
 /*
  * Allows the server to read JSON request bodies.

@@ -140,7 +140,7 @@ coachConnectionsRouter.post(
         return;
       }
 
-      const trainee = await User.findById(userId, { coachId: 1 });
+      const trainee = await User.findById(userId, { coachId: 1, firstName: 1, lastName: 1 });
 
       if (trainee?.coachId?.toString() === coach._id.toString()) {
         res.status(409).json({ message: "Already connected to this coach" });
@@ -148,6 +148,18 @@ coachConnectionsRouter.post(
       }
 
       await User.findByIdAndUpdate(userId, { $set: { coachId: coach._id } });
+
+      // Notify coach about the new trainee connection
+      await createNotification({
+        recipientId: coach._id as mongoose.Types.ObjectId,
+        type: "trainee_connected",
+        message: `${trainee!.firstName} ${trainee!.lastName} connected to you as a trainee.`,
+        traineeId: new mongoose.Types.ObjectId(userId),
+        title: "New trainee connected",
+        actionUrl: "coach-trainee-profile",
+        category: "coach_action",
+        dedupeKey: `trainee_connected:${coach._id.toString()}:${userId}`,
+      });
 
       // Transition any active plans to pending_review so the coach must approve them
       await GeneratedWorkoutPlan.updateMany(
@@ -174,12 +186,18 @@ coachConnectionsRouter.post(
           type: "plan_pending_review",
           message: "A trainee connected to you and has an existing plan awaiting your review.",
           planId: plan._id as mongoose.Types.ObjectId,
+          title: "Plan waiting for review",
+          actionUrl: "coach-plan-review",
+          category: "coach_action",
+          dedupeKey: `plan_pending_review:${coach._id.toString()}:${(plan._id as mongoose.Types.ObjectId).toString()}`,
         });
         await createNotification({
           recipientId: userId,
           type: "plan_pending_review",
           message: "Your plan now requires coach approval.",
           planId: plan._id as mongoose.Types.ObjectId,
+          title: "Plan awaiting coach approval",
+          category: "trainee_update",
         });
       }
 
@@ -220,8 +238,8 @@ coachConnectionsRouter.delete(
         return;
       }
 
-      // Save oldCoachId before clearing it
-      const traineeUser = await User.findById(userId, { coachId: 1 });
+      // Save oldCoachId and name before clearing the relationship
+      const traineeUser = await User.findById(userId, { coachId: 1, firstName: 1, lastName: 1 });
       if (!traineeUser) {
         res.status(404).json({ message: "User not found" });
         return;
@@ -291,6 +309,22 @@ coachConnectionsRouter.delete(
           message: pendingBecameActive
             ? "Your pending workout plan is now available and under your control."
             : "You are now managing your workout plans independently.",
+          title: "Disconnected from coach",
+          category: "system",
+        });
+
+        // ── Notify coach ──────────────────────────────────────────────────────────
+        const traineeName = `${traineeUser.firstName} ${traineeUser.lastName}`.trim();
+        await createNotification({
+          recipientId: oldCoachId,
+          type: "trainee_disconnected",
+          message: `${traineeName} disconnected from you and is now training independently.`,
+          traineeId: new mongoose.Types.ObjectId(userId),
+          title: "Trainee disconnected",
+          actionUrl: "coach-trainees",
+          category: "system",
+          priority: "normal",
+          dedupeKey: `trainee_disconnected:${oldCoachId.toString()}:${userId}`,
         });
       }
 

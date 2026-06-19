@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../../app/AuthContext";
 import { dailyWorkoutService } from "./dailyWorkoutService";
 import type { DailyDashboard } from "./dailyWorkout.models";
+import { notifyNotificationsChanged } from "../../notificationManagement/notificationRefreshBus";
 
 function getLocalDateString(): string {
   const now = new Date();
@@ -91,6 +92,7 @@ export function useDailyWorkout(): UseDailyWorkoutResult {
           },
         };
       });
+      notifyNotificationsChanged();
       return true;
     } catch (err) {
       // Rollback to snapshot before optimistic update

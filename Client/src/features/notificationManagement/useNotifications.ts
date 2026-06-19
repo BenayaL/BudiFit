@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../../app/AuthContext";
 import type { Notification } from "./notification.models";
 import { notificationService } from "./notificationService";
+import { subscribeToNotificationRefresh } from "./notificationRefreshBus";
 
 interface UseNotificationsResult {
   notifications: Notification[];
@@ -40,6 +41,10 @@ export function useNotifications(): UseNotificationsResult {
 
   useEffect(() => {
     void reload();
+  }, [reload]);
+
+  useEffect(() => {
+    return subscribeToNotificationRefresh(() => void reload());
   }, [reload]);
 
   const markRead = useCallback(

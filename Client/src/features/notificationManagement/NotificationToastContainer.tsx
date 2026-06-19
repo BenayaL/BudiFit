@@ -8,10 +8,11 @@ import {
   isAfterReminderTime,
   type NotificationActionCallbacks,
 } from "./notification.helpers";
+import { subscribeToNotificationRefresh } from "./notificationRefreshBus";
 import { NotificationToast } from "./NotificationToast";
 import type { NotificationSettings } from "../userManagement/user.models";
 
-const POLL_INTERVAL_MS = 60_000;
+const POLL_INTERVAL_MS = 20_000;
 const MAX_VISIBLE_TOASTS = 3;
 
 const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
@@ -79,7 +80,11 @@ export function NotificationToastContainer(props: NotificationToastContainerProp
     if (!token) return;
     void poll();
     const interval = setInterval(() => void poll(), POLL_INTERVAL_MS);
-    return () => clearInterval(interval);
+    const unsubscribe = subscribeToNotificationRefresh(() => void poll());
+    return () => {
+      clearInterval(interval);
+      unsubscribe();
+    };
   }, [token, poll]);
 
   function removeToast(id: string) {

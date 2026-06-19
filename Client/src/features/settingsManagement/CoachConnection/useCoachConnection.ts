@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { CoachConnectionResponse } from "../../userManagement/user.models";
 import { userService } from "../../userManagement/userService";
 import { useAuth } from "../../../app/AuthContext";
+import { notifyNotificationsChanged } from "../../notificationManagement/notificationRefreshBus";
 
 export function useCoachConnection() {
   const { token } = useAuth();
@@ -32,6 +33,7 @@ export function useCoachConnection() {
       setConnection(result);
       setCoachCodeInput("");
       setSuccess("Connected to coach successfully.");
+      notifyNotificationsChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to connect.");
     } finally {
@@ -48,6 +50,7 @@ export function useCoachConnection() {
       await userService.disconnectFromCoach(token);
       setConnection((prev) => (prev ? { ...prev, coach: null } : null));
       setSuccess("Disconnected from coach.");
+      notifyNotificationsChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to disconnect.");
     } finally {

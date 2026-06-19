@@ -4,6 +4,7 @@ import type { CoachPlan, CoachPlanUpdateBody } from "../coach.models";
 import type { PlanReviewState, PlanListState } from "./PlanReview.types";
 import { coachService } from "../coachService";
 import { useAuth } from "../../../app/AuthContext";
+import { notifyNotificationsChanged } from "../../notificationManagement/notificationRefreshBus";
 
 export function usePlanList(): PlanListState {
   const { token } = useAuth();
@@ -77,6 +78,7 @@ export function usePlanReview(planId: string | null): UsePlanReviewResult {
       try {
         const updated = await coachService.updatePlan(planId, updates, token);
         setPlan(updated);
+        notifyNotificationsChanged();
         return updated;
       } catch (err) {
         console.error("[COACH] Failed to save plan:", err);
@@ -96,6 +98,7 @@ export function usePlanReview(planId: string | null): UsePlanReviewResult {
     try {
       const updated = await coachService.approvePlan(planId, token);
       setPlan(updated);
+      notifyNotificationsChanged();
       return true;
     } catch (err) {
       console.error("[COACH] Failed to approve plan:", err);
@@ -112,6 +115,7 @@ export function usePlanReview(planId: string | null): UsePlanReviewResult {
     setError("");
     try {
       await coachService.deletePlan(planId, token);
+      notifyNotificationsChanged();
       return true;
     } catch (err) {
       console.error("[COACH] Failed to delete plan:", err);

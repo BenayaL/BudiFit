@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../../app/AuthContext";
 import type { GeneratedWorkoutPlanSummary } from "./workout.models";
 import { workoutService } from "./workoutService";
+import { notifyNotificationsChanged } from "../notificationManagement/notificationRefreshBus";
 
 type ActionType = "complete" | "remove" | "replace" | null;
 
@@ -83,7 +84,7 @@ export function useGeneratedWorkoutPlans(): UseGeneratedWorkoutPlansResult {
           if (current.some((p) => p.id === generatedPlan.id)) return current;
           return [generatedPlan, ...current];
         });
-
+        notifyNotificationsChanged();
         return generatedPlan;
       } catch (err) {
         setError(getErrorMessage(err));
@@ -142,6 +143,7 @@ export function useGeneratedWorkoutPlans(): UseGeneratedWorkoutPlansResult {
       try {
         await workoutService.replacePlan(planId, reason, token);
         await loadPlans();
+        notifyNotificationsChanged();
       } catch (err) {
         setError(getErrorMessage(err));
       } finally {
@@ -157,6 +159,7 @@ export function useGeneratedWorkoutPlans(): UseGeneratedWorkoutPlansResult {
       if (!token) throw new Error("You must be logged in.");
       await workoutService.requestChange(planId, message, token);
       await loadPlans();
+      notifyNotificationsChanged();
     },
     [token, loadPlans]
   );

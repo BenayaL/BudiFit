@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { CoachChangeRequestDTO } from "../coach.models";
 import { coachService } from "../coachService";
 import { useAuth } from "../../../app/AuthContext";
+import { notifyNotificationsChanged } from "../../notificationManagement/notificationRefreshBus";
 
 export interface UseCoachChangeRequestsResult {
   requests: CoachChangeRequestDTO[];
@@ -45,6 +46,7 @@ export function useCoachChangeRequests(): UseCoachChangeRequestsResult {
       // Remove from local state immediately — no full reload needed
       setRequests((prev) => prev.filter((r) => r.id !== requestId));
       setPendingCount((prev) => Math.max(0, prev - 1));
+      notifyNotificationsChanged();
     },
     [token]
   );

@@ -1,4 +1,4 @@
-import { useCoachDashboard } from "./useCoachDashboard";
+﻿import { useCoachDashboard } from "./useCoachDashboard";
 import { CoachStatsCard } from "./CoachStatsCard";
 import { NeedsAttentionCard } from "./NeedsAttentionCard";
 import TraineeCard from "../TraineeList/TraineeCard";
@@ -46,13 +46,13 @@ function CoachDashboardPage({
         <div>
           <div className="mb-4 flex items-end justify-between">
             <div>
-              <h2 className="text-2xl font-extrabold text-slate-900">My trainees</h2>
-              <p className="text-sm text-slate-500">Click a trainee card to view their profile.</p>
+              <h2 className="text-2xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">My trainees</h2>
+              <p className="text-sm text-slate-500 dark:text-[#9E97AF]">Click a trainee card to view their profile.</p>
             </div>
             <button
               type="button"
               onClick={() => onChangePage("coach-trainees")}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-[#3B344A] dark:bg-[#211D2B] dark:text-[#C9C4D6] dark:hover:bg-[#2A2436]"
             >
               View all
             </button>

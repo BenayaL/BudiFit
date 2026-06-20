@@ -6,9 +6,9 @@ interface TraineeSummaryProps {
 
 function ProfileStat({ label, value }: { label: string; value: string }) {
   return (
-    <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-bold text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-extrabold text-slate-900">{value}</p>
+    <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-[#3B344A] dark:bg-[#211D2B]">
+      <p className="text-sm font-bold text-slate-500 dark:text-[#9E97AF]">{label}</p>
+      <p className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">{value}</p>
     </article>
   );
 }

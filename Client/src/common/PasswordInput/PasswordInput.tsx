@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import type { PasswordInputProps } from "./PasswordInput.types";
 
 function strengthScore(password: string): number {
@@ -46,7 +46,7 @@ function PasswordInput({
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
           autoComplete={autoComplete}
-          className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 pr-16 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/15"
+          className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 pr-16 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/15 dark:border-[#3B344A] dark:bg-[#211D2B] dark:text-[#F8F7FB] dark:placeholder:text-[#9E97AF]"
         />
 
         <button

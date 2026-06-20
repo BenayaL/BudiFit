@@ -3,6 +3,8 @@
 /* Import Tailwind CSS utilities */
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-serif: "Instrument Serif", Georgia, serif;
@@ -66,4 +68,10 @@ body,
 body {
   margin: 0;
   background: #fbfaf7;
+}
+
+.dark body,
+.dark #root {
+  background: #141218;
+  color: #F8F7FB;
 }

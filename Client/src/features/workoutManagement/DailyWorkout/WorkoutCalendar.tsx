@@ -33,11 +33,11 @@ function currentMonth(): string {
 function entryColor(entry: CalendarEntry): string {
   if (entry.isCompleted) return "bg-green-500 text-white";
   if (entry.isMissed) return "bg-red-400 text-white";
-  if (entry.isToday && entry.isWorkoutDay) return "ring-2 ring-purple-500 bg-purple-50 text-purple-900 font-bold";
-  if (entry.isToday && entry.isRestDay) return "ring-2 ring-slate-400 bg-slate-50 text-slate-600 font-bold";
-  if (entry.isWorkoutDay && entry.isFuture) return "bg-purple-100 text-purple-700";
-  if (entry.isRestDay) return "bg-slate-100 text-slate-400";
-  return "bg-slate-100 text-slate-400";
+  if (entry.isToday && entry.isWorkoutDay) return "ring-2 ring-purple-500 bg-purple-50 text-purple-900 font-bold dark:bg-purple-900/20 dark:text-purple-200";
+  if (entry.isToday && entry.isRestDay) return "ring-2 ring-slate-400 bg-slate-50 text-slate-600 font-bold dark:bg-[#2A2436] dark:text-[#C9C4D6]";
+  if (entry.isWorkoutDay && entry.isFuture) return "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300";
+  if (entry.isRestDay) return "bg-slate-100 text-slate-400 dark:bg-[#2A2436] dark:text-[#9E97AF]";
+  return "bg-slate-100 text-slate-400 dark:bg-[#2A2436] dark:text-[#9E97AF]";
 }
 
 interface WorkoutCalendarProps {
@@ -60,19 +60,16 @@ export function WorkoutCalendar({ refreshKey }: WorkoutCalendarProps) {
       .finally(() => setIsLoading(false));
   }, [token, month, refreshKey]);
 
-  // Pad first week: day 1's dayNumber (1=Mon) means offset from Mon
   const firstEntry = entries[0];
-  const leadingBlanks = firstEntry
-    ? firstEntry.dayNumber - 1 // dayNumber 1=Mon → 0 blanks; 7=Sun → 6 blanks
-    : 0;
+  const leadingBlanks = firstEntry ? firstEntry.dayNumber - 1 : 0;
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-[#3B344A] dark:bg-[#211D2B]">
       <div className="mb-5 flex items-center justify-between">
         <button
           type="button"
           onClick={() => setMonth(prevMonth)}
-          className="rounded-xl p-2 text-slate-500 hover:bg-slate-100"
+          className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:text-[#9E97AF] dark:hover:bg-[#2A2436]"
           aria-label="Previous month"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -80,14 +77,14 @@ export function WorkoutCalendar({ refreshKey }: WorkoutCalendarProps) {
           </svg>
         </button>
 
-        <h3 className="text-sm font-extrabold text-slate-900">
+        <h3 className="text-sm font-extrabold text-slate-900 dark:text-[#F8F7FB]">
           {getMonthLabel(month)}
         </h3>
 
         <button
           type="button"
           onClick={() => setMonth(nextMonth)}
-          className="rounded-xl p-2 text-slate-500 hover:bg-slate-100"
+          className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 dark:text-[#9E97AF] dark:hover:bg-[#2A2436]"
           aria-label="Next month"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -100,7 +97,7 @@ export function WorkoutCalendar({ refreshKey }: WorkoutCalendarProps) {
         {DAY_LABELS.map((lbl) => (
           <div
             key={lbl}
-            className="text-center text-[10px] font-bold uppercase tracking-wide text-slate-400"
+            className="text-center text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-[#9E97AF]"
           >
             {lbl}
           </div>
@@ -131,7 +128,7 @@ export function WorkoutCalendar({ refreshKey }: WorkoutCalendarProps) {
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-3 text-xs text-slate-500">
+      <div className="mt-4 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-[#9E97AF]">
         <span className="flex items-center gap-1.5">
           <span className="inline-block h-3 w-3 rounded bg-green-500" /> Completed
         </span>
@@ -139,10 +136,10 @@ export function WorkoutCalendar({ refreshKey }: WorkoutCalendarProps) {
           <span className="inline-block h-3 w-3 rounded bg-red-400" /> Missed
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded bg-purple-100" /> Scheduled
+          <span className="inline-block h-3 w-3 rounded bg-purple-100 dark:bg-purple-900/30" /> Scheduled
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded bg-slate-100" /> Rest
+          <span className="inline-block h-3 w-3 rounded bg-slate-100 dark:bg-[#2A2436]" /> Rest
         </span>
       </div>
     </div>

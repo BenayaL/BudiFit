@@ -18,27 +18,27 @@ export function PlanCard({ plan, onReviewPlan }: PlanCardProps) {
   const workoutDays = plan.days.filter((d) => !d.restDay).length;
 
   return (
-    <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-[#3B344A] dark:bg-[#211D2B]">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-extrabold text-slate-900">{plan.title}</h2>
-          <p className="mt-1 text-sm text-slate-500">Trainee: {plan.traineeName}</p>
+          <h2 className="text-lg font-extrabold text-slate-900 dark:text-[#F8F7FB]">{plan.title}</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-[#9E97AF]">Trainee: {plan.traineeName}</p>
         </div>
         <PlanStatusBadge approvalStatus={plan.approvalStatus} />
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">
+        <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 dark:border-[#3B344A] dark:text-[#C9C4D6]">
           {plan.durationWeeks} weeks
         </span>
-        <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">
+        <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 dark:border-[#3B344A] dark:text-[#C9C4D6]">
           {workoutDays} workout days
         </span>
-        <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">
+        <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 dark:border-[#3B344A] dark:text-[#C9C4D6]">
           {totalExercises} exercises
         </span>
         {plan.difficulty ? (
-          <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">
+          <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 dark:border-[#3B344A] dark:text-[#C9C4D6]">
             {DIFFICULTY_LABELS[plan.difficulty] ?? `Level ${plan.difficulty}`}
           </span>
         ) : null}

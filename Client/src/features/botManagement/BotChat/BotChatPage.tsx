@@ -13,11 +13,11 @@ function BotChatPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-8 flex flex-col gap-4">
-      <h1 className="text-3xl font-bold text-slate-900">Chat with Budi</h1>
+      <h1 className="text-3xl font-bold text-slate-900 dark:text-[#F8F7FB]">Chat with Budi</h1>
 
-      <div className="flex-1 space-y-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm min-h-[300px]">
+      <div className="flex-1 space-y-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm min-h-[300px] dark:border-[#3B344A] dark:bg-[#211D2B]">
         {messages.length === 0 && (
-          <p className="text-center text-slate-400 py-8">Ask Budi anything about your training.</p>
+          <p className="text-center text-slate-400 py-8 dark:text-[#9E97AF]">Ask Budi anything about your training.</p>
         )}
         {messages.map((msg) => (
           <div
@@ -28,7 +28,7 @@ function BotChatPage() {
               className={`max-w-xs rounded-2xl px-4 py-3 text-sm ${
                 msg.role === "user"
                   ? "bg-purple-600 text-white"
-                  : "bg-slate-100 text-slate-800"
+                  : "bg-slate-100 text-slate-800 dark:bg-[#2A2436] dark:text-[#C9C4D6]"
               }`}
             >
               {msg.content}
@@ -36,7 +36,7 @@ function BotChatPage() {
           </div>
         ))}
         {status === "typing" && (
-          <p className="text-sm text-slate-400 italic">Budi is typing…</p>
+          <p className="text-sm text-slate-400 italic dark:text-[#9E97AF]">Budi is typing…</p>
         )}
       </div>
 
@@ -47,7 +47,7 @@ function BotChatPage() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
           placeholder="Ask Budi…"
-          className="flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-purple-400"
+          className="flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-purple-400 dark:border-[#3B344A] dark:bg-[#211D2B] dark:text-[#F8F7FB] dark:placeholder:text-[#9E97AF] dark:focus:border-purple-500"
         />
         <button
           type="button"

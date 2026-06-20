@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, useEffect } from "react";
+﻿import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import BudiLogo from "../BudiLogo/BudiLogo";
 import AppButton from "../AppButton/AppButton";
 
@@ -49,8 +49,8 @@ export function TopNav({
   }, []);
 
   return (
-    <nav className="sticky top-0 z-50 px-6 pt-4 backdrop-blur-md bg-[#fbfaf7]/85">
-      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4 rounded-[22px] border border-slate-200/50 bg-white p-2.5 shadow-sm">
+    <nav className="sticky top-0 z-50 px-6 pt-4 backdrop-blur-md bg-[#fbfaf7]/85 dark:bg-[#141218]/85">
+      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4 rounded-[22px] border border-slate-200/50 bg-white p-2.5 shadow-sm dark:border-[#3B344A]/50 dark:bg-[#211D2B]">
         {/* Left — logo */}
         <div className="pl-2 pr-3 shrink-0">
           <BudiLogo />
@@ -73,11 +73,11 @@ export function TopNav({
                   data-nav={item.id}
                   onClick={() => onChangePage(item.id)}
                   className={`relative z-10 flex items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors duration-200 ${
-                    isActive ? "text-white" : "text-slate-600 hover:text-slate-900"
+                    isActive ? "text-white" : "text-slate-600 hover:text-slate-900 dark:text-[#C9C4D6] dark:hover:text-white"
                   }`}
                 >
                   {item.icon && (
-                    <span className={`shrink-0 ${isActive ? "text-white" : "text-slate-400"}`}>
+                    <span className={`shrink-0 ${isActive ? "text-white" : "text-slate-400 dark:text-[#9E97AF]"}`}>
                       {item.icon}
                     </span>
                   )}
@@ -91,7 +91,7 @@ export function TopNav({
           <div ref={dropdownRef} className="flex min-[1005px]:hidden relative w-full max-w-[200px] justify-center">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex w-full items-center justify-between gap-2 rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm"
+              className="flex w-full items-center justify-between gap-2 rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm dark:bg-[#2A2436] dark:border-[#3B344A] dark:text-[#C9C4D6]"
             >
               <div className="flex items-center gap-2 overflow-hidden">
                 {activeItem.icon && (
@@ -111,7 +111,7 @@ export function TopNav({
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute top-full mt-2 w-48 rounded-xl bg-white p-2 shadow-xl border border-slate-100 z-50">
+              <div className="absolute top-full mt-2 w-48 rounded-xl bg-white p-2 shadow-xl border border-slate-100 z-50 dark:bg-[#211D2B] dark:border-[#3B344A]">
                 <div className="flex flex-col gap-1">
                   {items.map((item) => {
                     const isActive = activePage === item.id;
@@ -124,12 +124,12 @@ export function TopNav({
                         }}
                         className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
                           isActive
-                            ? "bg-purple-50 text-purple-700"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                            ? "bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-[#C9C4D6] dark:hover:bg-[#2A2436] dark:hover:text-white"
                         }`}
                       >
                         {item.icon && (
-                          <span className={`shrink-0 ${isActive ? "text-purple-600" : "text-slate-400"}`}>
+                          <span className={`shrink-0 ${isActive ? "text-purple-600 dark:text-purple-400" : "text-slate-400 dark:text-[#9E97AF]"}`}>
                             {item.icon}
                           </span>
                         )}
@@ -170,7 +170,7 @@ export function TopNav({
             ) : (
               user.avatarLetter
             )}
-            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-[#211D2B]" />
           </button>
         </div>
       </div>

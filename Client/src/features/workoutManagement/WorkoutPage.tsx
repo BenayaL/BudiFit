@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { DailyWorkoutSection } from "./DailyWorkout/DailyWorkoutSection";
 import { GeneratedWorkoutPlanCard } from "./WorkoutList/GeneratedWorkoutPlanCard";
 import { useGeneratedWorkoutPlans } from "./useGeneratedWorkoutPlans";
@@ -49,10 +49,10 @@ function WorkoutPage({ onGoToPlansHistory, onSelectPlan }: WorkoutPageProps) {
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-purple-600">
           Gym
         </p>
-        <h1 className="mt-2 text-4xl font-extrabold text-slate-900">
+        <h1 className="mt-2 text-4xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">
           Workouts
         </h1>
-        <p className="mt-3 max-w-2xl text-slate-500">
+        <p className="mt-3 max-w-2xl text-slate-500 dark:text-[#9E97AF]">
           Track your daily workouts and manage your personalized plans.
         </p>
       </section>
@@ -66,7 +66,7 @@ function WorkoutPage({ onGoToPlansHistory, onSelectPlan }: WorkoutPageProps) {
       {/* ── Section 2: My Plans ── */}
       <section>
         <div className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-xl font-extrabold text-slate-900">My Plans</h2>
+          <h2 className="text-xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">My Plans</h2>
 
           <div className="flex shrink-0 flex-wrap gap-3">
             <button
@@ -81,7 +81,7 @@ function WorkoutPage({ onGoToPlansHistory, onSelectPlan }: WorkoutPageProps) {
             <button
               type="button"
               onClick={onGoToPlansHistory}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-[#3B344A] dark:bg-[#211D2B] dark:text-[#C9C4D6] dark:hover:bg-[#2A2436]"
             >
               Plans History
             </button>
@@ -115,8 +115,8 @@ function WorkoutPage({ onGoToPlansHistory, onSelectPlan }: WorkoutPageProps) {
         </div>
 
         {plansError && (
-          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4">
-            <p className="font-semibold text-red-700">{plansError}</p>
+          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-800/50 dark:bg-red-900/20">
+            <p className="font-semibold text-red-700 dark:text-red-400">{plansError}</p>
             <button
               type="button"
               onClick={() => void loadPlans()}
@@ -128,12 +128,12 @@ function WorkoutPage({ onGoToPlansHistory, onSelectPlan }: WorkoutPageProps) {
         )}
 
         {isGenerating && (
-          <div className="mb-6 rounded-3xl border border-purple-200 bg-purple-50 p-6 text-center">
+          <div className="mb-6 rounded-3xl border border-purple-200 bg-purple-50 p-6 text-center dark:border-purple-800/50 dark:bg-purple-900/20">
             <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
-            <p className="mt-4 font-bold text-purple-800">
+            <p className="mt-4 font-bold text-purple-800 dark:text-purple-300">
               Budi is building your personalized workout plan...
             </p>
-            <p className="mt-1 text-sm text-purple-600">
+            <p className="mt-1 text-sm text-purple-600 dark:text-purple-400">
               This may take a few seconds.
             </p>
           </div>
@@ -144,14 +144,14 @@ function WorkoutPage({ onGoToPlansHistory, onSelectPlan }: WorkoutPageProps) {
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
           </div>
         ) : plans.length === 0 ? (
-          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-purple-100 text-3xl">
+          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-[#3B344A] dark:bg-[#211D2B]">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-purple-100 text-3xl dark:bg-purple-900/30">
               🏋️
             </div>
-            <h3 className="mt-5 text-2xl font-extrabold text-slate-900">
+            <h3 className="mt-5 text-2xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">
               No workout plan yet
             </h3>
-            <p className="mx-auto mt-3 max-w-lg text-slate-500">
+            <p className="mx-auto mt-3 max-w-lg text-slate-500 dark:text-[#9E97AF]">
               Generate a personalized plan based on your fitness level, goals
               and preferred number of weekly workouts.
             </p>

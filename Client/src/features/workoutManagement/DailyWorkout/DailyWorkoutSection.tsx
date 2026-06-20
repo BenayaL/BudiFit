@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useDailyWorkout } from "./useDailyWorkout";
 import { TodayWorkoutCard } from "./TodayWorkoutCard";
 import { TomorrowWorkoutCard } from "./TomorrowWorkoutCard";
@@ -48,7 +48,7 @@ export function DailyWorkoutSection() {
     <div>
       {/* ── Persistent section header ── */}
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-xl font-extrabold text-slate-900">
+        <h2 className="text-xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">
           Daily Workouts
         </h2>
 
@@ -57,7 +57,7 @@ export function DailyWorkoutSection() {
           <button
             type="button"
             onClick={() => setModal({ kind: "history" })}
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-[#3B344A] dark:bg-[#211D2B] dark:text-[#C9C4D6] dark:hover:bg-[#2A2436]"
           >
             Workout History
           </button>
@@ -92,8 +92,8 @@ export function DailyWorkoutSection() {
         </div>
       ) : !dashboard?.activePlan ? (
         /* No active plan */
-        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center">
-          <p className="text-slate-500">
+        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center dark:border-[#3B344A] dark:bg-[#211D2B]/50">
+          <p className="text-slate-500 dark:text-[#9E97AF]">
             Generate a workout plan below to start tracking your daily workouts.
           </p>
         </div>

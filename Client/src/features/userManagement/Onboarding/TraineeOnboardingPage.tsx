@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+﻿import { useCallback, useState } from "react";
 import { useAuth } from "../../../app/AuthContext";
 import { userService } from "../userService";
 
@@ -164,7 +164,7 @@ function TraineeOnboardingPage({ onComplete }: TraineeOnboardingPageProps) {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#fbfaf7] text-slate-950">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#fbfaf7] text-slate-950 dark:bg-[#141218] dark:text-[#F8F7FB]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(124,58,237,0.12),transparent_35%),radial-gradient(circle_at_90%_10%,rgba(192,132,252,0.10),transparent_30%)]" />
 
       <OnboardingHeader stepIndex={stepIndex} totalSteps={totalSteps} />
@@ -174,7 +174,7 @@ function TraineeOnboardingPage({ onComplete }: TraineeOnboardingPageProps) {
           {renderStep()}
 
           {serverError && (
-            <div className="mt-6 rounded-2xl bg-red-50 px-5 py-4 text-sm font-medium text-red-600" role="alert">
+            <div className="mt-6 rounded-2xl bg-red-50 px-5 py-4 text-sm font-medium text-red-600 dark:bg-red-900/20 dark:text-red-400" role="alert">
               {serverError}
             </div>
           )}

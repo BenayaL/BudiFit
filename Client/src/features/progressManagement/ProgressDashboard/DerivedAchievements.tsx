@@ -67,48 +67,47 @@ function AchievementTile({ achievement }: AchievementTileProps) {
 
   return (
     <div
-      className={`relative rounded-2xl border bg-white p-5 flex flex-col gap-3 transition-all ${
-        earned ? "border-slate-200 shadow-sm" : "border-slate-100 opacity-55"
+      className={`relative rounded-2xl border bg-white p-5 flex flex-col gap-3 transition-all dark:bg-[#211D2B] ${
+        earned
+          ? "border-slate-200 shadow-sm dark:border-[#3B344A]"
+          : "border-slate-100 opacity-55 dark:border-[#3B344A]"
       }`}
     >
-      {/* Earned badge — absolute top-right */}
       {earned && (
-        <div className="absolute right-4 top-4 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full">
+        <div className="absolute right-4 top-4 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/30">
           ✓ Earned
         </div>
       )}
       {!earned && (
-        <div className="absolute right-4 top-4 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
+        <div className="absolute right-4 top-4 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-slate-400 bg-slate-100 px-2 py-1 rounded-full dark:bg-[#2A2436] dark:text-[#9E97AF]">
           Locked
         </div>
       )}
 
-      {/* Icon */}
       <div className="relative self-start">
         <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+          className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${!earned ? "bg-slate-100 dark:bg-[#2A2436]" : ""}`}
           style={
             earned
               ? {
                   backgroundColor: `${accentColor}18`,
                   boxShadow: `0 4px 14px ${accentColor}30`,
                 }
-              : { backgroundColor: "#f1f5f9" }
+              : undefined
           }
         >
           {icon}
         </div>
         {!earned && (
-          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center text-[9px] leading-none">
+          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center text-[9px] leading-none dark:bg-[#2A2436] dark:border-[#211D2B]">
             🔒
           </div>
         )}
       </div>
 
-      {/* Text */}
       <div>
-        <h3 className="text-sm font-bold text-slate-900 leading-tight">{title}</h3>
-        <p className="text-xs text-slate-400 mt-1 leading-relaxed">{description}</p>
+        <h3 className="text-sm font-bold text-slate-900 leading-tight dark:text-[#F8F7FB]">{title}</h3>
+        <p className="text-xs text-slate-400 mt-1 leading-relaxed dark:text-[#9E97AF]">{description}</p>
       </div>
     </div>
   );
@@ -120,7 +119,7 @@ export function DerivedAchievements({ summary, streak }: Props) {
 
   return (
     <div>
-      <p className="text-xs text-slate-400 mb-3">
+      <p className="text-xs text-slate-400 mb-3 dark:text-[#9E97AF]">
         {earnedCount} of {achievements.length} earned
       </p>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

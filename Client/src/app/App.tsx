@@ -33,7 +33,7 @@ import { useAuth } from "./AuthContext";
 
 function LoadingScreen() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#fbfaf7]">
+    <div className="flex min-h-screen items-center justify-center bg-[#fbfaf7] dark:bg-[#141218]">
       <div className="flex flex-col items-center gap-4">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
         <p className="text-sm font-medium text-slate-500">Loading…</p>
@@ -105,7 +105,7 @@ function App() {
 
   function withNav(content: React.ReactNode, activePage: Page = currentPage!) {
     return (
-      <div className="min-h-screen bg-[#fbfaf7]">
+      <div className="min-h-screen bg-[#fbfaf7] dark:bg-[#141218]">
         <TopNav
           items={activeNavItems}
           activePage={activePage}

@@ -17,12 +17,14 @@ interface EditPersonalDetailsFormProps {
 }
 
 const inputClass =
-  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/15";
+  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/15 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:placeholder:text-[#9E97AF]";
 
 const sectionClass =
-  "rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm";
+  "rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm dark:border-[#3B344A] dark:bg-[#211D2B]";
 
-const sectionTitleClass = "text-base font-extrabold text-slate-900";
+const sectionTitleClass = "text-base font-extrabold text-slate-900 dark:text-[#F8F7FB]";
+
+const lblClass = "mb-1.5 block text-sm font-semibold text-slate-700 dark:text-[#C9C4D6]";
 
 function ToggleButton({
   selected,
@@ -40,8 +42,8 @@ function ToggleButton({
       className={[
         "rounded-xl border px-4 py-2 text-sm font-semibold transition",
         selected
-          ? "border-purple-500 bg-purple-50 text-purple-700 ring-2 ring-purple-500/20"
-          : "border-slate-200 bg-white text-slate-600 hover:border-purple-300",
+          ? "border-purple-500 bg-purple-50 text-purple-700 ring-2 ring-purple-500/20 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-600"
+          : "border-slate-200 bg-white text-slate-600 hover:border-purple-300 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:hover:border-purple-700",
       ].join(" ")}
     >
       {children}
@@ -77,12 +79,12 @@ export function EditPersonalDetailsForm({
 
   if (loadError) {
     return (
-      <div className="rounded-[24px] border border-red-200 bg-red-50 p-6">
-        <p className="font-semibold text-red-700">{loadError}</p>
+      <div className="rounded-[24px] border border-red-200 bg-red-50 p-6 dark:border-red-800/40 dark:bg-red-900/20">
+        <p className="font-semibold text-red-700 dark:text-red-400">{loadError}</p>
         <button
           type="button"
           onClick={onCancel}
-          className="mt-3 text-sm font-bold text-red-600 underline"
+          className="mt-3 text-sm font-bold text-red-600 underline dark:text-red-400"
         >
           Go back
         </button>
@@ -94,10 +96,10 @@ export function EditPersonalDetailsForm({
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
+          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-[#F8F7FB]">
             Edit personal details
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-[#9E97AF]">
             Updates apply to future workout plan generation. Existing plans are not affected.
           </p>
         </div>
@@ -110,7 +112,7 @@ export function EditPersonalDetailsForm({
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {/* Age */}
           <div>
-            <label htmlFor="edit-age" className="mb-1.5 block text-sm font-semibold text-slate-700">
+            <label htmlFor="edit-age" className={lblClass}>
               Age <span className="text-purple-600">*</span>
             </label>
             <input
@@ -127,7 +129,7 @@ export function EditPersonalDetailsForm({
 
           {/* Gender */}
           <div>
-            <p className="mb-1.5 text-sm font-semibold text-slate-700">Gender</p>
+            <p className={lblClass}>Gender</p>
             <div className="flex flex-wrap gap-2">
               {GENDER_OPTIONS.map(({ value, label }) => (
                 <ToggleButton
@@ -148,8 +150,9 @@ export function EditPersonalDetailsForm({
 
           {/* Height */}
           <div>
-            <label htmlFor="edit-height" className="mb-1.5 block text-sm font-semibold text-slate-700">
-              Height <span className="text-slate-400 font-normal">(cm, optional)</span>
+            <label htmlFor="edit-height" className={lblClass}>
+              Height{" "}
+              <span className="font-normal text-slate-400 dark:text-[#9E97AF]">(cm, optional)</span>
             </label>
             <input
               id="edit-height"
@@ -165,8 +168,9 @@ export function EditPersonalDetailsForm({
 
           {/* Weight */}
           <div>
-            <label htmlFor="edit-weight" className="mb-1.5 block text-sm font-semibold text-slate-700">
-              Weight <span className="text-slate-400 font-normal">(kg, optional)</span>
+            <label htmlFor="edit-weight" className={lblClass}>
+              Weight{" "}
+              <span className="font-normal text-slate-400 dark:text-[#9E97AF]">(kg, optional)</span>
             </label>
             <input
               id="edit-weight"
@@ -188,7 +192,7 @@ export function EditPersonalDetailsForm({
 
         {/* Fitness level */}
         <div className="mt-4">
-          <p className="mb-2 text-sm font-semibold text-slate-700">
+          <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-[#C9C4D6]">
             Fitness level <span className="text-purple-600">*</span>
           </p>
           <div className="flex flex-wrap gap-2">
@@ -208,9 +212,9 @@ export function EditPersonalDetailsForm({
 
         {/* Goals */}
         <div className="mt-5">
-          <p className="mb-2 text-sm font-semibold text-slate-700">
+          <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-[#C9C4D6]">
             Goals <span className="text-purple-600">*</span>{" "}
-            <span className="font-normal text-slate-400">(select 1–3)</span>
+            <span className="font-normal text-slate-400 dark:text-[#9E97AF]">(select 1–3)</span>
           </p>
           <div className="flex flex-wrap gap-2">
             {GOAL_OPTIONS.map(({ value, label, emoji }) => (
@@ -227,7 +231,7 @@ export function EditPersonalDetailsForm({
 
         {/* Equipment */}
         <div className="mt-5">
-          <p className="mb-2 text-sm font-semibold text-slate-700">
+          <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-[#C9C4D6]">
             Available equipment <span className="text-purple-600">*</span>
           </p>
           <div className="flex flex-wrap gap-2">
@@ -245,7 +249,7 @@ export function EditPersonalDetailsForm({
 
         {/* Days per week */}
         <div className="mt-5">
-          <p className="mb-2 text-sm font-semibold text-slate-700">
+          <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-[#C9C4D6]">
             Days per week{" "}
             <span className="text-xl font-extrabold tabular-nums text-purple-600">
               {form.weeklyWorkouts}
@@ -261,7 +265,7 @@ export function EditPersonalDetailsForm({
                   "h-11 w-11 rounded-xl border text-sm font-bold transition",
                   form.weeklyWorkouts === n
                     ? "border-purple-600 bg-purple-600 text-white shadow-[0_4px_12px_rgba(124,58,237,0.3)]"
-                    : "border-slate-200 bg-white text-slate-700 hover:border-purple-300",
+                    : "border-slate-200 bg-white text-slate-700 hover:border-purple-300 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:hover:border-purple-700",
                 ].join(" ")}
               >
                 {n}
@@ -272,7 +276,7 @@ export function EditPersonalDetailsForm({
 
         {/* Preferred workout time */}
         <div className="mt-5">
-          <p className="mb-2 text-sm font-semibold text-slate-700">
+          <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-[#C9C4D6]">
             Preferred session time <span className="text-purple-600">*</span>
           </p>
           <div className="grid grid-cols-3 gap-3 sm:max-w-sm">
@@ -291,13 +295,13 @@ export function EditPersonalDetailsForm({
                   className={[
                     "flex flex-col gap-1 rounded-2xl border p-3 text-left transition",
                     selected
-                      ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500/30"
-                      : "border-slate-200 bg-white hover:border-purple-300",
+                      ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500/30 dark:bg-purple-900/30 dark:border-purple-600"
+                      : "border-slate-200 bg-white hover:border-purple-300 dark:border-[#3B344A] dark:bg-[#2A2436] dark:hover:border-purple-700",
                   ].join(" ")}
                 >
                   <span className="text-xl">{emoji}</span>
-                  <span className="text-sm font-bold text-slate-900">{label}</span>
-                  <span className="text-xs text-slate-400">{timeRange}</span>
+                  <span className="text-sm font-bold text-slate-900 dark:text-[#F8F7FB]">{label}</span>
+                  <span className="text-xs text-slate-400 dark:text-[#9E97AF]">{timeRange}</span>
                 </button>
               );
             })}
@@ -306,7 +310,7 @@ export function EditPersonalDetailsForm({
 
         {/* Session duration */}
         <div className="mt-5">
-          <p className="mb-2 text-sm font-semibold text-slate-700">Session length</p>
+          <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-[#C9C4D6]">Session length</p>
           <div className="flex flex-wrap gap-2">
             {SESSION_DURATION_OPTIONS.map(({ value, label }) => (
               <ToggleButton
@@ -329,13 +333,13 @@ export function EditPersonalDetailsForm({
       {/* ── Health ────────────────────────────────────────────────── */}
       <section className={sectionClass}>
         <h3 className={sectionTitleClass}>Health</h3>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-500 dark:text-[#9E97AF]">
           Optional — helps Budi choose safer exercises. Not a substitute for professional medical advice.
         </p>
 
         {/* Medical conditions */}
         <div className="mt-4">
-          <p className="mb-2 text-sm font-semibold text-slate-700">Known limitations</p>
+          <p className="mb-2 text-sm font-semibold text-slate-700 dark:text-[#C9C4D6]">Known limitations</p>
           <div className="flex flex-wrap gap-2">
             {MEDICAL_CONDITION_OPTIONS.map(({ value, label }) => {
               const noneSelected = form.medicalConditions.includes("none");
@@ -350,8 +354,8 @@ export function EditPersonalDetailsForm({
                   className={[
                     "rounded-xl border px-4 py-2 text-sm font-semibold transition",
                     form.medicalConditions.includes(value as MedicalCondition)
-                      ? "border-purple-500 bg-purple-50 text-purple-700 ring-2 ring-purple-500/20"
-                      : "border-slate-200 bg-white text-slate-600 hover:border-purple-300",
+                      ? "border-purple-500 bg-purple-50 text-purple-700 ring-2 ring-purple-500/20 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-600"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-purple-300 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:hover:border-purple-700",
                     disabled ? "cursor-not-allowed opacity-40" : "",
                   ].join(" ")}
                 >
@@ -366,10 +370,10 @@ export function EditPersonalDetailsForm({
         <div className="mt-4">
           <label
             htmlFor="edit-medical-notes"
-            className="mb-1.5 block text-sm font-semibold text-slate-700"
+            className={lblClass}
           >
             Additional notes{" "}
-            <span className="font-normal text-slate-400">(optional)</span>
+            <span className="font-normal text-slate-400 dark:text-[#9E97AF]">(optional)</span>
           </label>
           <textarea
             id="edit-medical-notes"
@@ -380,9 +384,9 @@ export function EditPersonalDetailsForm({
               setForm((prev) => ({ ...prev, medicalNotes: e.target.value.slice(0, 500) }))
             }
             placeholder="e.g. Right knee cleared for low-impact exercises."
-            className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/15"
+            className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/15 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:placeholder:text-[#9E97AF]"
           />
-          <p className="mt-1 text-right text-xs text-slate-400">
+          <p className="mt-1 text-right text-xs text-slate-400 dark:text-[#9E97AF]">
             {form.medicalNotes.length} / 500
           </p>
         </div>
@@ -390,12 +394,12 @@ export function EditPersonalDetailsForm({
 
       {/* ── Status messages ───────────────────────────────────────── */}
       {saveError && (
-        <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+        <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 dark:bg-red-900/20 dark:text-red-400">
           {saveError}
         </p>
       )}
       {success && (
-        <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+        <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">
           ✓ Personal details updated successfully.
         </p>
       )}
@@ -414,7 +418,7 @@ export function EditPersonalDetailsForm({
           type="button"
           onClick={onCancel}
           disabled={isSaving}
-          className="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+          className="rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:hover:bg-[#3B344A]"
         >
           Cancel
         </button>

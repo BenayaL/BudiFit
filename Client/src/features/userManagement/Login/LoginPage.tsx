@@ -1,4 +1,4 @@
-import AppButton from "../../../common/AppButton/AppButton";
+﻿import AppButton from "../../../common/AppButton/AppButton";
 import BudiLogo from "../../../common/BudiLogo/BudiLogo";
 import BudiCharacter from "../../../common/BudiLogo/BudiCharacter";
 import { LoginForm } from "./LoginForm";
@@ -10,7 +10,7 @@ function LoginPage({ onLoginSuccess, onGoToRegister, onBackToWelcome }: LoginPag
     useLogin(onLoginSuccess);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#fbfaf7] text-slate-950">
+    <main className="relative min-h-screen overflow-hidden bg-[#fbfaf7] text-slate-950 dark:bg-[#141218] dark:text-[#F8F7FB]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(124,58,237,0.18),transparent_35%),radial-gradient(circle_at_90%_10%,rgba(192,132,252,0.14),transparent_30%),radial-gradient(circle_at_50%_100%,rgba(167,139,250,0.12),transparent_35%)]" />
       <div className="absolute inset-0 opacity-30 [background-image:radial-gradient(rgba(124,58,237,0.25)_1px,transparent_1px)] [background-size:32px_32px]" />
 
@@ -29,7 +29,7 @@ function LoginPage({ onLoginSuccess, onGoToRegister, onBackToWelcome }: LoginPag
             <div className="hidden flex-col items-center text-center lg:flex">
               <BudiCharacter size="md" />
               <h1 className="mt-8 text-4xl font-extrabold tracking-tight">Welcome back.</h1>
-              <p className="mt-4 max-w-md text-lg font-medium text-slate-600">
+              <p className="mt-4 max-w-md text-lg font-medium text-slate-600 dark:text-[#9E97AF]">
                 Your coach saved your progress. Log in and continue your next challenge.
               </p>
             </div>

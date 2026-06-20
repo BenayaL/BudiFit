@@ -1,9 +1,9 @@
-import type { FormFieldProps } from "./FormField.types";
+﻿import type { FormFieldProps } from "./FormField.types";
 
 export function FormField({ id, label, error, children }: FormFieldProps) {
   return (
     <div>
-      <label htmlFor={id} className="mb-2 block text-sm font-semibold text-slate-700">
+      <label htmlFor={id} className="mb-2 block text-sm font-semibold text-slate-700 dark:text-[#C9C4D6]">
         {label}
       </label>
 

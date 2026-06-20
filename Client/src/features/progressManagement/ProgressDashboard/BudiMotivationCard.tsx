@@ -17,13 +17,11 @@ export function BudiMotivationCard({ streak, isCompleted, hasActivePlan }: Props
   const text = getMotivationText(streak, isCompleted, hasActivePlan);
 
   return (
-    <div className="relative bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="relative bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden dark:border-[#3B344A] dark:bg-[#211D2B]">
       <div className="h-[5px] w-full bg-gradient-to-r from-violet-400 to-purple-500" />
       <div className="p-5">
-        {/* Header row */}
         <div className="flex items-center gap-3 mb-4">
-          {/* Bot avatar */}
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-lg flex-shrink-0">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-lg flex-shrink-0 dark:bg-purple-900/20">
             🤖
           </div>
           <div className="flex-1 min-w-0">
@@ -31,14 +29,12 @@ export function BudiMotivationCard({ streak, isCompleted, hasActivePlan }: Props
               Budi says
             </p>
           </div>
-          {/* Accent sparkle icon */}
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 flex-shrink-0">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 flex-shrink-0 dark:bg-amber-900/20">
             <Sparkles size={14} className="text-amber-500" />
           </div>
         </div>
 
-        {/* Quote with left accent border */}
-        <p className="border-l-[3px] border-violet-200 pl-3 text-sm font-medium text-slate-700 leading-relaxed">
+        <p className="border-l-[3px] border-violet-200 pl-3 text-sm font-medium text-slate-700 leading-relaxed dark:border-violet-700 dark:text-[#C9C4D6]">
           {text}
         </p>
       </div>

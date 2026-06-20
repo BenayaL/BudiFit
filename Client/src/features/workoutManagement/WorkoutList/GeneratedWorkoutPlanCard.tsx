@@ -76,12 +76,12 @@ const CATEGORY_LABELS: Record<GeneratedWorkoutPlanSummary["category"], string> =
 };
 
 const CATEGORY_STYLES: Record<GeneratedWorkoutPlanSummary["category"], string> = {
-  strength: "bg-purple-100 text-purple-700",
-  hypertrophy: "bg-rose-100 text-rose-700",
-  endurance: "bg-blue-100 text-blue-700",
-  general_fitness: "bg-emerald-100 text-emerald-700",
-  mobility: "bg-amber-100 text-amber-700",
-  weight_loss: "bg-orange-100 text-orange-700",
+  strength: "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300",
+  hypertrophy: "bg-rose-100 text-rose-700 dark:bg-rose-900/20 dark:text-rose-300",
+  endurance: "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300",
+  general_fitness: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300",
+  mobility: "bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300",
+  weight_loss: "bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300",
 };
 
 const DIFFICULTY_ACCENT = {
@@ -100,27 +100,27 @@ function getDifficultyAccent(difficulty: number) {
 
 function LockedPlanCard({ plan }: { plan: GeneratedWorkoutPlanSummary }) {
   return (
-    <article className="overflow-hidden rounded-3xl border border-orange-200 bg-orange-50 shadow-sm">
+    <article className="overflow-hidden rounded-3xl border border-orange-200 bg-orange-50 shadow-sm dark:border-orange-800/40 dark:bg-orange-900/20">
       <div className="h-2 bg-orange-400" />
       <div className="p-6">
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-700">
+          <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
             Pending coach review
           </span>
         </div>
-        <h2 className="mt-4 text-xl font-extrabold text-slate-900">{plan.title}</h2>
-        <p className="mt-2 text-sm text-slate-600 line-clamp-2">{plan.description}</p>
-        <div className="mt-4 rounded-2xl border border-orange-200 bg-white p-4">
-          <p className="text-sm font-bold text-orange-800">Awaiting coach approval</p>
-          <p className="mt-1 text-xs text-orange-700">
+        <h2 className="mt-4 text-xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">{plan.title}</h2>
+        <p className="mt-2 text-sm text-slate-600 line-clamp-2 dark:text-[#C9C4D6]">{plan.description}</p>
+        <div className="mt-4 rounded-2xl border border-orange-200 bg-white p-4 dark:border-orange-800/40 dark:bg-[#2A2436]">
+          <p className="text-sm font-bold text-orange-800 dark:text-orange-400">Awaiting coach approval</p>
+          <p className="mt-1 text-xs text-orange-700 dark:text-orange-300">
             Your coach is reviewing this plan. You'll be notified when it's approved.
           </p>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">
+          <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 dark:border-[#3B344A] dark:text-[#C9C4D6]">
             {plan.durationWeeks} weeks
           </span>
-          <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">
+          <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 dark:border-[#3B344A] dark:text-[#C9C4D6]">
             {plan.workoutDaysPerWeek} days/week
           </span>
         </div>
@@ -157,7 +157,7 @@ export function GeneratedWorkoutPlanCard({
 
   return (
     <>
-    <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+    <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-[#3B344A] dark:bg-[#211D2B]">
       <div className="h-2" style={{ backgroundColor: accent.color }} />
 
       <div className="p-6">
@@ -171,39 +171,39 @@ export function GeneratedWorkoutPlanCard({
               <span
                 key={index}
                 className="h-1.5 w-5 rounded-full"
-                style={{ backgroundColor: index < plan.difficulty ? accent.color : "#E2E8F0" }}
+                style={{ backgroundColor: index < plan.difficulty ? accent.color : "#3B344A" }}
               />
             ))}
           </div>
         </div>
 
         {plan.status === "completed" && (
-          <span className="mt-3 inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
+          <span className="mt-3 inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">
             Completed
           </span>
         )}
 
-        <h2 className="mt-5 text-xl font-extrabold text-slate-900">{plan.title}</h2>
+        <h2 className="mt-5 text-xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">{plan.title}</h2>
 
-        <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-500">{plan.description}</p>
+        <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-500 dark:text-[#9E97AF]">{plan.description}</p>
 
         {plan.requiresProfessionalReview && (
-          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-medium text-amber-800">
+          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-medium text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-400">
             This plan requires professional review.
           </div>
         )}
 
         <div className="mt-5 flex flex-wrap gap-2">
-          <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">
+          <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 dark:border-[#3B344A] dark:text-[#C9C4D6]">
             {plan.durationWeeks} weeks
           </span>
-          <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">
+          <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 dark:border-[#3B344A] dark:text-[#C9C4D6]">
             {plan.workoutDaysPerWeek} days/week
           </span>
         </div>
 
         {plan.equipment.length > 0 && (
-          <p className="mt-4 text-xs font-medium text-slate-500">
+          <p className="mt-4 text-xs font-medium text-slate-500 dark:text-[#9E97AF]">
             Equipment: {plan.equipment.join(", ")}
           </p>
         )}
@@ -227,7 +227,7 @@ export function GeneratedWorkoutPlanCard({
                 type="button"
                 onClick={() => onComplete(plan.id)}
                 disabled={isActionInProgress}
-                className="flex-1 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
+                className="flex-1 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-800/40 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
               >
                 {isActionInProgress ? "..." : "Complete"}
               </button>
@@ -238,7 +238,7 @@ export function GeneratedWorkoutPlanCard({
                 type="button"
                 onClick={() => setShowReplaceModal(true)}
                 disabled={isActionInProgress}
-                className="flex-1 rounded-2xl border border-purple-200 bg-purple-50 px-3 py-2 text-xs font-bold text-purple-700 transition hover:bg-purple-100 disabled:opacity-50"
+                className="flex-1 rounded-2xl border border-purple-200 bg-purple-50 px-3 py-2 text-xs font-bold text-purple-700 transition hover:bg-purple-100 disabled:opacity-50 dark:border-purple-800/40 dark:bg-purple-900/20 dark:text-purple-300 dark:hover:bg-purple-900/30"
               >
                 Replace
               </button>
@@ -249,7 +249,7 @@ export function GeneratedWorkoutPlanCard({
                 type="button"
                 onClick={() => setShowRemoveConfirm(true)}
                 disabled={isActionInProgress}
-                className="flex-1 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 transition hover:bg-red-100 disabled:opacity-50"
+                className="flex-1 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 transition hover:bg-red-100 disabled:opacity-50 dark:border-red-800/40 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30"
               >
                 Remove
               </button>
@@ -257,7 +257,7 @@ export function GeneratedWorkoutPlanCard({
 
             {canRequestChange && onRequestChange && (
               plan.hasPendingChangeRequest ? (
-                <span className="flex-1 rounded-2xl border border-orange-100 bg-orange-50 px-3 py-2 text-center text-xs font-bold text-orange-400">
+                <span className="flex-1 rounded-2xl border border-orange-100 bg-orange-50 px-3 py-2 text-center text-xs font-bold text-orange-400 dark:border-orange-800/30 dark:bg-orange-900/20 dark:text-orange-400">
                   Change requested
                 </span>
               ) : (
@@ -265,7 +265,7 @@ export function GeneratedWorkoutPlanCard({
                   type="button"
                   onClick={() => setShowChangeModal(true)}
                   disabled={isActionInProgress}
-                  className="flex-1 rounded-2xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-bold text-orange-700 transition hover:bg-orange-100 disabled:opacity-50"
+                  className="flex-1 rounded-2xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-bold text-orange-700 transition hover:bg-orange-100 disabled:opacity-50 dark:border-orange-800/40 dark:bg-orange-900/20 dark:text-orange-400 dark:hover:bg-orange-900/30"
                 >
                   Request change
                 </button>
@@ -279,17 +279,17 @@ export function GeneratedWorkoutPlanCard({
 
     {showRemoveConfirm && (
       <ModalPortal>
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-extrabold text-slate-900">Remove plan?</h3>
-            <p className="mt-2 text-sm text-slate-500">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl dark:bg-[#211D2B] dark:border dark:border-[#3B344A]">
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-[#F8F7FB]">Remove plan?</h3>
+            <p className="mt-2 text-sm text-slate-500 dark:text-[#9E97AF]">
               This plan will be permanently removed. This cannot be undone.
             </p>
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
                 onClick={() => setShowRemoveConfirm(false)}
-                className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+                className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:hover:bg-[#3B344A]"
               >
                 Cancel
               </button>
@@ -322,10 +322,10 @@ export function GeneratedWorkoutPlanCard({
 
     {showReplaceModal && (
       <ModalPortal>
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-extrabold text-slate-900">Why do you want to replace this plan?</h3>
-            <p className="mt-1 text-sm text-slate-500">Choose the main reason so Budi can create a better plan for you.</p>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto dark:bg-[#211D2B] dark:border dark:border-[#3B344A]">
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-[#F8F7FB]">Why do you want to replace this plan?</h3>
+            <p className="mt-1 text-sm text-slate-500 dark:text-[#9E97AF]">Choose the main reason so Budi can create a better plan for you.</p>
             <div className="mt-4 flex flex-col gap-2">
               {REPLACE_REASONS.map((r) => (
                 <button
@@ -335,16 +335,16 @@ export function GeneratedWorkoutPlanCard({
                     setShowReplaceModal(false);
                     onReplace?.(plan.id, r.id);
                   }}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition hover:border-purple-300 hover:bg-purple-50"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition hover:border-purple-300 hover:bg-purple-50 dark:border-[#3B344A] dark:bg-[#2A2436] dark:hover:border-purple-700 dark:hover:bg-purple-900/20"
                 >
-                  <p className="text-sm font-bold text-slate-900">{r.label}</p>
-                  <p className="mt-0.5 text-xs text-slate-500">{r.description}</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-[#F8F7FB]">{r.label}</p>
+                  <p className="mt-0.5 text-xs text-slate-500 dark:text-[#9E97AF]">{r.description}</p>
                 </button>
               ))}
               <button
                 type="button"
                 onClick={() => setShowReplaceModal(false)}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:hover:bg-[#3B344A]"
               >
                 Cancel
               </button>

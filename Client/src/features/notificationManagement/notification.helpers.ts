@@ -16,18 +16,18 @@ type CategoryConfig = {
 };
 
 export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
-  coach_action:     { Icon: Users,      bg: "bg-purple-100",  iconColor: "text-purple-600",  borderColor: "border-l-purple-500" },
-  trainee_update:   { Icon: Activity,   bg: "bg-emerald-100", iconColor: "text-emerald-600", borderColor: "border-l-emerald-500" },
-  system:           { Icon: Info,       bg: "bg-slate-100",   iconColor: "text-slate-500",   borderColor: "border-l-slate-400" },
-  workout_reminder: { Icon: Clock,      bg: "bg-amber-100",   iconColor: "text-amber-600",   borderColor: "border-l-amber-500" },
-  progress:         { Icon: TrendingUp, bg: "bg-blue-100",    iconColor: "text-blue-600",    borderColor: "border-l-blue-500" },
+  coach_action:     { Icon: Users,      bg: "bg-purple-100 dark:bg-purple-900/30",  iconColor: "text-purple-600 dark:text-purple-400",  borderColor: "border-l-purple-500" },
+  trainee_update:   { Icon: Activity,   bg: "bg-emerald-100 dark:bg-emerald-900/30", iconColor: "text-emerald-600 dark:text-emerald-400", borderColor: "border-l-emerald-500" },
+  system:           { Icon: Info,       bg: "bg-slate-100 dark:bg-[#2A2436]",        iconColor: "text-slate-500 dark:text-[#9E97AF]",    borderColor: "border-l-slate-400 dark:border-l-[#3B344A]" },
+  workout_reminder: { Icon: Clock,      bg: "bg-amber-100 dark:bg-amber-900/30",     iconColor: "text-amber-600 dark:text-amber-400",    borderColor: "border-l-amber-500" },
+  progress:         { Icon: TrendingUp, bg: "bg-blue-100 dark:bg-blue-900/30",       iconColor: "text-blue-600 dark:text-blue-400",      borderColor: "border-l-blue-500" },
 };
 
 const DEFAULT_CATEGORY_CONFIG: CategoryConfig = {
   Icon: Bell,
-  bg: "bg-slate-100",
-  iconColor: "text-slate-500",
-  borderColor: "border-l-slate-300",
+  bg: "bg-slate-100 dark:bg-[#2A2436]",
+  iconColor: "text-slate-500 dark:text-[#9E97AF]",
+  borderColor: "border-l-slate-300 dark:border-l-[#3B344A]",
 };
 
 // Explicit if/else avoids the (category && map[category]) ?? default pattern

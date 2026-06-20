@@ -45,23 +45,23 @@ function buildExerciseTarget(
 
 function AlternativeCard({ alt }: { alt: ExerciseAlternative }) {
   return (
-    <div className="rounded-2xl border border-purple-100 bg-purple-50 p-3">
+    <div className="rounded-2xl border border-purple-100 bg-purple-50 p-3 dark:border-purple-800/40 dark:bg-purple-900/20">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="font-bold text-slate-900">{alt.name}</span>
+        <span className="font-bold text-slate-900 dark:text-[#F8F7FB]">{alt.name}</span>
 
-        <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700">
+        <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
           {alt.suggestedTarget}
         </span>
       </div>
 
       {alt.equipment && alt.equipment !== "none" && (
-        <p className="mt-1 text-xs text-slate-500">{alt.equipment}</p>
+        <p className="mt-1 text-xs text-slate-500 dark:text-[#9E97AF]">{alt.equipment}</p>
       )}
 
-      <p className="mt-1 text-sm text-slate-600">{alt.reason}</p>
+      <p className="mt-1 text-sm text-slate-600 dark:text-[#C9C4D6]">{alt.reason}</p>
 
       {alt.notes && (
-        <p className="mt-1 text-xs text-slate-500">{alt.notes}</p>
+        <p className="mt-1 text-xs text-slate-500 dark:text-[#9E97AF]">{alt.notes}</p>
       )}
     </div>
   );
@@ -115,22 +115,22 @@ export function GeneratedWorkoutExerciseRow({
   }
 
   return (
-    <div className="border-t border-slate-200 px-5 py-4 first:border-t-0">
+    <div className="border-t border-slate-200 px-5 py-4 first:border-t-0 dark:border-[#3B344A]">
       <div className="flex items-start gap-4">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-sm font-extrabold text-purple-700">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-sm font-extrabold text-purple-700 dark:bg-purple-900/20 dark:text-purple-300">
           {String(exercise.order).padStart(2, "0")}
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h4 className="font-bold text-slate-900">
+              <h4 className="font-bold text-slate-900 dark:text-[#F8F7FB]">
                 {exercise.name}
               </h4>
 
               {exercise.equipment &&
                 exercise.equipment !== "none" && (
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-slate-500 dark:text-[#9E97AF]">
                     Equipment: {exercise.equipment}
                   </p>
                 )}
@@ -138,7 +138,7 @@ export function GeneratedWorkoutExerciseRow({
 
             <div className="flex shrink-0 items-center gap-3">
               {exerciseTarget && (
-                <div className="text-base font-extrabold text-slate-900">
+                <div className="text-base font-extrabold text-slate-900 dark:text-[#F8F7FB]">
                   {exerciseTarget}
                 </div>
               )}
@@ -154,21 +154,21 @@ export function GeneratedWorkoutExerciseRow({
 
           <div className="mt-3 flex flex-wrap gap-2">
             {exercise.restSec !== undefined && (
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-[#2A2436] dark:text-[#9E97AF]">
                 Rest: {exercise.restSec} sec
               </span>
             )}
 
             {exercise.durationSec !== undefined &&
               exercise.sets !== undefined && (
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-[#2A2436] dark:text-[#9E97AF]">
                   Duration: {exercise.durationSec} sec
                 </span>
               )}
           </div>
 
           {exercise.notes && (
-            <p className="mt-3 text-sm leading-6 text-slate-500">
+            <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-[#9E97AF]">
               {exercise.notes}
             </p>
           )}
@@ -179,7 +179,7 @@ export function GeneratedWorkoutExerciseRow({
                 type="button"
                 onClick={() => void handleAlternativesClick()}
                 disabled={isLoadingAlternatives}
-                className="rounded-xl border border-purple-200 bg-white px-3 py-1.5 text-xs font-semibold text-purple-700 transition hover:bg-purple-50 disabled:opacity-60"
+                className="rounded-xl border border-purple-200 bg-white px-3 py-1.5 text-xs font-semibold text-purple-700 transition hover:bg-purple-50 disabled:opacity-60 dark:border-purple-800/40 dark:bg-[#2A2436] dark:text-purple-300 dark:hover:bg-purple-900/20"
               >
                 {isLoadingAlternatives
                   ? "Loading..."
@@ -189,7 +189,7 @@ export function GeneratedWorkoutExerciseRow({
               </button>
 
               {alternativesError && (
-                <p className="mt-2 text-xs text-red-600">{alternativesError}</p>
+                <p className="mt-2 text-xs text-red-600 dark:text-red-400">{alternativesError}</p>
               )}
 
               {showAlternatives && alternatives && alternatives.length > 0 && (

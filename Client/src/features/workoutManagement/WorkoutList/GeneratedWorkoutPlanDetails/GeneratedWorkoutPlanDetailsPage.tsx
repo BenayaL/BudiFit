@@ -32,12 +32,11 @@ const CATEGORY_LABELS: Record<
   weight_loss: "Weight Loss",
 };
 
-// 1-2 → easy (green), 3 → medium (amber), 4 → hard (red), 5 → epic (blue)
 const DIFFICULTY_ACCENT = {
-  easy:   { color: "#10B981", bg: "#D1FAE5" },
-  medium: { color: "#F59E0B", bg: "#FEF3C7" },
-  hard:   { color: "#E11D48", bg: "#FEE2E2" },
-  epic:   { color: "#1D4ED8", bg: "#DBEAFE" },
+  easy:   { color: "#10B981", bg: "#D1FAE5", darkBg: "rgba(6,78,59,0.30)" },
+  medium: { color: "#F59E0B", bg: "#FEF3C7", darkBg: "rgba(120,53,15,0.30)" },
+  hard:   { color: "#E11D48", bg: "#FEE2E2", darkBg: "rgba(127,29,29,0.30)" },
+  epic:   { color: "#1D4ED8", bg: "#DBEAFE", darkBg: "rgba(30,58,95,0.30)" },
 } as const;
 
 function getDifficultyAccent(difficulty: number) {
@@ -47,13 +46,8 @@ function getDifficultyAccent(difficulty: number) {
   return DIFFICULTY_ACCENT.epic;
 }
 
-function getErrorMessage(
-  error: unknown
-): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
   return "Failed to load workout plan";
 }
 
@@ -64,40 +58,25 @@ export function GeneratedWorkoutPlanDetailsPage({
   const { token } = useAuth();
   const { getPreference, setPreference } = useExercisePreferences();
 
-  const [plan, setPlan] =
-    useState<GeneratedWorkoutPlan | null>(null);
-
-  const [isLoading, setIsLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState<string | null>(null);
+  const [plan, setPlan] = useState<GeneratedWorkoutPlan | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadPlan = useCallback(async () => {
     if (!token) {
-      setError(
-        "You must be logged in to view this workout plan."
-      );
+      setError("You must be logged in to view this workout plan.");
       setIsLoading(false);
       return;
     }
-
     if (!planId.trim()) {
       setError("Workout plan ID is missing.");
       setIsLoading(false);
       return;
     }
-
     setIsLoading(true);
     setError(null);
-
     try {
-      const loadedPlan =
-        await workoutService.getGeneratedWorkoutPlanById(
-          planId,
-          token
-        );
-
+      const loadedPlan = await workoutService.getGeneratedWorkoutPlanById(planId, token);
       setPlan(loadedPlan);
     } catch (error) {
       setError(getErrorMessage(error));
@@ -115,8 +94,7 @@ export function GeneratedWorkoutPlanDetailsPage({
       <div className="flex min-h-[50vh] items-center justify-center">
         <div className="text-center">
           <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
-
-          <p className="mt-4 text-sm font-medium text-slate-500">
+          <p className="mt-4 text-sm font-medium text-slate-500 dark:text-[#9E97AF]">
             Loading workout plan...
           </p>
         </div>
@@ -133,31 +111,29 @@ export function GeneratedWorkoutPlanDetailsPage({
         <button
           type="button"
           onClick={onBack}
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700"
+          className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6]"
         >
           ← Back to plans
         </button>
 
         <section className={`mt-6 rounded-3xl border p-6 ${
           isPendingReview
-            ? "border-orange-200 bg-orange-50"
-            : "border-red-200 bg-red-50"
+            ? "border-orange-200 bg-orange-50 dark:border-orange-800/40 dark:bg-orange-900/20"
+            : "border-red-200 bg-red-50 dark:border-red-800/40 dark:bg-red-900/20"
         }`}>
-          <h2 className={`font-extrabold ${isPendingReview ? "text-orange-800" : "text-red-800"}`}>
+          <h2 className={`font-extrabold ${isPendingReview ? "text-orange-800 dark:text-orange-400" : "text-red-800 dark:text-red-400"}`}>
             {isPendingReview ? "Plan awaiting coach review" : "Could not load workout plan"}
           </h2>
-
-          <p className={`mt-2 text-sm ${isPendingReview ? "text-orange-700" : "text-red-700"}`}>
+          <p className={`mt-2 text-sm ${isPendingReview ? "text-orange-700 dark:text-orange-300" : "text-red-700 dark:text-red-300"}`}>
             {isPendingReview
               ? "Your coach is reviewing this plan. You'll get a notification when it's approved."
               : (error ?? "Workout plan not found")}
           </p>
-
           {!isPendingReview && (
             <button
               type="button"
               onClick={() => void loadPlan()}
-              className="mt-4 text-sm font-bold text-red-700 underline"
+              className="mt-4 text-sm font-bold text-red-700 underline dark:text-red-400"
             >
               Try again
             </button>
@@ -168,18 +144,19 @@ export function GeneratedWorkoutPlanDetailsPage({
   }
 
   const accent = getDifficultyAccent(plan.difficulty);
+  const isDark = document.documentElement.classList.contains("dark");
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-8">
       <button
         type="button"
         onClick={onBack}
-        className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
+        className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:hover:bg-[#3B344A]"
       >
         ← Plans
       </button>
 
-      <section className="mt-6 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+      <section className="mt-6 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm dark:border-[#3B344A] dark:bg-[#211D2B]">
         <div
           className="h-3"
           style={{ backgroundColor: accent.color }}
@@ -190,7 +167,7 @@ export function GeneratedWorkoutPlanDetailsPage({
             <span
               className="rounded-full px-3 py-1 text-xs font-bold"
               style={{
-                backgroundColor: accent.bg,
+                backgroundColor: isDark ? accent.darkBg : accent.bg,
                 color: accent.color,
               }}
             >
@@ -201,40 +178,33 @@ export function GeneratedWorkoutPlanDetailsPage({
               className="flex gap-1"
               aria-label={`Difficulty ${plan.difficulty} out of 5`}
             >
-              {Array.from({ length: 5 }).map(
-                (_, index) => (
-                  <span
-                    key={index}
-                    className="h-1.5 w-5 rounded-full"
-                    style={{
-                      backgroundColor:
-                        index < plan.difficulty
-                          ? accent.color
-                          : "#E2E8F0",
-                    }}
-                  />
-                )
-              )}
+              {Array.from({ length: 5 }).map((_, index) => (
+                <span
+                  key={index}
+                  className="h-1.5 w-5 rounded-full"
+                  style={{
+                    backgroundColor: index < plan.difficulty ? accent.color : "#3B344A",
+                  }}
+                />
+              ))}
             </div>
           </div>
 
-          <h1 className="mt-5 text-4xl font-extrabold text-slate-900">
+          <h1 className="mt-5 text-4xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">
             {plan.title}
           </h1>
 
-          <p className="mt-3 max-w-3xl leading-7 text-slate-600">
+          <p className="mt-3 max-w-3xl leading-7 text-slate-600 dark:text-[#C9C4D6]">
             {plan.description}
           </p>
 
           {plan.requiresProfessionalReview && (
-            <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <p className="font-bold text-amber-800">
+            <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/40 dark:bg-amber-900/20">
+              <p className="font-bold text-amber-800 dark:text-amber-400">
                 Professional review required
               </p>
-
-              <p className="mt-1 text-sm text-amber-700">
-                Review this workout plan with a
-                qualified professional before starting.
+              <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                Review this workout plan with a qualified professional before starting.
               </p>
             </div>
           )}
@@ -246,15 +216,13 @@ export function GeneratedWorkoutPlanDetailsPage({
               { label: "Schedule",     value: `${plan.days.length} days` },
               {
                 label: "Equipment",
-                value: plan.equipment.length > 0
-                  ? plan.equipment.join(", ")
-                  : "No equipment",
+                value: plan.equipment.length > 0 ? plan.equipment.join(", ") : "No equipment",
               },
             ].map(({ label, value }) => (
               <div
                 key={label}
                 className="rounded-2xl p-4"
-                style={{ backgroundColor: accent.bg }}
+                style={{ backgroundColor: isDark ? accent.darkBg : accent.bg }}
               >
                 <p
                   className="text-xs font-bold uppercase tracking-wide"
@@ -262,8 +230,7 @@ export function GeneratedWorkoutPlanDetailsPage({
                 >
                   {label}
                 </p>
-
-                <p className="mt-2 text-lg font-extrabold text-slate-900">
+                <p className="mt-2 text-lg font-extrabold text-slate-900 dark:text-[#F8F7FB]">
                   {value}
                 </p>
               </div>
@@ -274,28 +241,20 @@ export function GeneratedWorkoutPlanDetailsPage({
 
       <section className="mt-8">
         <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-          <h2 className="text-2xl font-extrabold text-slate-900">
+          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">
             Weekly schedule
           </h2>
-
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-[#9E97AF]">
             Tap a workout day to see exercises
           </p>
         </div>
 
         <div className="space-y-3">
           {[...plan.days]
-            .sort(
-              (firstDay, secondDay) =>
-                firstDay.dayNumber -
-                secondDay.dayNumber
-            )
+            .sort((a, b) => a.dayNumber - b.dayNumber)
             .map((day) => (
               <GeneratedWorkoutDayRow
-                key={
-                  day.id ??
-                  `day-${day.dayNumber}`
-                }
+                key={day.id ?? `day-${day.dayNumber}`}
                 day={day}
                 planId={planId}
                 managedByCoach={plan.managedByCoach}

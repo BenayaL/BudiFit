@@ -25,8 +25,6 @@ function formatDailyDate(dateStr: string): string {
   });
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
 interface WorkoutHistoryPageProps {
   onBack: () => void;
   onSelectPlan: (planId: string) => void;
@@ -111,19 +109,18 @@ function WorkoutHistoryPage({ onBack, onSelectPlan }: WorkoutHistoryPageProps) {
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-8">
-      {/* ── Header ── */}
       <section className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <button
             type="button"
             onClick={onBack}
-            className="mb-4 flex items-center gap-1.5 text-sm font-bold text-slate-500 transition hover:text-purple-600"
+            className="mb-4 flex items-center gap-1.5 text-sm font-bold text-slate-500 transition hover:text-purple-600 dark:text-[#9E97AF] dark:hover:text-purple-400"
           >
             ← Back to workouts
           </button>
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-purple-600">History</p>
-          <h1 className="mt-2 text-4xl font-extrabold text-slate-900">Workout history</h1>
-          <p className="mt-3 max-w-2xl text-slate-500">
+          <h1 className="mt-2 text-4xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">Workout history</h1>
+          <p className="mt-3 max-w-2xl text-slate-500 dark:text-[#9E97AF]">
             Your plan history and daily workout completions.
           </p>
         </div>
@@ -144,15 +141,14 @@ function WorkoutHistoryPage({ onBack, onSelectPlan }: WorkoutHistoryPageProps) {
         </button>
       </section>
 
-      {/* ── Plan History ── */}
       <section className="mb-10">
-        <h2 className="mb-4 text-xl font-extrabold text-slate-900">Plan history</h2>
+        <h2 className="mb-4 text-xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">Plan history</h2>
 
         {plansLoading ? (
-          <div className="flex items-center justify-center rounded-3xl border border-slate-200 bg-white py-12 shadow-sm">
+          <div className="flex items-center justify-center rounded-3xl border border-slate-200 bg-white py-12 shadow-sm dark:border-[#3B344A] dark:bg-[#211D2B]">
             <div className="flex flex-col items-center gap-4">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
-              <p className="text-sm font-medium text-slate-500">Loading plan history…</p>
+              <p className="text-sm font-medium text-slate-500 dark:text-[#9E97AF]">Loading plan history…</p>
             </div>
           </div>
         ) : plansError ? (
@@ -160,8 +156,8 @@ function WorkoutHistoryPage({ onBack, onSelectPlan }: WorkoutHistoryPageProps) {
             <p className="font-semibold text-red-700">{plansError}</p>
           </div>
         ) : planHistory.length === 0 ? (
-          <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-            <p className="text-slate-400">
+          <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm dark:border-[#3B344A] dark:bg-[#211D2B]">
+            <p className="text-slate-400 dark:text-[#9E97AF]">
               No workout history yet. Completed, removed, and replaced plans will appear here.
             </p>
           </div>
@@ -180,9 +176,8 @@ function WorkoutHistoryPage({ onBack, onSelectPlan }: WorkoutHistoryPageProps) {
         )}
       </section>
 
-      {/* ── Daily Workout History ── */}
       <section>
-        <h2 className="mb-4 text-xl font-extrabold text-slate-900">Daily workout history</h2>
+        <h2 className="mb-4 text-xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">Daily workout history</h2>
 
         {!dailyLoading && dailyEntries.length > 0 && (
           <div className="mb-6 grid grid-cols-3 gap-4">
@@ -191,28 +186,28 @@ function WorkoutHistoryPage({ onBack, onSelectPlan }: WorkoutHistoryPageProps) {
               { label: "Total min", value: totalMinutes },
               { label: "Avg min", value: avgMinutes },
             ].map(({ label, value }) => (
-              <div key={label} className="rounded-3xl border border-slate-200 bg-white p-5 text-center shadow-sm">
-                <p className="text-3xl font-extrabold text-slate-900">{value}</p>
-                <p className="mt-1 text-xs font-bold text-slate-400">{label}</p>
+              <div key={label} className="rounded-3xl border border-slate-200 bg-white p-5 text-center shadow-sm dark:border-[#3B344A] dark:bg-[#211D2B]">
+                <p className="text-3xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">{value}</p>
+                <p className="mt-1 text-xs font-bold text-slate-400 dark:text-[#9E97AF]">{label}</p>
               </div>
             ))}
           </div>
         )}
 
-        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden dark:border-[#3B344A] dark:bg-[#211D2B]">
           {dailyLoading ? (
-            <p className="p-8 text-center text-slate-400">Loading daily history…</p>
+            <p className="p-8 text-center text-slate-400 dark:text-[#9E97AF]">Loading daily history…</p>
           ) : dailyError ? (
             <p className="p-8 text-center text-red-500">{dailyError}</p>
           ) : dailyEntries.length === 0 ? (
-            <p className="p-8 text-center text-slate-400">
+            <p className="p-8 text-center text-slate-400 dark:text-[#9E97AF]">
               No workout history yet. Completed, removed, and replaced plans will appear here.
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 text-left text-xs font-bold uppercase tracking-wide text-slate-400">
+                  <tr className="border-b border-slate-100 text-left text-xs font-bold uppercase tracking-wide text-slate-400 dark:border-[#3B344A] dark:text-[#9E97AF]">
                     <th className="px-6 py-4">Date</th>
                     <th className="px-6 py-4">Plan</th>
                     <th className="px-6 py-4">Workout</th>
@@ -224,23 +219,23 @@ function WorkoutHistoryPage({ onBack, onSelectPlan }: WorkoutHistoryPageProps) {
                   {dailyEntries.map((entry) => (
                     <tr
                       key={`${entry.planId}:${entry.date}`}
-                      className="border-b border-slate-50 transition hover:bg-slate-50 last:border-0"
+                      className="border-b border-slate-50 transition hover:bg-slate-50 last:border-0 dark:border-[#3B344A] dark:hover:bg-[#2A2436]"
                     >
-                      <td className="px-6 py-4 text-slate-500">{formatDailyDate(entry.date)}</td>
-                      <td className="px-6 py-4 text-slate-600">{entry.planTitle}</td>
-                      <td className="px-6 py-4 font-semibold text-slate-900">{entry.dayTitle}</td>
+                      <td className="px-6 py-4 text-slate-500 dark:text-[#9E97AF]">{formatDailyDate(entry.date)}</td>
+                      <td className="px-6 py-4 text-slate-600 dark:text-[#C9C4D6]">{entry.planTitle}</td>
+                      <td className="px-6 py-4 font-semibold text-slate-900 dark:text-[#F8F7FB]">{entry.dayTitle}</td>
                       <td className="px-6 py-4">
                         <span
                           className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
                             entry.status === "completed"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-600"
+                              ? "bg-green-100 text-green-700 dark:bg-emerald-900/20 dark:text-emerald-400"
+                              : "bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400"
                           }`}
                         >
                           {entry.status === "completed" ? "Done" : "Missed"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right font-bold text-slate-700">
+                      <td className="px-6 py-4 text-right font-bold text-slate-700 dark:text-[#C9C4D6]">
                         {entry.durationMinutes > 0 ? `${entry.durationMinutes} min` : "—"}
                       </td>
                     </tr>

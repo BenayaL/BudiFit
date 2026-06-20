@@ -44,16 +44,16 @@ function TraineeDetailsPage({
     return () => { cancelled = true; };
   }, [token, selectedTraineeId]);
 
-  if (isLoading) return <div className="p-8 text-center text-slate-500">Loading trainee…</div>;
+  if (isLoading) return <div className="p-8 text-center text-slate-500 dark:text-[#9E97AF]">Loading trainee…</div>;
 
   if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
 
   if (!trainee) {
     return (
       <main className="mx-auto max-w-4xl px-6 py-10">
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-2xl font-extrabold text-slate-900">No trainee selected</h1>
-          <p className="mt-3 text-slate-500">Please choose a trainee from the trainees page.</p>
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-[#3B344A] dark:bg-[#211D2B]">
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">No trainee selected</h1>
+          <p className="mt-3 text-slate-500 dark:text-[#9E97AF]">Please choose a trainee from the trainees page.</p>
           <button
             type="button"
             onClick={() => onChangePage("coach-trainees")}
@@ -73,15 +73,15 @@ function TraineeDetailsPage({
           <button
             type="button"
             onClick={() => onChangePage("coach-trainees")}
-            className="mb-4 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            className="mb-4 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:hover:bg-[#3B344A]"
           >
             ← Back to trainees
           </button>
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-purple-600">Trainee profile</p>
-          <h1 className="mt-2 text-4xl font-extrabold text-slate-900">
+          <h1 className="mt-2 text-4xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">
             {trainee.firstName} {trainee.lastName}
           </h1>
-          <p className="mt-3 max-w-2xl text-slate-500">
+          <p className="mt-3 max-w-2xl text-slate-500 dark:text-[#9E97AF]">
             Monitor progress, identify consistency issues, and review workout plans.
           </p>
         </div>
@@ -103,16 +103,15 @@ function TraineeDetailsPage({
         <div className="space-y-6">
           <TraineePlansList plans={plans} onReviewPlan={onReviewPlan} />
 
-          {/* ── Pending change requests ── */}
           {(requestsLoading || requestsError !== null || changeRequests.length > 0) && (
-            <div className="rounded-3xl border border-orange-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-extrabold text-slate-900">Change requests</h2>
-              <p className="mt-1 text-sm text-slate-500">
+            <div className="rounded-3xl border border-orange-200 bg-white p-6 shadow-sm dark:border-orange-800/40 dark:bg-[#211D2B]">
+              <h2 className="text-lg font-extrabold text-slate-900 dark:text-[#F8F7FB]">Change requests</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-[#9E97AF]">
                 Workout-plan changes requested by this trainee.
               </p>
 
               {requestsLoading && (
-                <p className="mt-4 text-sm text-slate-400">Loading…</p>
+                <p className="mt-4 text-sm text-slate-400 dark:text-[#9E97AF]">Loading…</p>
               )}
 
               {requestsError && (
@@ -122,7 +121,7 @@ function TraineeDetailsPage({
               )}
 
               {!requestsLoading && !requestsError && changeRequests.length === 0 && (
-                <p className="mt-4 text-sm text-slate-400">No change requests from this trainee.</p>
+                <p className="mt-4 text-sm text-slate-400 dark:text-[#9E97AF]">No change requests from this trainee.</p>
               )}
 
               {!requestsLoading && !requestsError && changeRequests.length > 0 && (
@@ -130,14 +129,14 @@ function TraineeDetailsPage({
                   {changeRequests.map((req) => (
                     <article
                       key={req.id}
-                      className="rounded-2xl border border-orange-100 bg-orange-50 p-4"
+                      className="rounded-2xl border border-orange-100 bg-orange-50 p-4 dark:border-orange-800/30 dark:bg-orange-900/20"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-slate-900 truncate">
+                          <p className="text-sm font-bold text-slate-900 truncate dark:text-[#F8F7FB]">
                             {req.planTitle}
                           </p>
-                          <p className="mt-0.5 text-xs text-slate-400">
+                          <p className="mt-0.5 text-xs text-slate-400 dark:text-[#9E97AF]">
                             {new Date(req.createdAt).toLocaleDateString("en-GB", {
                               day: "2-digit",
                               month: "short",
@@ -145,11 +144,11 @@ function TraineeDetailsPage({
                             })}
                           </p>
                         </div>
-                        <span className="shrink-0 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-bold text-orange-700">
+                        <span className="shrink-0 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-bold text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
                           {req.status}
                         </span>
                       </div>
-                      <blockquote className="mt-3 rounded-xl border-l-4 border-orange-300 bg-white pl-3 pr-2 py-2 text-sm italic text-slate-700">
+                      <blockquote className="mt-3 rounded-xl border-l-4 border-orange-300 bg-white pl-3 pr-2 py-2 text-sm italic text-slate-700 dark:border-orange-700 dark:bg-[#2A2436] dark:text-[#C9C4D6]">
                         "{req.message}"
                       </blockquote>
                     </article>
@@ -159,9 +158,9 @@ function TraineeDetailsPage({
             </div>
           )}
 
-          <div className="rounded-3xl border border-purple-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-extrabold text-slate-900">Generate plan with AI</h2>
-            <p className="mt-2 text-sm text-slate-500">
+          <div className="rounded-3xl border border-purple-200 bg-white p-6 shadow-sm dark:border-purple-800/40 dark:bg-[#211D2B]">
+            <h2 className="text-lg font-extrabold text-slate-900 dark:text-[#F8F7FB]">Generate plan with AI</h2>
+            <p className="mt-2 text-sm text-slate-500 dark:text-[#9E97AF]">
               Create plans for your trainees from the Coach Plans page, where you can select any
               connected trainee and configure AI generation options.
             </p>

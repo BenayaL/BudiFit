@@ -90,7 +90,7 @@ function NotificationPage({ onChangePage, onReviewPlan, onViewTraineeProfile }: 
       <section className="mb-6 flex items-end justify-between">
         <div>
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-purple-600">Inbox</p>
-          <h1 className="mt-2 flex items-center gap-3 text-4xl font-extrabold text-slate-900">
+          <h1 className="mt-2 flex items-center gap-3 text-4xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">
             Notifications
             {unreadCount > 0 && (
               <span className="rounded-full bg-purple-600 px-2.5 py-0.5 text-base font-bold text-white">
@@ -103,7 +103,7 @@ function NotificationPage({ onChangePage, onReviewPlan, onViewTraineeProfile }: 
           <button
             type="button"
             onClick={() => void markAllRead()}
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-[#3B344A] dark:bg-[#211D2B] dark:text-[#C9C4D6] dark:hover:bg-[#2A2436]"
           >
             Mark all as read
           </button>
@@ -120,7 +120,7 @@ function NotificationPage({ onChangePage, onReviewPlan, onViewTraineeProfile }: 
             className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
               filter === f
                 ? "bg-purple-600 text-white shadow-sm"
-                : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-[#3B344A] dark:bg-[#211D2B] dark:text-[#C9C4D6] dark:hover:bg-[#2A2436]"
             }`}
           >
             {f === "all" ? "All" : f === "unread" ? "Unread" : "Action needed"}
@@ -135,10 +135,10 @@ function NotificationPage({ onChangePage, onReviewPlan, onViewTraineeProfile }: 
       )}
 
       {filtered.length === 0 ? (
-        <section className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+        <section className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-[#3B344A] dark:bg-[#211D2B]">
           <p className="text-4xl">🔔</p>
-          <h2 className="mt-4 text-xl font-extrabold text-slate-900">{emptyMessage.heading}</h2>
-          <p className="mt-2 text-slate-500">{emptyMessage.sub}</p>
+          <h2 className="mt-4 text-xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">{emptyMessage.heading}</h2>
+          <p className="mt-2 text-slate-500 dark:text-[#9E97AF]">{emptyMessage.sub}</p>
         </section>
       ) : (
         <div className="space-y-3">
@@ -156,8 +156,10 @@ function NotificationPage({ onChangePage, onReviewPlan, onViewTraineeProfile }: 
                     : undefined
                 }
                 className={`rounded-3xl border p-5 shadow-sm transition ${
-                  n.read ? "border-slate-200 bg-white" : "border-purple-200 bg-purple-50"
-                } ${hasAction ? "cursor-pointer hover:border-purple-300 hover:shadow-md" : ""}`}
+                  n.read
+                    ? "border-slate-200 bg-white dark:border-[#3B344A] dark:bg-[#211D2B]"
+                    : "border-purple-200 bg-purple-50 dark:border-purple-800/50 dark:bg-purple-900/20"
+                } ${hasAction ? "cursor-pointer hover:border-purple-300 hover:shadow-md dark:hover:border-purple-700" : ""}`}
               >
                 <div className="flex items-start gap-4">
                   <NotificationIcon category={n.category} />
@@ -166,13 +168,13 @@ function NotificationPage({ onChangePage, onReviewPlan, onViewTraineeProfile }: 
                       {!n.read && (
                         <span className="h-2 w-2 shrink-0 rounded-full bg-purple-600" aria-hidden="true" />
                       )}
-                      <p className={`text-sm font-bold ${n.read ? "text-slate-700" : "text-slate-900"}`}>
+                      <p className={`text-sm font-bold ${n.read ? "text-slate-700 dark:text-[#C9C4D6]" : "text-slate-900 dark:text-[#F8F7FB]"}`}>
                         {n.title ?? TYPE_LABELS[n.type] ?? n.type}
                       </p>
                     </div>
-                    <p className="mt-1 text-sm text-slate-500">{n.message}</p>
+                    <p className="mt-1 text-sm text-slate-500 dark:text-[#9E97AF]">{n.message}</p>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <p className="text-xs text-slate-400">{timeAgo(n.createdAt)}</p>
+                      <p className="text-xs text-slate-400 dark:text-[#9E97AF]">{timeAgo(n.createdAt)}</p>
                       {hasAction && (
                         <button
                           type="button"
@@ -186,7 +188,7 @@ function NotificationPage({ onChangePage, onReviewPlan, onViewTraineeProfile }: 
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); void markRead(n.id); }}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50"
+                          className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:hover:bg-[#3B344A]"
                         >
                           Mark read
                         </button>

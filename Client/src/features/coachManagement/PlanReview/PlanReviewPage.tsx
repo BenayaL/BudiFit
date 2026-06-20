@@ -308,14 +308,14 @@ function PlanReviewPage({
 
   // ─── Early returns ─────────────────────────────────────────────────────────
   if (isLoading) {
-    return <div className="p-8 text-center text-slate-500">Loading plan…</div>;
+    return <div className="p-8 text-center text-slate-500 dark:text-[#9E97AF]">Loading plan…</div>;
   }
 
   if (!plan || !editablePlan) {
     return (
       <main className="mx-auto max-w-4xl px-6 py-10">
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-2xl font-extrabold text-slate-900">
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-[#3B344A] dark:bg-[#211D2B]">
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">
             No plan selected
           </h1>
           {error && <p className="mt-2 text-red-600">{error}</p>}
@@ -357,9 +357,9 @@ function PlanReviewPage({
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-purple-600">
               {isPending ? "Plan review" : "Plan editor"}
             </p>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-slate-500 dark:text-[#9E97AF]">
               Trainee:{" "}
-              <span className="font-bold text-slate-700">
+              <span className="font-bold text-slate-700 dark:text-[#C9C4D6]">
                 {plan.traineeName}
               </span>
               {" · "}v{plan.version}
@@ -378,7 +378,7 @@ function PlanReviewPage({
           <button
             type="button"
             onClick={() => onChangePage("coach-plans")}
-            className="shrink-0 self-start rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            className="shrink-0 self-start rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:hover:bg-[#3B344A]"
           >
             ← Back to plans
           </button>
@@ -412,7 +412,7 @@ function PlanReviewPage({
         {/* ── Weekly schedule ──────────────────────────────────────────────── */}
         <section>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-2xl font-extrabold text-slate-900">
+            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">
               Weekly schedule
             </h2>
             {activeErrors.days && (
@@ -461,7 +461,7 @@ function PlanReviewPage({
             <button
               type="button"
               onClick={handleAddDay}
-              className="mt-4 w-full rounded-3xl border border-dashed border-purple-300 bg-white py-3 text-sm font-bold text-purple-700 transition hover:bg-purple-50"
+              className="mt-4 w-full rounded-3xl border border-dashed border-purple-300 bg-white py-3 text-sm font-bold text-purple-700 transition hover:bg-purple-50 dark:border-purple-700 dark:bg-[#211D2B] dark:text-purple-300 dark:hover:bg-purple-900/20"
             >
               + Add day
             </button>
@@ -469,7 +469,7 @@ function PlanReviewPage({
         </section>
 
         {/* ── Action bar ───────────────────────────────────────────────────── */}
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-[#3B344A] dark:bg-[#211D2B]">
           <div className="flex flex-wrap items-center gap-3">
             {isDirty && (
               <>
@@ -489,7 +489,7 @@ function PlanReviewPage({
                   type="button"
                   onClick={handleDiscard}
                   disabled={isSaving}
-                  className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                  className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:hover:bg-[#3B344A]"
                 >
                   Discard changes
                 </button>
@@ -518,7 +518,7 @@ function PlanReviewPage({
                 </button>
               ) : (
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-red-700">
+                  <span className="text-sm font-medium text-red-700 dark:text-red-400">
                     Are you sure?
                   </span>
                   <button
@@ -532,7 +532,7 @@ function PlanReviewPage({
                   <button
                     type="button"
                     onClick={() => setConfirmDelete(false)}
-                    className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+                    className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:border-[#3B344A] dark:text-[#C9C4D6] dark:hover:bg-[#2A2436]"
                   >
                     Cancel
                   </button>

@@ -28,7 +28,13 @@ const app = express();
 
 const PORT = Number(process.env.PORT) || 5000;
 const MONGO_URI = process.env.MONGO_URI;
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+
+// Always allow localhost for local development.
+// CLIENT_URL is the deployed Vercel frontend URL set via environment variable.
+const allowedOrigins = [
+  "http://localhost:5173",
+  ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
+];
 
 /*
  * Security middleware.
@@ -73,7 +79,7 @@ if (IS_DEV) {
  */
 app.use(
   cors({
-    origin: CLIENT_URL,
+    origin: allowedOrigins,
   })
 );
 
@@ -122,6 +128,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
  */
 app.get("/", (_req: Request, res: Response) => {
   res.status(200).send("BudiFit TypeScript server is running");
+});
+
+/*
+ * Health check — used by Render to verify the service is alive.
+ */
+app.get("/api/health", (_req: Request, res: Response) => {
+  res.status(200).json({ status: "ok" });
 });
 
 /*
@@ -196,9 +209,9 @@ async function startServer(): Promise<void> {
     console.log("Connected database name:", mongoose.connection.name);
     console.log("Connected database host:", mongoose.connection.host);
 
-    app.listen(PORT, "127.0.0.1", () => {
-      console.log(`Server running on http://127.0.0.1:${PORT}`);
-      console.log(`Allowed client URL: ${CLIENT_URL}`);
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log(`Allowed origins: ${allowedOrigins.join(", ")}`);
     });
   } catch (error) {
     const message =

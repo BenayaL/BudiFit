@@ -11,6 +11,8 @@ interface UseNotificationsResult {
   error: string | null;
   markRead: (id: string) => Promise<void>;
   markAllRead: () => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
+  clearRead: () => Promise<void>;
   reload: () => Promise<void>;
 }
 
@@ -74,5 +76,32 @@ export function useNotifications(): UseNotificationsResult {
     }
   }, [token]);
 
-  return { notifications, unreadCount, isLoading, error, markRead, markAllRead, reload };
+  const deleteNotification = useCallback(
+    async (id: string) => {
+      if (!token) return;
+      try {
+        await notificationService.deleteNotification(id, token);
+        setNotifications((prev) => {
+          const next = prev.filter((n) => n.id !== id);
+          setUnreadCount(next.filter((n) => !n.read).length);
+          return next;
+        });
+      } catch {
+        // silent
+      }
+    },
+    [token]
+  );
+
+  const clearRead = useCallback(async () => {
+    if (!token) return;
+    try {
+      await notificationService.clearReadNotifications(token);
+      setNotifications((prev) => prev.filter((n) => !n.read));
+    } catch {
+      // silent
+    }
+  }, [token]);
+
+  return { notifications, unreadCount, isLoading, error, markRead, markAllRead, deleteNotification, clearRead, reload };
 }

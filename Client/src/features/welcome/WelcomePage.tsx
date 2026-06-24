@@ -1,6 +1,8 @@
-﻿import BudiCharacter from "../../common/BudiLogo/BudiCharacter";
+﻿import { Moon, Sun } from "lucide-react";
+import BudiCharacter from "../../common/BudiLogo/BudiCharacter";
 import BudiLogo from "../../common/BudiLogo/BudiLogo";
 import AppButton from "../../common/AppButton/AppButton";
+import { useTheme } from "../../app/useTheme";
 
 interface WelcomePageProps {
   onRegister: () => void;
@@ -8,6 +10,8 @@ interface WelcomePageProps {
 }
 
 function WelcomePage({ onRegister, onLogin }: WelcomePageProps) {
+  const { theme, setTheme } = useTheme();
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#fbfaf7] text-slate-950 dark:bg-[#141218] dark:text-[#F8F7FB]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_25%,rgba(124,58,237,0.18),transparent_35%),radial-gradient(circle_at_100%_0%,rgba(192,132,252,0.16),transparent_30%),radial-gradient(circle_at_0%_100%,rgba(167,139,250,0.12),transparent_35%)]" />
@@ -21,6 +25,21 @@ function WelcomePage({ onRegister, onLogin }: WelcomePageProps) {
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
               <span><span className="tabular-nums">120,847</span> moving right now</span>
             </div>
+            <button
+              type="button"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-[#3B344A] dark:bg-[#211D2B] dark:text-[#C9C4D6] dark:hover:bg-[#2A2436]"
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark" ? (
+                <Sun className="h-4 w-4 text-amber-400" />
+              ) : (
+                <Moon className="h-4 w-4 text-purple-500" />
+              )}
+              <span className="hidden sm:inline">
+                {theme === "dark" ? "Light mode" : "Dark mode"}
+              </span>
+            </button>
             <AppButton onClick={onLogin} variant="ghost">Log in →</AppButton>
           </div>
         </header>

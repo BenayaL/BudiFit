@@ -109,6 +109,65 @@ notificationRouter.patch(
   }
 );
 
+// ─── DELETE /api/notifications/read ──────────────────────────────────────────
+// Must be defined before /:id to prevent Express matching "read" as a param.
+
+notificationRouter.delete(
+  "/read",
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.authUser) {
+        res.status(401).json({ message: "Authentication required" });
+        return;
+      }
+
+      await Notification.deleteMany({
+        recipientId: req.authUser.userId,
+        read: true,
+      });
+
+      res.status(200).json({ message: "Read notifications deleted" });
+    } catch (error) {
+      console.error("Delete read notifications error:", error);
+      res.status(500).json({ message: "Failed to delete read notifications" });
+    }
+  }
+);
+
+// ─── DELETE /api/notifications/:id ───────────────────────────────────────────
+
+notificationRouter.delete(
+  "/:id",
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.authUser) {
+        res.status(401).json({ message: "Authentication required" });
+        return;
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(req.params.id as string)) {
+        res.status(400).json({ message: "Invalid notification ID" });
+        return;
+      }
+
+      const deleted = await Notification.findOneAndDelete({
+        _id: req.params.id as string,
+        recipientId: req.authUser.userId,
+      });
+
+      if (!deleted) {
+        res.status(404).json({ message: "Notification not found" });
+        return;
+      }
+
+      res.status(200).json({ message: "Notification deleted" });
+    } catch (error) {
+      console.error("Delete notification error:", error);
+      res.status(500).json({ message: "Failed to delete notification" });
+    }
+  }
+);
+
 // ─── PATCH /api/notifications/read-all ───────────────────────────────────────
 
 notificationRouter.patch(

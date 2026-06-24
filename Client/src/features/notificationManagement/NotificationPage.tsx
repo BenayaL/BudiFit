@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell } from "lucide-react";
+import { Bell, Trash2 } from "lucide-react";
 import { useNotifications } from "./useNotifications";
 import type { Notification } from "./notification.models";
 import type { Page } from "../../app/app.types";
@@ -49,7 +49,7 @@ function timeAgo(dateStr: string): string {
 }
 
 function NotificationPage({ onChangePage, onReviewPlan, onViewTraineeProfile }: NotificationPageProps) {
-  const { notifications, isLoading, error, markRead, markAllRead } = useNotifications();
+  const { notifications, isLoading, error, markRead, markAllRead, deleteNotification, clearRead } = useNotifications();
   const [filter, setFilter] = useState<NotificationFilter>("all");
 
   const filtered = notifications.filter((n) => {
@@ -99,15 +99,27 @@ function NotificationPage({ onChangePage, onReviewPlan, onViewTraineeProfile }: 
             )}
           </h1>
         </div>
-        {unreadCount > 0 && (
-          <button
-            type="button"
-            onClick={() => void markAllRead()}
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-[#3B344A] dark:bg-[#211D2B] dark:text-[#C9C4D6] dark:hover:bg-[#2A2436]"
-          >
-            Mark all as read
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {notifications.some((n) => n.read) && (
+            <button
+              type="button"
+              onClick={() => void clearRead()}
+              className="flex items-center gap-1.5 rounded-2xl border border-red-200 bg-white px-4 py-2 text-sm font-bold text-red-600 shadow-sm transition hover:bg-red-50 dark:border-red-900/40 dark:bg-[#211D2B] dark:text-red-400 dark:hover:bg-red-900/20"
+            >
+              <Trash2 className="h-4 w-4" />
+              Clear read
+            </button>
+          )}
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              onClick={() => void markAllRead()}
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-[#3B344A] dark:bg-[#211D2B] dark:text-[#C9C4D6] dark:hover:bg-[#2A2436]"
+            >
+              Mark all as read
+            </button>
+          )}
+        </div>
       </section>
 
       {/* Filter tabs */}
@@ -193,6 +205,14 @@ function NotificationPage({ onChangePage, onReviewPlan, onViewTraineeProfile }: 
                           Mark read
                         </button>
                       )}
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); void deleteNotification(n.id); }}
+                        className="ml-auto rounded-xl border border-slate-200 bg-white p-1.5 text-slate-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#9E97AF] dark:hover:border-red-900/40 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                        aria-label="Delete notification"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </div>
                 </div>

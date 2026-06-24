@@ -38,4 +38,10 @@ export const notificationService = {
       {},
       token
     ),
+
+  deleteNotification: (id: string, token: string): Promise<void> =>
+    httpClient.delete<void>(ENDPOINTS.notifications.deleteOne(id), token),
+
+  clearReadNotifications: (token: string): Promise<void> =>
+    httpClient.delete<void>(ENDPOINTS.notifications.deleteRead, token),
 };

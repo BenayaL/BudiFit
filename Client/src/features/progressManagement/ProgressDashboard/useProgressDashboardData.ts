@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../../app/AuthContext";
 import { useDailyWorkout } from "../../workoutManagement/DailyWorkout/useDailyWorkout";
 import { progressService } from "../progressService";
@@ -46,6 +46,7 @@ export interface ProgressDashboardData {
   isSummaryLoading: boolean;
   isCalendarLoading: boolean;
   summaryError: string | null;
+  reload: () => Promise<void>;
 }
 
 export function useProgressDashboardData(): ProgressDashboardData {
@@ -56,12 +57,8 @@ export function useProgressDashboardData(): ProgressDashboardData {
   const [isCalendarLoading, setIsCalendarLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!token) {
-      setIsSummaryLoading(false);
-      setIsCalendarLoading(false);
-      return;
-    }
+  const reload = useCallback(async () => {
+    if (!token) return;
 
     setIsSummaryLoading(true);
     progressService
@@ -80,12 +77,22 @@ export function useProgressDashboardData(): ProgressDashboardData {
       .finally(() => setIsCalendarLoading(false));
   }, [token]);
 
+  useEffect(() => {
+    if (!token) {
+      setIsSummaryLoading(false);
+      setIsCalendarLoading(false);
+      return;
+    }
+    void reload();
+  }, [token, reload]);
+
   return {
     summary,
     weekEntries: getCurrentWeekEntries(allEntries),
     isSummaryLoading,
     isCalendarLoading,
     summaryError,
+    reload,
   };
 }
 

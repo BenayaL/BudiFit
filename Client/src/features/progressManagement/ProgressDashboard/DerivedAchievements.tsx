@@ -20,7 +20,7 @@ function derivedAchievements(
 ): DerivedAchievement[] {
   const total = summary?.totalWorkouts ?? 0;
   const minutes = summary?.totalMinutes ?? 0;
-  const currentStreak = summary?.currentStreak ?? streak;
+  const currentStreak = Math.max(summary?.currentStreak ?? 0, streak ?? 0);
 
   return [
     {

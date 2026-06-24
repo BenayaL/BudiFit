@@ -126,9 +126,16 @@ function TodayStatusPill({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 function ProgressDashboardPage({ onChangePage }: Props) {
-  const { summary, weekEntries, isSummaryLoading, isCalendarLoading, summaryError } =
+  const { summary, weekEntries, isSummaryLoading, isCalendarLoading, summaryError, reload } =
     useProgressDashboardData();
   const { dashboard, isCompleting, completeToday } = useDailyWorkout();
+
+  // After a successful completion, refresh progress stats so achievements unlock immediately.
+  async function handleComplete(): Promise<boolean> {
+    const success = await completeToday();
+    if (success) void reload();
+    return success;
+  }
 
   const streak = dashboard?.streak ?? summary?.currentStreak ?? 0;
   const isCompleted = !!dashboard?.today?.completion;
@@ -191,7 +198,7 @@ function ProgressDashboardPage({ onChangePage }: Props) {
           <TodayChallengeHero
             dashboard={dashboard}
             isCompleting={isCompleting}
-            onComplete={completeToday}
+            onComplete={handleComplete}
             onChangePage={onChangePage}
           />
         </div>

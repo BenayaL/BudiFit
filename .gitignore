@@ -1,6 +1,7 @@
 # dependencies
 node_modules/
 Server/node_modules/
+Server/scripts/
 
 # build outputs
 dist/

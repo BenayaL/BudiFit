@@ -52,6 +52,9 @@ export function NotificationSettings() {
 
   return (
     <div className="space-y-3">
+      <p className="text-xs text-slate-400 dark:text-[#9E97AF]">
+        Choose which notification popups you want to see. Notifications may still appear in your inbox.
+      </p>
       <Toggle
         label="Daily workout reminder"
         checked={n.dailyWorkoutReminder}
@@ -63,7 +66,7 @@ export function NotificationSettings() {
         onChange={() => toggleNotification("coachMessages")}
       />
       <Toggle
-        label="Challenge updates"
+        label="Workout updates"
         checked={n.challengeUpdates}
         onChange={() => toggleNotification("challengeUpdates")}
       />
@@ -79,6 +82,9 @@ export function NotificationSettings() {
           onChange={(e) => setReminderTime(e.target.value)}
           className="mt-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/15 dark:border-[#3B344A] dark:bg-[#211D2B] dark:text-[#F8F7FB]"
         />
+        <p className="mt-2 text-xs text-slate-400 dark:text-[#9E97AF]">
+          Controls when the reminder popup appears while the app is open.
+        </p>
       </div>
 
       {error && (

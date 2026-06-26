@@ -18,14 +18,17 @@ export async function createNotification(data: {
   category?: NotificationCategory;
   priority?: NotificationPriority;
   dedupeKey?: string;
-}): Promise<void> {
+}): Promise<boolean> {
   try {
     if (data.dedupeKey) {
-      const exists = await Notification.exists({ dedupeKey: data.dedupeKey, read: false });
-      if (exists) return;
+      // Check regardless of read state so a read reminder is not recreated the same day.
+      const exists = await Notification.exists({ dedupeKey: data.dedupeKey });
+      if (exists) return false;
     }
     await Notification.create(data);
+    return true;
   } catch (error) {
     console.error("[NOTIFICATION] Failed to create notification:", error);
+    return false;
   }
 }

@@ -1,16 +1,61 @@
-import express, { Response } from "express";
+import express, { Request, Response } from "express";
 import mongoose from "mongoose";
 import Notification from "../models/notification.model";
 import {
   authenticateToken,
   type AuthenticatedRequest,
 } from "../middleware/auth.middleware";
+import {
+  createDailyWorkoutReminderForUser,
+  createDailyWorkoutRemindersForAllUsers,
+} from "../services/dailyReminder.service";
 
 const notificationRouter = express.Router();
 
+// ─── POST /api/notifications/reminders/daily (no JWT — cron secret) ───────────
+// Registered BEFORE notificationRouter.use(authenticateToken) so it does not
+// require a Bearer token. Protected by CRON_SECRET instead.
+
+notificationRouter.post(
+  "/reminders/daily",
+  async (req: Request, res: Response) => {
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (!cronSecret) {
+      res.status(503).json({
+        success: false,
+        message: "CRON_SECRET is not configured on this server.",
+      });
+      return;
+    }
+
+    const headerSecret = req.headers["x-cron-secret"];
+    const querySecret = req.query["secret"] as string | undefined;
+    const provided =
+      (Array.isArray(headerSecret) ? headerSecret[0] : headerSecret) ??
+      querySecret;
+
+    if (!provided || provided !== cronSecret) {
+      res.status(401).json({ success: false, message: "Invalid or missing cron secret." });
+      return;
+    }
+
+    try {
+      const result = await createDailyWorkoutRemindersForAllUsers();
+      res.status(200).json({ success: true, ...result });
+    } catch (error) {
+      console.error("[CRON] Daily reminder batch failed:", error);
+      res.status(500).json({ success: false, message: "Failed to create daily reminders." });
+    }
+  }
+);
+
+// Apply JWT auth to all routes defined below this line.
 notificationRouter.use(authenticateToken);
 
 // ─── GET /api/notifications ───────────────────────────────────────────────────
+// Generates today's reminder for the requesting user before returning the list,
+// so the notification appears on the first poll after login / page load.
 
 notificationRouter.get(
   "/",
@@ -19,6 +64,13 @@ notificationRouter.get(
       if (!req.authUser) {
         res.status(401).json({ message: "Authentication required" });
         return;
+      }
+
+      // Fire-and-forget safe: errors are caught inside the service.
+      try {
+        await createDailyWorkoutReminderForUser(req.authUser.userId);
+      } catch {
+        // Never let reminder generation break the notifications list.
       }
 
       const notifications = await Notification.find(

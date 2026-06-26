@@ -809,14 +809,14 @@ usersRouter.post("/register", authLimiter, async (req: Request, res: Response) =
 
 // POST /api/users/login
 usersRouter.post("/login", authLimiter, async (req: Request, res: Response) => {
-  console.log("[LOGIN] Request received");
+  if (IS_DEV) console.log("[LOGIN] Request received");
 
   try {
     const { username, password } = req.body;
 
     const usernameProvided = Boolean(username);
     const passwordProvided = Boolean(password);
-    console.log(`[LOGIN] Fields — username: ${usernameProvided}, password: ${passwordProvided}`);
+    if (IS_DEV) console.log(`[LOGIN] Fields — username: ${usernameProvided}, password: ${passwordProvided}`);
 
     if (!username || !password) {
       res.status(400).json({ message: "Username and password are required" });
@@ -824,11 +824,11 @@ usersRouter.post("/login", authLimiter, async (req: Request, res: Response) => {
     }
 
     const normalizedUsername = String(username).trim();
-    console.log(`[LOGIN] Normalized username: ${normalizedUsername}`);
+    if (IS_DEV) console.log(`[LOGIN] Normalized username: ${normalizedUsername}`);
 
-    console.log("[LOGIN] MongoDB user lookup started");
+    if (IS_DEV) console.log("[LOGIN] MongoDB user lookup started");
     const user = await User.findOne({ username: normalizedUsername });
-    console.log(`[LOGIN] User found: ${Boolean(user)}`);
+    if (IS_DEV) console.log(`[LOGIN] User found: ${Boolean(user)}`);
 
     if (!user) {
       res.status(401).json({ message: "Invalid username or password" });
@@ -840,20 +840,22 @@ usersRouter.post("/login", authLimiter, async (req: Request, res: Response) => {
     const storedPasswordExists = user.password != null && user.password !== "";
     const hashFormatValid =
       storedPasswordExists && /^\$2[aby]\$\d{2}\$/.test(user.password);
-    console.log(`[LOGIN] Stored password exists: ${storedPasswordExists}`);
-    console.log(`[LOGIN] Password hash format valid: ${hashFormatValid}`);
+    if (IS_DEV) console.log(`[LOGIN] Stored password exists: ${storedPasswordExists}`);
+    if (IS_DEV) console.log(`[LOGIN] Password hash format valid: ${hashFormatValid}`);
 
     if (!storedPasswordExists || !hashFormatValid) {
-      console.error(
-        `[LOGIN] User ${normalizedUsername} has no valid bcrypt hash stored — cannot authenticate`
-      );
+      if (IS_DEV) {
+        console.error(
+          `[LOGIN] User ${normalizedUsername} has no valid bcrypt hash stored — cannot authenticate`
+        );
+      }
       res.status(401).json({ message: "Invalid username or password" });
       return;
     }
 
-    console.log("[LOGIN] bcrypt comparison started");
+    if (IS_DEV) console.log("[LOGIN] bcrypt comparison started");
     const passwordMatches = await bcrypt.compare(String(password), user.password);
-    console.log(`[LOGIN] bcrypt comparison complete — match: ${passwordMatches}`);
+    if (IS_DEV) console.log(`[LOGIN] bcrypt comparison complete — match: ${passwordMatches}`);
 
     if (!passwordMatches) {
       res.status(401).json({ message: "Invalid username or password" });
@@ -861,7 +863,7 @@ usersRouter.post("/login", authLimiter, async (req: Request, res: Response) => {
     }
 
     const jwtSecret = process.env.JWT_SECRET;
-    console.log(`[LOGIN] JWT_SECRET present: ${Boolean(jwtSecret)}`);
+    if (IS_DEV) console.log(`[LOGIN] JWT_SECRET present: ${Boolean(jwtSecret)}`);
 
     if (!jwtSecret) {
       console.error("[LOGIN] JWT_SECRET is missing from the .env file");
@@ -869,15 +871,15 @@ usersRouter.post("/login", authLimiter, async (req: Request, res: Response) => {
       return;
     }
 
-    console.log("[LOGIN] Signing JWT...");
+    if (IS_DEV) console.log("[LOGIN] Signing JWT...");
     const token = jwt.sign(
       { userId: user._id.toString(), role: user.role },
       jwtSecret,
       { expiresIn: JWT_EXPIRES_IN, algorithm: "HS256" }
     );
-    console.log("[LOGIN] JWT signed successfully");
+    if (IS_DEV) console.log("[LOGIN] JWT signed successfully");
 
-    console.log("[LOGIN] Sending success response");
+    if (IS_DEV) console.log("[LOGIN] Sending success response");
     res.status(200).json({
       token,
       userId: user._id.toString(),
@@ -886,17 +888,22 @@ usersRouter.post("/login", authLimiter, async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
-    console.error("[LOGIN] Unexpected error caught:");
-    console.error(`  name:    ${err.name}`);
-    console.error(`  message: ${err.message}`);
-    console.error(`  stack:   ${err.stack ?? "(no stack)"}`);
 
-    if (error !== null && typeof error === "object") {
-      const maybeMongoErr = error as Record<string, unknown>;
-      if (maybeMongoErr["code"] !== undefined)
-        console.error(`  code:     ${String(maybeMongoErr["code"])}`);
-      if (maybeMongoErr["codeName"] !== undefined)
-        console.error(`  codeName: ${String(maybeMongoErr["codeName"])}`);
+    if (IS_DEV) {
+      console.error("[LOGIN] Unexpected error caught:");
+      console.error(`  name:    ${err.name}`);
+      console.error(`  message: ${err.message}`);
+      console.error(`  stack:   ${err.stack ?? "(no stack)"}`);
+
+      if (error !== null && typeof error === "object") {
+        const maybeMongoErr = error as Record<string, unknown>;
+        if (maybeMongoErr["code"] !== undefined)
+          console.error(`  code:     ${String(maybeMongoErr["code"])}`);
+        if (maybeMongoErr["codeName"] !== undefined)
+          console.error(`  codeName: ${String(maybeMongoErr["codeName"])}`);
+      }
+    } else {
+      console.error("[LOGIN] Unexpected login error");
     }
 
     const body: { success: false; message: string; error?: string } = {

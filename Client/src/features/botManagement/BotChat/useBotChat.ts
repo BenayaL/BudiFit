@@ -1,45 +1,90 @@
-import { useState, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { ChatMessage, ChatStatus } from "../bot.models";
 import { botService } from "../botService";
 import { useAuth } from "../../../app/AuthContext";
 
 export function useBotChat() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<ChatStatus>("idle");
   const [error, setError] = useState("");
-  const sessionId = useRef(`session-${Date.now()}`).current;
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
-  async function sendMessage(text: string) {
-    if (!token) {
-      setError("You must be logged in to use the chat.");
-      return;
+  // Derive or create a stable session ID, stored in localStorage per user
+  useEffect(() => {
+    if (!user?.id) return;
+    const storageKey = `budifit_bot_session:${user.id}`;
+    let stored = localStorage.getItem(storageKey);
+    if (!stored) {
+      stored = `session-${Date.now()}`;
+      localStorage.setItem(storageKey, stored);
     }
+    setSessionId(stored);
+  }, [user?.id]);
 
-    const userMsg: ChatMessage = {
-      id: Date.now().toString(),
-      role: "user",
-      content: text,
-      timestamp: new Date().toISOString(),
-    };
+  // Load history from MongoDB when session is ready
+  useEffect(() => {
+    if (!token || !sessionId) return;
+    botService
+      .getChatHistory(sessionId, token)
+      .then((session) => {
+        setMessages(session.messages);
+      })
+      .catch((err) => {
+        console.error("[BOT] Failed to load history:", err);
+      });
+  }, [sessionId, token]);
 
-    setMessages((prev) => [...prev, userMsg]);
-    setStatus("typing");
-    setError("");
+  const sendMessage = useCallback(
+    async (text: string) => {
+      if (!token || !sessionId) {
+        setError("You must be logged in to use the chat.");
+        return;
+      }
 
+      const userMsg: ChatMessage = {
+        id: Date.now().toString(),
+        role: "user",
+        content: text,
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages((prev) => [...prev, userMsg]);
+      setStatus("typing");
+      setError("");
+
+      try {
+        const { reply } = await botService.sendMessage(
+          { sessionId, message: text },
+          token
+        );
+        setMessages((prev) => [...prev, reply]);
+        setStatus("idle");
+      } catch (err) {
+        console.error("[BOT] Failed to send message:", err);
+        setError("Failed to send message. Please try again.");
+        setStatus("idle");
+      }
+    },
+    [token, sessionId]
+  );
+
+  const clearChat = useCallback(async (): Promise<boolean> => {
+    if (!token || !sessionId) {
+      setError("You must be logged in to clear the chat.");
+      return false;
+    }
     try {
-      const { reply } = await botService.sendMessage(
-        { sessionId, message: text },
-        token
-      );
-      setMessages((prev) => [...prev, reply]);
+      await botService.clearChatHistory(sessionId, token);
+      setMessages([]);
       setStatus("idle");
+      return true;
     } catch (err) {
-      console.error("[BOT] Failed to send message:", err);
-      setError("Failed to send message. Please try again.");
-      setStatus("idle");
+      console.error("[BOT] Failed to clear history:", err);
+      setError("Failed to clear chat. Please try again.");
+      return false;
     }
-  }
+  }, [token, sessionId]);
 
-  return { messages, status, error, sendMessage };
+  return { messages, status, error, sendMessage, clearChat };
 }

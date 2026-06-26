@@ -4,7 +4,7 @@
 //
 // Preserves the working Gemini logic from the placeholder server.js and adds:
 //   - TypeScript types
-//   - Per-session conversation history (in-memory)
+//   - Per-session conversation history (persisted in MongoDB)
 //   - Auth guard so only logged-in users can chat
 //   - Richer Budi system prompt with multi-turn context
 
@@ -12,6 +12,7 @@ import { Router, Response } from "express";
 import { GoogleGenAI } from "@google/genai";
 import rateLimit from "express-rate-limit";
 import { authenticateToken, AuthenticatedRequest } from "../middleware/auth.middleware";
+import BotSession, { type IBotMessage } from "../models/botSession.model";
 
 const router = Router();
 
@@ -26,6 +27,10 @@ const aiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const MAX_HISTORY_MESSAGES = 20;
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ChatMessage {
@@ -34,10 +39,6 @@ interface ChatMessage {
   content: string;
   timestamp: string;
 }
-
-// In-memory session store: sessionId → message history
-// Good enough for a college project; can be replaced with MongoDB later
-const sessionHistory = new Map<string, ChatMessage[]>();
 
 // ─── Budi's system prompt ─────────────────────────────────────────────────────
 
@@ -81,16 +82,22 @@ router.post("/chat", authenticateToken, aiLimiter, async (req: AuthenticatedRequ
     }
 
     // Use the provided sessionId or fall back to the authenticated user's id
-    const resolvedSessionId = sessionId ?? req.authUser!.userId;
+    const resolvedSessionId = (sessionId ?? req.authUser!.userId).trim();
 
-    // Get or initialize history for this session
-    if (!sessionHistory.has(resolvedSessionId)) {
-      sessionHistory.set(resolvedSessionId, []);
+    if (!resolvedSessionId) {
+      res.status(400).json({ message: "Session ID is required" });
+      return;
     }
-    const history = sessionHistory.get(resolvedSessionId)!;
+
+    // Load existing history from MongoDB (scoped to this user + session)
+    const botSession = await BotSession.findOne({
+      userId: req.authUser!.userId,
+      sessionId: resolvedSessionId,
+    }).lean<{ messages: IBotMessage[] }>();
+
+    const history = botSession?.messages ?? [];
 
     // Build the conversation context to send to Gemini
-    // Format: system prompt + previous turns + current message
     const conversationContext = [
       BUDI_SYSTEM_PROMPT,
       ...history.map(
@@ -100,9 +107,8 @@ router.post("/chat", authenticateToken, aiLimiter, async (req: AuthenticatedRequ
       "Budi:",
     ].join("\n\n");
 
-    // Initialize Gemini client
+    // Initialize Gemini client and call the model
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY ?? "" });
-    // Call Gemini — same API call that worked in the placeholder server
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: conversationContext,
@@ -110,33 +116,67 @@ router.post("/chat", authenticateToken, aiLimiter, async (req: AuthenticatedRequ
 
     const replyText = response.text ?? "Sorry, I couldn't generate a response. Please try again!";
 
-    // Build message objects
-    const userMessage: ChatMessage = {
+    // Build message objects for storage (timestamp as Date for MongoDB)
+    const now = new Date();
+    const userMsg: IBotMessage = {
       id: `${Date.now()}-user`,
       role: "user",
       content: message.trim(),
-      timestamp: new Date().toISOString(),
+      timestamp: now,
     };
-
-    const assistantMessage: ChatMessage = {
+    const assistantMsg: IBotMessage = {
       id: `${Date.now()}-assistant`,
       role: "assistant",
       content: replyText,
-      timestamp: new Date().toISOString(),
+      timestamp: now,
     };
 
-    // Save both turns to session history
-    history.push(userMessage, assistantMessage);
+    // Persist both turns; keep at most MAX_HISTORY_MESSAGES via $slice
+    await BotSession.findOneAndUpdate(
+      { userId: req.authUser!.userId, sessionId: resolvedSessionId },
+      {
+        $push: {
+          messages: {
+            $each: [userMsg, assistantMsg],
+            $slice: -MAX_HISTORY_MESSAGES,
+          },
+        },
+      },
+      { upsert: true, new: true }
+    );
 
-    // Keep history to last 20 messages to avoid very long prompts
-    if (history.length > 20) {
-      history.splice(0, history.length - 20);
-    }
+    // Return the assistant reply to the client (timestamp serialised as ISO string)
+    const reply: ChatMessage = {
+      id: assistantMsg.id,
+      role: assistantMsg.role,
+      content: assistantMsg.content,
+      timestamp: assistantMsg.timestamp.toISOString(),
+    };
 
-    res.status(200).json({ reply: assistantMessage });
+    res.status(200).json({ reply });
   } catch (error) {
     console.error("Gemini error:", error);
     res.status(500).json({ message: "Failed to generate response" });
+  }
+});
+
+// ─── DELETE /api/bot/history/:sessionId ──────────────────────────────────────
+
+router.delete("/history/:sessionId", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const sessionId = String(req.params.sessionId).trim();
+
+    if (!sessionId) {
+      res.status(400).json({ message: "Session ID is required" });
+      return;
+    }
+
+    await BotSession.deleteOne({ userId: req.authUser!.userId, sessionId });
+
+    res.status(200).json({ sessionId, messages: [] });
+  } catch (error) {
+    console.error("Delete bot history error:", error);
+    res.status(500).json({ message: "Failed to delete chat history" });
   }
 });
 
@@ -144,9 +184,28 @@ router.post("/chat", authenticateToken, aiLimiter, async (req: AuthenticatedRequ
 
 router.get("/history/:sessionId", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const sessionId = req.params.sessionId as string;
-    const history = sessionHistory.get(sessionId) ?? [];
-    res.status(200).json({ sessionId, messages: history });
+    const sessionId = String(req.params.sessionId).trim();
+
+    if (!sessionId) {
+      res.status(400).json({ message: "Session ID is required" });
+      return;
+    }
+
+    const botSession = await BotSession.findOne({
+      userId: req.authUser!.userId,
+      sessionId,
+    }).lean<{ messages: IBotMessage[] }>();
+
+    const messages: ChatMessage[] = (botSession?.messages ?? []).map((msg) => ({
+      id: msg.id,
+      role: msg.role,
+      content: msg.content,
+      timestamp: msg.timestamp instanceof Date
+        ? msg.timestamp.toISOString()
+        : String(msg.timestamp),
+    }));
+
+    res.status(200).json({ sessionId, messages });
   } catch (error) {
     console.error("Get bot history error:", error);
     res.status(500).json({ message: "Failed to get chat history" });

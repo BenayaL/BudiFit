@@ -82,7 +82,7 @@ export const ENDPOINTS = {
 
   bot: {
     chat: "/bot/chat",
-    history: (sessionId: string) => `/bot/history/${sessionId}`,
+    history: (sessionId: string) => `/bot/history/${encodeURIComponent(sessionId)}`,
   },
 
   export: {

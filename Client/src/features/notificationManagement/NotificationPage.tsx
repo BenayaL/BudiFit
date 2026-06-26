@@ -85,12 +85,12 @@ function NotificationPage({ onChangePage, onReviewPlan, onViewTraineeProfile }: 
       : { heading: "You're all caught up", sub: "No notifications yet." };
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-8">
+    <main className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
       {/* Header */}
-      <section className="mb-6 flex items-end justify-between">
+      <section className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-purple-600">Inbox</p>
-          <h1 className="mt-2 flex items-center gap-3 text-4xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">
+          <h1 className="mt-2 flex items-center gap-3 text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">
             Notifications
             {unreadCount > 0 && (
               <span className="rounded-full bg-purple-600 px-2.5 py-0.5 text-base font-bold text-white">
@@ -123,7 +123,7 @@ function NotificationPage({ onChangePage, onReviewPlan, onViewTraineeProfile }: 
       </section>
 
       {/* Filter tabs */}
-      <div className="mb-6 flex gap-2">
+      <div className="mb-6 flex flex-wrap gap-2">
         {(["all", "unread", "action_needed"] as const).map((f) => (
           <button
             key={f}

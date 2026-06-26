@@ -43,7 +43,7 @@ function WorkoutPage({ onGoToPlansHistory, onSelectPlan }: WorkoutPageProps) {
   );
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-8">
+    <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8">
       {/* Page header */}
       <section className="mb-8">
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-purple-600">

@@ -23,10 +23,10 @@ function CoachDashboardPage({
   const attentionCount = trainees.filter((t) => t.status === "needs_attention").length;
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-8">
-      <section className="rounded-[2rem] bg-gradient-to-br from-slate-900 to-purple-900 p-8 text-white shadow-lg">
+    <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8">
+      <section className="rounded-[2rem] bg-gradient-to-br from-slate-900 to-purple-900 p-6 sm:p-8 text-white shadow-lg">
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-purple-200">Coach area</p>
-        <h1 className="mt-3 text-4xl font-extrabold tracking-tight">
+        <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight">
           Welcome back, Coach {coach?.firstName}
         </h1>
         <p className="mt-3 max-w-2xl text-purple-100">
@@ -44,7 +44,7 @@ function CoachDashboardPage({
 
       <section className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_0.9fr]">
         <div>
-          <div className="mb-4 flex items-end justify-between">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
             <div>
               <h2 className="text-2xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">My trainees</h2>
               <p className="text-sm text-slate-500 dark:text-[#9E97AF]">Click a trainee card to view their profile.</p>

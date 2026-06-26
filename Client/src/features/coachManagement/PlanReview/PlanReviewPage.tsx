@@ -313,7 +313,7 @@ function PlanReviewPage({
 
   if (!plan || !editablePlan) {
     return (
-      <main className="mx-auto max-w-4xl px-6 py-10">
+      <main className="mx-auto max-w-4xl px-4 sm:px-6 py-10">
         <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-[#3B344A] dark:bg-[#211D2B]">
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-[#F8F7FB]">
             No plan selected
@@ -350,7 +350,7 @@ function PlanReviewPage({
 
   return (
     <>
-      <main className="mx-auto max-w-5xl space-y-6 px-6 py-8">
+      <main className="mx-auto max-w-5xl space-y-6 px-4 sm:px-6 py-8">
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <section className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div className="min-w-0">

@@ -111,7 +111,6 @@ function App() {
           activePage={activePage}
           onChangePage={(page) => setCurrentPage(page)}
           user={navUser}
-          onStartWorkout={() => setCurrentPage("workout")}
           onGoToProfile={() => setCurrentPage("profile")}
         />
         <NotificationToastContainer

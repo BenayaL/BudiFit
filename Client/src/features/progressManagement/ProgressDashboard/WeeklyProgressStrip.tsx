@@ -74,8 +74,8 @@ const LEGEND = [
 export function WeeklyProgressStrip({ entries, isLoading }: Props) {
   if (isLoading) {
     return (
-      <div className="overflow-x-auto -mx-1 px-1">
-        <div className="grid grid-cols-7 gap-2.5 min-w-[520px]">
+      <div className="overflow-x-auto">
+        <div className="grid grid-cols-7 gap-2 min-w-[380px]">
           {Array.from({ length: 7 }).map((_, i) => (
             <div key={i} className="h-[80px] rounded-xl bg-slate-100 animate-pulse dark:bg-[#2A2436]" />
           ))}
@@ -86,8 +86,8 @@ export function WeeklyProgressStrip({ entries, isLoading }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto -mx-1 px-1">
-        <div className="grid grid-cols-7 gap-2.5 min-w-[520px]">
+      <div className="overflow-x-auto">
+        <div className="grid grid-cols-7 gap-2 min-w-[380px]">
           {entries.map((entry, i) => {
             const cfg = getDayConfig(entry);
             const dayNum = new Date(entry.date + "T00:00:00").getDate();

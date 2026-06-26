@@ -223,7 +223,7 @@ function ProgressDashboardPage({ onChangePage }: Props) {
       {/* ── Weekly tracker ── */}
       <section>
         <SectionHeader label="Weekly Tracker" title="This Week" />
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 dark:border-[#3B344A] dark:bg-[#211D2B]">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-5 sm:p-6 dark:border-[#3B344A] dark:bg-[#211D2B]">
           <WeeklyProgressStrip entries={weekEntries} isLoading={isCalendarLoading} />
         </div>
       </section>

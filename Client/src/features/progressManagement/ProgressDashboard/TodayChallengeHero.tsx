@@ -132,8 +132,8 @@ export function TodayChallengeHero({ dashboard, isCompleting, onComplete, onChan
         >
           {isCompleted ? "✅" : "🏋️"}
         </div>
-        <div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-950 leading-tight dark:text-[#F8F7FB]">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 leading-tight break-words dark:text-[#F8F7FB]">
             {planDay.title}
           </h2>
           <div className="flex flex-wrap gap-3 mt-3">

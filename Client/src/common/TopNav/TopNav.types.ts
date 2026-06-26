@@ -15,6 +15,5 @@ export interface TopNavProps {
     avatarLetter: string;
     avatarIcon?: string;
   };
-  onStartWorkout: () => void;
   onGoToProfile: () => void;
 }

@@ -122,7 +122,7 @@ function UserProfilePage({ onLogout }: UserProfilePageProps) {
     traineeProfile?.medicalConditions.filter((c) => c !== "none") ?? [];
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-8">
+    <div className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
       {/* ── Page header ────────────────────────────────────────────── */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>

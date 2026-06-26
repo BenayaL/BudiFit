@@ -1,6 +1,5 @@
-﻿import { useLayoutEffect, useRef, useState, useEffect } from "react";
+import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import BudiLogo from "../BudiLogo/BudiLogo";
-import AppButton from "../AppButton/AppButton";
 
 import type { TopNavProps } from "./TopNav.types";
 
@@ -9,19 +8,16 @@ export function TopNav({
   activePage,
   onChangePage,
   user,
-  onStartWorkout,
   onGoToProfile,
 }: TopNavProps) {
   const navRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const navContainerRef = useRef<HTMLElement>(null);
   const [indicator, setIndicator] = useState({ left: 0, width: 0, opacity: 0 });
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  const activeItem = items.find((item) => item.id === activePage) || items[0];
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useLayoutEffect(() => {
     const updateIndicator = () => {
-      if (window.innerWidth < 1005) return;
+      if (window.innerWidth < 1024) return;
       if (!navRef.current) return;
 
       const activeBtn = navRef.current.querySelector(`[data-nav="${activePage}"]`);
@@ -40,8 +36,8 @@ export function TopNav({
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsDropdownOpen(false);
+      if (navContainerRef.current && !navContainerRef.current.contains(e.target as Node)) {
+        setIsMobileMenuOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -49,116 +45,71 @@ export function TopNav({
   }, []);
 
   return (
-    <nav className="sticky top-0 z-50 px-6 pt-4 backdrop-blur-md bg-[#fbfaf7]/85 dark:bg-[#141218]/85">
-      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4 rounded-[22px] border border-slate-200/50 bg-white p-2.5 shadow-sm dark:border-[#3B344A]/50 dark:bg-[#211D2B]">
-        {/* Left — logo */}
-        <div className="pl-2 pr-3 shrink-0">
+    <nav ref={navContainerRef} className="sticky top-0 z-50 px-4 sm:px-6 pt-4 backdrop-blur-md bg-[#fbfaf7]/85 dark:bg-[#141218]/85">
+      <div className="flex items-center justify-between gap-3 rounded-[22px] border border-slate-200/50 bg-white p-2.5 shadow-sm dark:border-[#3B344A]/50 dark:bg-[#211D2B]">
+
+        {/* Left — logo (never shrinks) */}
+        <div className="shrink-0 pl-2 pr-1">
           <BudiLogo />
         </div>
 
-        {/* Center — desktop nav or responsive dropdown */}
-        <div className="relative flex justify-center min-w-0">
-          {/* Desktop navigation (≥1005px) */}
-          <div ref={navRef} className="hidden min-[1005px]:flex relative justify-center gap-1">
-            <div
-              className="absolute bottom-0 top-0 z-0 rounded-xl bg-gradient-to-br from-purple-600 to-purple-500 shadow-md transition-all duration-300 ease-out"
-              style={{ left: indicator.left, width: indicator.width, opacity: indicator.opacity }}
-            />
+        {/* Center — full tab nav, only at ≥1024px */}
+        <div
+          ref={navRef}
+          className="hidden lg:flex relative justify-center gap-1 min-w-0"
+        >
+          <div
+            className="absolute bottom-0 top-0 z-0 rounded-xl bg-gradient-to-br from-purple-600 to-purple-500 shadow-md transition-all duration-300 ease-out"
+            style={{ left: indicator.left, width: indicator.width, opacity: indicator.opacity }}
+          />
 
-            {items.map((item) => {
-              const isActive = activePage === item.id;
-              return (
-                <button
-                  key={item.id}
-                  data-nav={item.id}
-                  onClick={() => onChangePage(item.id)}
-                  className={`relative z-10 flex items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors duration-200 ${
-                    isActive ? "text-white" : "text-slate-600 hover:text-slate-900 dark:text-[#C9C4D6] dark:hover:text-white"
-                  }`}
-                >
-                  {item.icon && (
-                    <span className={`shrink-0 ${isActive ? "text-white" : "text-slate-400 dark:text-[#9E97AF]"}`}>
-                      {item.icon}
-                    </span>
-                  )}
-                  {item.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Responsive dropdown (<1005px) */}
-          <div ref={dropdownRef} className="flex min-[1005px]:hidden relative w-full max-w-[200px] justify-center">
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex w-full items-center justify-between gap-2 rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm dark:bg-[#2A2436] dark:border-[#3B344A] dark:text-[#C9C4D6]"
-            >
-              <div className="flex items-center gap-2 overflow-hidden">
-                {activeItem.icon && (
-                  <span className="shrink-0 text-purple-600">{activeItem.icon}</span>
-                )}
-                <span className="truncate">{activeItem.label}</span>
-              </div>
-
-              <svg
-                className={`shrink-0 h-4 w-4 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          {items.map((item) => {
+            const isActive = activePage === item.id;
+            return (
+              <button
+                key={item.id}
+                data-nav={item.id}
+                onClick={() => onChangePage(item.id)}
+                className={`relative z-10 flex items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors duration-200 ${
+                  isActive
+                    ? "text-white"
+                    : "text-slate-600 hover:text-slate-900 dark:text-[#C9C4D6] dark:hover:text-white"
+                }`}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {isDropdownOpen && (
-              <div className="absolute top-full mt-2 w-48 rounded-xl bg-white p-2 shadow-xl border border-slate-100 z-50 dark:bg-[#211D2B] dark:border-[#3B344A]">
-                <div className="flex flex-col gap-1">
-                  {items.map((item) => {
-                    const isActive = activePage === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                          onChangePage(item.id);
-                          setIsDropdownOpen(false);
-                        }}
-                        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
-                          isActive
-                            ? "bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-[#C9C4D6] dark:hover:bg-[#2A2436] dark:hover:text-white"
-                        }`}
-                      >
-                        {item.icon && (
-                          <span className={`shrink-0 ${isActive ? "text-purple-600 dark:text-purple-400" : "text-slate-400 dark:text-[#9E97AF]"}`}>
-                            {item.icon}
-                          </span>
-                        )}
-                        {item.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
+                {item.icon && (
+                  <span className={`shrink-0 ${isActive ? "text-white" : "text-slate-400 dark:text-[#9E97AF]"}`}>
+                    {item.icon}
+                  </span>
+                )}
+                {item.label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Right — user actions */}
-        <div className="flex shrink-0 items-center gap-2 pr-1">
-          {activePage !== "workout" && (
-            <div className="shrink-0">
-              <AppButton onClick={onStartWorkout} variant="primary" className="!py-2.5 !px-4">
-                <div className="flex items-center gap-2 text-[13px]">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="5 3 19 12 5 21 5 3" />
-                  </svg>
-                  Start
-                </div>
-              </AppButton>
-            </div>
-          )}
+        {/* Right — hamburger (< 1024px only) + avatar (always) */}
+        <div className="shrink-0 flex items-center gap-2 pr-1">
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Open navigation menu"
+            aria-expanded={isMobileMenuOpen}
+            className="lg:hidden flex items-center justify-center h-9 w-9 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 transition hover:bg-slate-100 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:hover:bg-[#3B344A]"
+          >
+            {isMobileMenuOpen ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            )}
+          </button>
 
-          {/* Avatar — navigates to Profile */}
           <button
             type="button"
             onClick={onGoToProfile}
@@ -174,6 +125,37 @@ export function TopNav({
           </button>
         </div>
       </div>
+
+      {/* Compact menu panel — only visible below 1024px when open */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden mt-1 rounded-[18px] border border-slate-200/50 bg-white px-2 py-2 shadow-lg dark:border-[#3B344A]/50 dark:bg-[#211D2B]">
+          {items.map((item) => {
+            const isActive = activePage === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  onChangePage(item.id);
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
+                  isActive
+                    ? "bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                    : "text-slate-600 hover:bg-slate-50 dark:text-[#C9C4D6] dark:hover:bg-[#2A2436]"
+                }`}
+              >
+                {item.icon && (
+                  <span className={`shrink-0 ${isActive ? "text-purple-600 dark:text-purple-400" : "text-slate-400 dark:text-[#9E97AF]"}`}>
+                    {item.icon}
+                  </span>
+                )}
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </nav>
   );
 }

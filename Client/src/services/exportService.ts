@@ -1,5 +1,6 @@
 // Shared export service — used by workoutManagement and progressManagement.
 // Thin HTTP wrappers only; no UI logic.
+// PDF downloads are GET. Email sends are POST (side effect).
 
 import { httpClient } from "../api/httpClient";
 import { ENDPOINTS } from "../api/endpoints";
@@ -15,7 +16,7 @@ export const exportService = {
     httpClient.getBlob(ENDPOINTS.export.pdf, token),
 
   sendByEmail: (token: string): Promise<ExportEmailResponse> =>
-    httpClient.get<ExportEmailResponse>(ENDPOINTS.export.email, token),
+    httpClient.post<ExportEmailResponse, Record<string, never>>(ENDPOINTS.export.email, {}, token),
 
   // ── Workout plan ──────────────────────────────────────────────────────────
 
@@ -26,7 +27,11 @@ export const exportService = {
 
   emailWorkoutPlan: (planId: string, token: string): Promise<ExportEmailResponse> => {
     if (!planId) return Promise.reject(new Error("planId is required"));
-    return httpClient.get<ExportEmailResponse>(ENDPOINTS.export.workoutPlanEmail(planId), token);
+    return httpClient.post<ExportEmailResponse, Record<string, never>>(
+      ENDPOINTS.export.workoutPlanEmail(planId),
+      {},
+      token
+    );
   },
 
   // ── Workout history ───────────────────────────────────────────────────────
@@ -35,7 +40,11 @@ export const exportService = {
     httpClient.getBlob(ENDPOINTS.export.workoutHistoryPdf, token),
 
   emailWorkoutHistory: (token: string): Promise<ExportEmailResponse> =>
-    httpClient.get<ExportEmailResponse>(ENDPOINTS.export.workoutHistoryEmail, token),
+    httpClient.post<ExportEmailResponse, Record<string, never>>(
+      ENDPOINTS.export.workoutHistoryEmail,
+      {},
+      token
+    ),
 
   // ── Daily workout (single session) ───────────────────────────────────────
 
@@ -48,6 +57,10 @@ export const exportService = {
   emailDailyWorkout: (planId: string, date: string, token: string): Promise<ExportEmailResponse> => {
     if (!planId) return Promise.reject(new Error("planId is required"));
     if (!date) return Promise.reject(new Error("date is required"));
-    return httpClient.get<ExportEmailResponse>(ENDPOINTS.export.dailyWorkoutEmail(planId, date), token);
+    return httpClient.post<ExportEmailResponse, Record<string, never>>(
+      ENDPOINTS.export.dailyWorkoutEmail(planId, date),
+      {},
+      token
+    );
   },
 };

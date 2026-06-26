@@ -25,12 +25,6 @@ export const ENDPOINTS = {
     connect: "/coach-connections/connect",
   },
 
-  workouts: {
-    list: "/workouts",
-    details: (workoutId: string) => `/workouts/${workoutId}`,
-    complete: (workoutId: string) => `/workouts/${workoutId}/complete`,
-  },
-
   generatedWorkoutPlans: {
     list: "/generated-workout-plans",
     history: (localDate: string) => `/generated-workout-plans?status=history&localDate=${localDate}`,
@@ -42,13 +36,6 @@ export const ENDPOINTS = {
     replace: (planId: string) => `/generated-workout-plans/${planId}/replace`,
     requestChange: (planId: string) => `/generated-workout-plans/${planId}/request-change`,
     exerciseAlternatives: (planId: string) => `/generated-workout-plans/${planId}/exercise-alternatives`,
-  },
-
-  challenges: {
-    today: "/challenges/today",
-    weekly: "/challenges/weekly",
-    history: "/challenges/history",
-    complete: (challengeId: string) => `/challenges/${challengeId}/complete`,
   },
 
   coach: {

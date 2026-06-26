@@ -4,54 +4,23 @@
 
 import PDFDocument from "pdfkit";
 import type { IUser } from "../models/user.model";
-import type { IWorkout } from "../models/workout.model";
+import type { IDailyWorkoutLog } from "../models/dailyWorkoutLog.model";
 import type { IGeneratedWorkoutPlan, IGeneratedWorkoutDay } from "../models/generatedWorkoutPlan.model";
 
-interface WorkoutSummaryStats {
-  totalWorkouts: number;
-  totalMinutes: number;
-  currentStreak: number;
+// Date helpers (mirrors progress.routes.ts logic so stats match the dashboard).
+function _dayStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function _prevDay(s: string): string {
+  const d = new Date(s + "T12:00:00"); d.setDate(d.getDate() - 1); return _dayStr(d);
+}
+function _nextDay(s: string): string {
+  const d = new Date(s + "T12:00:00"); d.setDate(d.getDate() + 1); return _dayStr(d);
 }
 
-/**
- * Computes basic progress stats from a list of completed workouts.
- * Mirrors the logic used in progress.routes.ts so the PDF matches
- * what the user sees on their dashboard.
- */
-export function computeWorkoutStats(completedWorkouts: IWorkout[]): WorkoutSummaryStats {
-  const totalWorkouts = completedWorkouts.length;
-  const totalMinutes  = completedWorkouts.reduce((sum, w) => sum + w.durationMinutes, 0);
-
-  let currentStreak = 0;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const workoutDays = new Set(
-    completedWorkouts.map((w) => {
-      const d = new Date(w.scheduledAt);
-      d.setHours(0, 0, 0, 0);
-      return d.getTime();
-    })
-  );
-
-  const DAY_MS = 86_400_000;
-  let cursor = today.getTime();
-  while (workoutDays.has(cursor)) {
-    currentStreak++;
-    cursor -= DAY_MS;
-  }
-
-  return { totalWorkouts, totalMinutes, currentStreak };
-}
-
-/**
- * Generates a workout summary PDF and resolves with the file as a Buffer.
- * Includes a header with the user's name, a stats overview, and a table
- * of completed workouts.
- */
 export function generateWorkoutSummaryPdf(
   user: Pick<IUser, "firstName" | "lastName" | "email">,
-  completedWorkouts: IWorkout[]
+  logs: IDailyWorkoutLog[]
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50 });
@@ -61,14 +30,35 @@ export function generateWorkoutSummaryPdf(
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    const stats = computeWorkoutStats(completedWorkouts);
+    // ── Stats (mirrors progress.routes.ts /dashboard logic) ──────────────────
 
-    // ─── Header ──────────────────────────────────────────────────────────────
+    const totalWorkouts = logs.length;
+    const totalMinutes  = logs.reduce((sum, l) => sum + (l.durationMinutes ?? 0), 0);
+
+    const distinctDates = [...new Set(logs.map((l) => l.workoutDate))].sort();
+    const dateSet = new Set(distinctDates);
+
+    const today     = _dayStr(new Date());
+    const yesterday = _prevDay(today);
+
+    let currentStreak = 0;
+    let cursor: string | null = dateSet.has(today) ? today : dateSet.has(yesterday) ? yesterday : null;
+    while (cursor !== null && dateSet.has(cursor)) { currentStreak++; cursor = _prevDay(cursor); }
+
+    let longestStreak = distinctDates.length > 0 ? 1 : 0;
+    let run = longestStreak;
+    for (let i = 1; i < distinctDates.length; i++) {
+      run = _nextDay(distinctDates[i - 1]) === distinctDates[i] ? run + 1 : 1;
+      if (run > longestStreak) longestStreak = run;
+    }
+    longestStreak = Math.max(longestStreak, currentStreak);
+
+    // ── Header ────────────────────────────────────────────────────────────────
 
     doc
       .fontSize(22)
       .fillColor("#6C63FF")
-      .text("BudiFit Workout Summary", { align: "left" });
+      .text("BudiFit Progress Summary", { align: "left" });
 
     doc
       .moveDown(0.3)
@@ -79,7 +69,7 @@ export function generateWorkoutSummaryPdf(
 
     doc.moveDown(1);
 
-    // ─── Stats overview ──────────────────────────────────────────────────────
+    // ── Stats overview ────────────────────────────────────────────────────────
 
     doc
       .fontSize(14)
@@ -91,63 +81,58 @@ export function generateWorkoutSummaryPdf(
     doc
       .fontSize(11)
       .fillColor("#0f172a")
-      .text(`Total completed workouts: ${stats.totalWorkouts}`)
-      .text(`Total time trained: ${Math.floor(stats.totalMinutes / 60)}h ${stats.totalMinutes % 60}m`)
-      .text(`Current streak: ${stats.currentStreak} day${stats.currentStreak === 1 ? "" : "s"}`);
+      .text(`Total completed workouts: ${totalWorkouts}`)
+      .text(`Total time trained: ${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`)
+      .text(`Current streak: ${currentStreak} day${currentStreak === 1 ? "" : "s"}`)
+      .text(`Longest streak: ${longestStreak} day${longestStreak === 1 ? "" : "s"}`);
 
     doc.moveDown(1.5);
 
-    // ─── Workout history table ──────────────────────────────────────────────
+    // ── Completed sessions ────────────────────────────────────────────────────
 
     doc
       .fontSize(14)
       .fillColor("#0f172a")
-      .text("Workout History", { underline: true });
+      .text("Completed Sessions", { underline: true });
 
     doc.moveDown(0.5);
 
-    if (completedWorkouts.length === 0) {
+    if (logs.length === 0) {
       doc
         .fontSize(11)
         .fillColor("#64748b")
         .text("No completed workouts yet — get moving!");
     } else {
-      const tableTop = doc.y;
-      const colDate = 50;
-      const colTitle = 150;
+      const tableTop    = doc.y;
+      const colDate     = 50;
+      const colSession  = 150;
       const colDuration = 420;
 
       doc
         .fontSize(10)
         .fillColor("#475569")
-        .text("Date", colDate, tableTop)
-        .text("Workout", colTitle, tableTop)
+        .text("Date",     colDate,     tableTop)
+        .text("Session",  colSession,  tableTop)
         .text("Duration", colDuration, tableTop);
 
       doc.moveDown(0.5);
-      doc
-        .moveTo(50, doc.y)
-        .lineTo(545, doc.y)
-        .strokeColor("#e2e8f0")
-        .stroke();
+      doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#e2e8f0").stroke();
       doc.moveDown(0.5);
-
       doc.fillColor("#0f172a");
 
-      for (const workout of completedWorkouts) {
-        const rowY = doc.y;
-
-        // Start a new page if we're near the bottom
-        if (rowY > 720) {
-          doc.addPage();
-        }
+      for (const log of logs) {
+        if (doc.y > 720) doc.addPage();
 
         const y = doc.y;
+        const sessionLabel = log.planTitle && log.dayTitle
+          ? `${log.planTitle} — ${log.dayTitle}`
+          : log.dayTitle || "Workout";
+
         doc
           .fontSize(10)
-          .text(new Date(workout.scheduledAt).toLocaleDateString(), colDate, y, { width: 90 })
-          .text(workout.title, colTitle, y, { width: 260 })
-          .text(`${workout.durationMinutes} min`, colDuration, y, { width: 80 });
+          .text(log.workoutDate, colDate,     y, { width: 90 })
+          .text(sessionLabel,    colSession,  y, { width: 260 })
+          .text(`${log.durationMinutes} min`, colDuration, y, { width: 80 });
 
         doc.moveDown(0.7);
       }
@@ -433,7 +418,7 @@ export function generateDailyWorkoutPdf(
 export function generateWorkoutHistoryPdf(
   user: Pick<IUser, "firstName" | "lastName" | "email">,
   completedPlans: IGeneratedWorkoutPlan[],
-  completedWorkouts: IWorkout[]
+  dailyLogs: IDailyWorkoutLog[]
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50, autoFirstPage: true });
@@ -449,8 +434,8 @@ export function generateWorkoutHistoryPdf(
       if (doc.y + needed > PAGE_BOTTOM) doc.addPage();
     }
 
-    const totalSessionMinutes = completedWorkouts.reduce(
-      (sum, w) => sum + w.durationMinutes,
+    const totalSessionMinutes = dailyLogs.reduce(
+      (sum, l) => sum + (l.durationMinutes ?? 0),
       0
     );
 
@@ -483,7 +468,7 @@ export function generateWorkoutHistoryPdf(
       .fontSize(11)
       .fillColor("#0f172a")
       .text(`Completed plans: ${completedPlans.length}`)
-      .text(`Completed sessions: ${completedWorkouts.length}`)
+      .text(`Completed daily sessions: ${dailyLogs.length}`)
       .text(
         `Total session time: ${Math.floor(totalSessionMinutes / 60)}h ${totalSessionMinutes % 60}m`
       );
@@ -576,13 +561,13 @@ export function generateWorkoutHistoryPdf(
 
     // ─── Completed workout sessions ───────────────────────────────────────────
 
-    if (completedWorkouts.length > 0) {
+    if (dailyLogs.length > 0) {
       ensureSpace(40);
 
       doc
         .fontSize(14)
         .fillColor("#0f172a")
-        .text("Completed Sessions", { underline: true });
+        .text("Completed Daily Sessions", { underline: true });
 
       doc.moveDown(0.5);
 
@@ -608,15 +593,19 @@ export function generateWorkoutHistoryPdf(
 
       doc.fillColor("#0f172a");
 
-      for (const workout of completedWorkouts) {
+      for (const log of dailyLogs) {
         ensureSpace(25);
 
         const y = doc.y;
+        const sessionLabel = log.planTitle && log.dayTitle
+          ? `${log.planTitle} — ${log.dayTitle}`
+          : log.dayTitle || "Workout";
+
         doc
           .fontSize(10)
-          .text(new Date(workout.scheduledAt).toLocaleDateString(), colDate,  y, { width: 100 })
-          .text(workout.title,                                       colTitle, y, { width: 250 })
-          .text(`${workout.durationMinutes} min`,                   colDur,   y, { width: 80 });
+          .text(log.workoutDate,  colDate,  y, { width: 100 })
+          .text(sessionLabel,     colTitle, y, { width: 250 })
+          .text(`${log.durationMinutes} min`, colDur, y, { width: 80 });
 
         doc.moveDown(0.7);
       }

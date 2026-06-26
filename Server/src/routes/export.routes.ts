@@ -1,19 +1,20 @@
 // Routes matching ENDPOINTS.export in the client:
-//   GET /api/export/workout-summary/pdf          → streams the workout-summary PDF (Dashboard)
-//   GET /api/export/workout-summary/email        → emails the workout-summary PDF (Dashboard)
-//   GET /api/export/workout-plan/:planId/pdf     → streams a single generated plan as PDF
-//   GET /api/export/workout-plan/:planId/email   → emails that plan PDF to the authenticated user
-//   GET /api/export/workout-history/pdf          → streams the completed-history PDF
-//   GET /api/export/workout-history/email        → emails the history PDF to the authenticated user
+//   GET  /api/export/workout-summary/pdf          → streams the progress-summary PDF
+//   POST /api/export/workout-summary/email        → emails the progress-summary PDF
+//   GET  /api/export/workout-plan/:planId/pdf     → streams a single generated plan as PDF
+//   POST /api/export/workout-plan/:planId/email   → emails that plan PDF to the authenticated user
+//   GET  /api/export/workout-history/pdf          → streams the completed-history PDF
+//   POST /api/export/workout-history/email        → emails the history PDF to the authenticated user
+//   GET  /api/export/daily-workout/:planId/pdf    → streams today's session PDF
+//   POST /api/export/daily-workout/:planId/email  → emails today's session PDF
 
 import { Router, Response } from "express";
 import mongoose from "mongoose";
 import nodemailer from "nodemailer";
-import Workout from "../models/workout.model";
 import GeneratedWorkoutPlan from "../models/generatedWorkoutPlan.model";
 import User from "../models/user.model";
-import { authenticateToken, AuthenticatedRequest } from "../middleware/auth.middleware";
 import DailyWorkoutLog from "../models/dailyWorkoutLog.model";
+import { authenticateToken, AuthenticatedRequest } from "../middleware/auth.middleware";
 import {
   generateWorkoutSummaryPdf,
   generateWorkoutPlanPdf,
@@ -28,7 +29,6 @@ import {
 const router = Router();
 
 // ─── Nodemailer helper ────────────────────────────────────────────────────────
-// Returns a configured transporter or throws if env vars are missing.
 
 function createMailTransporter() {
   const gmailUser = process.env.GMAIL_USER;
@@ -60,17 +60,17 @@ router.get(
         return;
       }
 
-      const completedWorkouts = await Workout.find({
+      const logs = await DailyWorkoutLog.find({
         userId: req.authUser!.userId,
         status: "completed",
-      }).sort({ scheduledAt: -1 });
+      }).sort({ completedAt: -1 });
 
-      const pdfBuffer = await generateWorkoutSummaryPdf(user, completedWorkouts);
+      const pdfBuffer = await generateWorkoutSummaryPdf(user, logs);
 
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader(
         "Content-Disposition",
-        "attachment; filename=budifit-workout-summary.pdf"
+        "attachment; filename=budifit-progress-summary.pdf"
       );
       res.setHeader("Content-Length", pdfBuffer.length.toString());
       res.status(200).send(pdfBuffer);
@@ -81,9 +81,9 @@ router.get(
   }
 );
 
-// ─── GET /api/export/workout-summary/email ────────────────────────────────────
+// ─── POST /api/export/workout-summary/email ───────────────────────────────────
 
-router.get(
+router.post(
   "/workout-summary/email",
   authenticateToken,
   async (req: AuthenticatedRequest, res: Response) => {
@@ -103,25 +103,25 @@ router.get(
         return;
       }
 
-      const completedWorkouts = await Workout.find({
+      const logs = await DailyWorkoutLog.find({
         userId: req.authUser!.userId,
         status: "completed",
-      }).sort({ scheduledAt: -1 });
+      }).sort({ completedAt: -1 });
 
-      const pdfBuffer = await generateWorkoutSummaryPdf(user, completedWorkouts);
+      const pdfBuffer = await generateWorkoutSummaryPdf(user, logs);
 
       await transporter.sendMail({
         from,
         to:      user.email,
-        subject: "Your BudiFit Workout Summary",
+        subject: "Your BudiFit Progress Summary",
         html: `
           <p>Hi ${user.firstName},</p>
-          <p>Attached is your latest workout summary from BudiFit. Keep up the great work! 💪</p>
+          <p>Attached is your latest progress summary from BudiFit. Keep up the great work! 💪</p>
           <p>— The BudiFit Team</p>
         `,
         attachments: [
           {
-            filename:    "budifit-workout-summary.pdf",
+            filename:    "budifit-progress-summary.pdf",
             content:     pdfBuffer,
             contentType: "application/pdf",
           },
@@ -197,9 +197,9 @@ router.get(
   }
 );
 
-// ─── GET /api/export/workout-plan/:planId/email ──────────────────────────────
+// ─── POST /api/export/workout-plan/:planId/email ─────────────────────────────
 
-router.get(
+router.post(
   "/workout-plan/:planId/email",
   authenticateToken,
   async (req: AuthenticatedRequest, res: Response) => {
@@ -293,29 +293,25 @@ router.get(
         return;
       }
 
-      const [completedPlans, completedWorkouts] = await Promise.all([
+      const [completedPlans, dailyLogs] = await Promise.all([
         GeneratedWorkoutPlan.find({
           userId: req.authUser!.userId,
           status: "completed",
         }).sort({ updatedAt: -1 }),
-        Workout.find({
+        DailyWorkoutLog.find({
           userId: req.authUser!.userId,
           status: "completed",
-        }).sort({ scheduledAt: -1 }),
+        }).sort({ completedAt: -1 }),
       ]);
 
-      if (completedPlans.length === 0 && completedWorkouts.length === 0) {
+      if (completedPlans.length === 0 && dailyLogs.length === 0) {
         res
           .status(404)
           .json({ message: "No completed workout history is available to export" });
         return;
       }
 
-      const pdfBuffer = await generateWorkoutHistoryPdf(
-        user,
-        completedPlans,
-        completedWorkouts
-      );
+      const pdfBuffer = await generateWorkoutHistoryPdf(user, completedPlans, dailyLogs);
 
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader(
@@ -331,9 +327,9 @@ router.get(
   }
 );
 
-// ─── GET /api/export/workout-history/email ───────────────────────────────────
+// ─── POST /api/export/workout-history/email ──────────────────────────────────
 
-router.get(
+router.post(
   "/workout-history/email",
   authenticateToken,
   async (req: AuthenticatedRequest, res: Response) => {
@@ -344,18 +340,18 @@ router.get(
         return;
       }
 
-      const [completedPlans, completedWorkouts] = await Promise.all([
+      const [completedPlans, dailyLogs] = await Promise.all([
         GeneratedWorkoutPlan.find({
           userId: req.authUser!.userId,
           status: "completed",
         }).sort({ updatedAt: -1 }),
-        Workout.find({
+        DailyWorkoutLog.find({
           userId: req.authUser!.userId,
           status: "completed",
-        }).sort({ scheduledAt: -1 }),
+        }).sort({ completedAt: -1 }),
       ]);
 
-      if (completedPlans.length === 0 && completedWorkouts.length === 0) {
+      if (completedPlans.length === 0 && dailyLogs.length === 0) {
         res
           .status(404)
           .json({ message: "No completed workout history is available to export" });
@@ -371,11 +367,7 @@ router.get(
         return;
       }
 
-      const pdfBuffer = await generateWorkoutHistoryPdf(
-        user,
-        completedPlans,
-        completedWorkouts
-      );
+      const pdfBuffer = await generateWorkoutHistoryPdf(user, completedPlans, dailyLogs);
 
       await transporter.sendMail({
         from,
@@ -443,13 +435,7 @@ router.get(
         workoutDate: date,
       });
 
-      const pdfBuffer = await generateDailyWorkoutPdf(
-        user,
-        plan.title,
-        day,
-        date,
-        !!log
-      );
+      const pdfBuffer = await generateDailyWorkoutPdf(user, plan.title, day, date, !!log);
 
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader(
@@ -465,9 +451,9 @@ router.get(
   }
 );
 
-// ─── GET /api/export/daily-workout/:planId/email?date=YYYY-MM-DD ─────────────
+// ─── POST /api/export/daily-workout/:planId/email?date=YYYY-MM-DD ────────────
 
-router.get(
+router.post(
   "/daily-workout/:planId/email",
   authenticateToken,
   async (req: AuthenticatedRequest, res: Response) => {
@@ -514,13 +500,7 @@ router.get(
         workoutDate: date,
       });
 
-      const pdfBuffer = await generateDailyWorkoutPdf(
-        user,
-        plan.title,
-        day,
-        date,
-        !!log
-      );
+      const pdfBuffer = await generateDailyWorkoutPdf(user, plan.title, day, date, !!log);
 
       const formattedDate = new Date(date + "T00:00:00Z").toLocaleDateString("en-US", {
         weekday: "long",

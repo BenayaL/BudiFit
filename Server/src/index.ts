@@ -9,8 +9,6 @@ import rateLimit from "express-rate-limit";
 import usersRouter            from "./routes/users.route";
 import traineeProfileRouter   from "./routes/TraineeProfile.route";
 import coachConnectionsRouter from "./routes/coachConnections.route";
-// import workoutRouter   from "./routes/workout.routes";    // legacy — unmounted
-// import challengeRouter from "./routes/challenge.routes";  // legacy — unmounted
 import coachRouter            from "./routes/coach.routes";
 import progressRouter         from "./routes/progress.routes";
 import botRouter              from "./routes/bot.routes";
@@ -143,8 +141,6 @@ app.get("/api/health", (_req: Request, res: Response) => {
 app.use("/api/users",            usersRouter);
 app.use("/api/trainee-profiles", traineeProfileRouter);
 app.use("/api/coach-connections", coachConnectionsRouter);
-// app.use("/api/workouts",   workoutRouter);    // legacy — no active client calls
-// app.use("/api/challenges", challengeRouter);  // legacy — no active client calls
 app.use("/api/coach",            coachRouter);
 app.use("/api/progress",         progressRouter);
 app.use("/api/bot",              botRouter);

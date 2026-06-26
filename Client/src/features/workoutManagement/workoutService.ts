@@ -4,7 +4,6 @@ import { httpClient } from "../../api/httpClient";
 import { ENDPOINTS } from "../../api/endpoints";
 
 import type {
-  Workout,
   GeneratedWorkoutPlan,
   GeneratedWorkoutPlanSummary,
   GeneratedWorkoutPlanResponse,
@@ -15,18 +14,6 @@ import type {
 } from "./workout.models";
 
 export const workoutService = {
-  /*
-   * Existing scheduled-workout endpoints.
-   */
-  getWorkouts: (token: string): Promise<Workout[]> =>
-    httpClient.get<Workout[]>(ENDPOINTS.workouts.list, token),
-
-  getWorkoutById: (workoutId: string, token: string): Promise<Workout> =>
-    httpClient.get<Workout>(ENDPOINTS.workouts.details(workoutId), token),
-
-  completeWorkout: (workoutId: string, token: string): Promise<void> =>
-    httpClient.post<void>(ENDPOINTS.workouts.complete(workoutId), {}, token),
-
   /*
    * Generate a personalized plan using the trainee profile stored on the server.
    */

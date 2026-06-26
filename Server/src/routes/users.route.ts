@@ -605,9 +605,15 @@ usersRouter.post("/register", authLimiter, async (req: Request, res: Response) =
     const normalizedUsername = String(username).trim();
     const normalizedFirst = String(firstName).trim();
     const normalizedLast = String(lastName).trim();
+    const normalizedPassword = String(password).trim();
 
-    if (!normalizedEmail || !normalizedUsername || !normalizedFirst || !normalizedLast) {
+    if (!normalizedEmail || !normalizedUsername || !normalizedFirst || !normalizedLast || !normalizedPassword) {
       res.status(400).json({ message: "All required fields must be provided" });
+      return;
+    }
+
+    if (normalizedPassword.length < 8) {
+      res.status(400).json({ message: "Password must be at least 8 characters long" });
       return;
     }
 
@@ -634,7 +640,7 @@ usersRouter.post("/register", authLimiter, async (req: Request, res: Response) =
     }
 
     if (IS_DEV) console.log("[REGISTER] Password hashing started");
-    const passwordHash = await bcrypt.hash(String(password), 12);
+    const passwordHash = await bcrypt.hash(normalizedPassword, 12);
     if (IS_DEV) console.log("[REGISTER] Password hashing completed");
 
     // Generate a unique connection code for coaches

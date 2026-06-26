@@ -6,7 +6,7 @@ export function validateRegisterForm(form: RegisterFormValues): string {
 
   if (!allFilled) return "Please fill in all required fields.";
   if (!form.email.includes("@") || !form.email.includes(".")) return "Please enter a valid email address.";
-  if (form.password.length < 6) return "Password must be at least 6 characters long.";
+  if (form.password.trim().length < 8) return "Password must be at least 8 characters long.";
   if (form.password !== form.confirmPassword) return "Passwords do not match.";
 
   return "";

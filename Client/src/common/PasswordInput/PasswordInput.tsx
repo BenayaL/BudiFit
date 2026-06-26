@@ -4,15 +4,15 @@ import type { PasswordInputProps } from "./PasswordInput.types";
 function strengthScore(password: string): number {
   if (!password) return 0;
   let score = 0;
-  if (password.length >= 6) score++;
-  if (password.length >= 10) score++;
+  if (password.trim().length >= 8) score++;
+  if (password.trim().length >= 12) score++;
   if (/[A-Z]/.test(password)) score++;
   if (/[0-9]/.test(password) || /[^a-zA-Z]/.test(password)) score++;
   return score;
 }
 
 function getStrengthLabel(score: number): string {
-  if (score === 0) return "At least 6 characters";
+  if (score === 0) return "At least 8 characters";
   if (score === 1) return "Weak — try adding numbers";
   if (score === 2) return "Okay — getting there";
   if (score === 3) return "Good password";

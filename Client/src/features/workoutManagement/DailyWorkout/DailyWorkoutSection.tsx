@@ -6,7 +6,7 @@ import { StreakBadge } from "./StreakBadge";
 import { WorkoutCalendar } from "./WorkoutCalendar";
 import { DailyWorkoutDetailsModal } from "./DailyWorkoutDetailsModal";
 import { DailyWorkoutHistoryModal } from "./DailyWorkoutHistoryModal";
-import { DailyShareButton } from "./DailyShareButton";
+import { ShareModal } from "../ShareModal";
 import { useExercisePreferences } from "../ExercisePreferences/useExercisePreferences";
 import type { DailyPlanDay, DailyDashboard } from "./dailyWorkout.models";
 
@@ -30,6 +30,7 @@ export function DailyWorkoutSection() {
   const { getPreference, setPreference } = useExercisePreferences();
 
   const [modal, setModal] = useState<ModalMode>(null);
+  const [shareOpen, setShareOpen] = useState(false);
   const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
 
   const handleMarkDone = async () => {
@@ -64,11 +65,20 @@ export function DailyWorkoutSection() {
 
           {/* Share Today's Workout — only when today has a real workout */}
           {todayPlanDay && todayEntry && (
-            <DailyShareButton
-              day={todayPlanDay}
-              date={todayEntry.date}
-              label="Share Today's Workout"
-            />
+            <button
+              type="button"
+              onClick={() => setShareOpen(true)}
+              className="flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+              </svg>
+              Share Today's Workout
+            </button>
           )}
         </div>
       </div>
@@ -127,6 +137,14 @@ export function DailyWorkoutSection() {
 
       {modal?.kind === "history" && (
         <DailyWorkoutHistoryModal onClose={() => setModal(null)} />
+      )}
+
+      {shareOpen && dashboard?.activePlan && (
+        <ShareModal
+          title="Share Today's Workout"
+          target={{ type: "workout-plan", planId: dashboard.activePlan.id, planTitle: dashboard.activePlan.title }}
+          onClose={() => setShareOpen(false)}
+        />
       )}
     </div>
   );

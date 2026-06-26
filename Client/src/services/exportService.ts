@@ -15,8 +15,12 @@ export const exportService = {
   downloadPdf: (token: string): Promise<Blob> =>
     httpClient.getBlob(ENDPOINTS.export.pdf, token),
 
-  sendByEmail: (token: string): Promise<ExportEmailResponse> =>
-    httpClient.post<ExportEmailResponse, Record<string, never>>(ENDPOINTS.export.email, {}, token),
+  sendByEmail: (token: string, recipientEmail?: string): Promise<ExportEmailResponse> =>
+    httpClient.post<ExportEmailResponse, { recipientEmail?: string }>(
+      ENDPOINTS.export.email,
+      recipientEmail ? { recipientEmail } : {},
+      token
+    ),
 
   // ── Workout plan ──────────────────────────────────────────────────────────
 
@@ -25,11 +29,11 @@ export const exportService = {
     return httpClient.getBlob(ENDPOINTS.export.workoutPlanPdf(planId), token);
   },
 
-  emailWorkoutPlan: (planId: string, token: string): Promise<ExportEmailResponse> => {
+  emailWorkoutPlan: (planId: string, token: string, recipientEmail?: string): Promise<ExportEmailResponse> => {
     if (!planId) return Promise.reject(new Error("planId is required"));
-    return httpClient.post<ExportEmailResponse, Record<string, never>>(
+    return httpClient.post<ExportEmailResponse, { recipientEmail?: string }>(
       ENDPOINTS.export.workoutPlanEmail(planId),
-      {},
+      recipientEmail ? { recipientEmail } : {},
       token
     );
   },
@@ -39,10 +43,10 @@ export const exportService = {
   downloadWorkoutHistoryPdf: (token: string): Promise<Blob> =>
     httpClient.getBlob(ENDPOINTS.export.workoutHistoryPdf, token),
 
-  emailWorkoutHistory: (token: string): Promise<ExportEmailResponse> =>
-    httpClient.post<ExportEmailResponse, Record<string, never>>(
+  emailWorkoutHistory: (token: string, recipientEmail?: string): Promise<ExportEmailResponse> =>
+    httpClient.post<ExportEmailResponse, { recipientEmail?: string }>(
       ENDPOINTS.export.workoutHistoryEmail,
-      {},
+      recipientEmail ? { recipientEmail } : {},
       token
     ),
 
@@ -54,12 +58,12 @@ export const exportService = {
     return httpClient.getBlob(ENDPOINTS.export.dailyWorkoutPdf(planId, date), token);
   },
 
-  emailDailyWorkout: (planId: string, date: string, token: string): Promise<ExportEmailResponse> => {
+  emailDailyWorkout: (planId: string, date: string, token: string, recipientEmail?: string): Promise<ExportEmailResponse> => {
     if (!planId) return Promise.reject(new Error("planId is required"));
     if (!date) return Promise.reject(new Error("date is required"));
-    return httpClient.post<ExportEmailResponse, Record<string, never>>(
+    return httpClient.post<ExportEmailResponse, { recipientEmail?: string }>(
       ENDPOINTS.export.dailyWorkoutEmail(planId, date),
-      {},
+      recipientEmail ? { recipientEmail } : {},
       token
     );
   },

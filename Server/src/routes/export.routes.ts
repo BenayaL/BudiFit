@@ -28,7 +28,7 @@ import {
 
 const router = Router();
 
-// ─── Nodemailer helper ────────────────────────────────────────────────────────
+// ─── Email helpers ────────────────────────────────────────────────────────────
 
 function createMailTransporter() {
   const gmailUser = process.env.GMAIL_USER;
@@ -45,6 +45,20 @@ function createMailTransporter() {
     }),
     from: `BudiFit <${gmailUser}>`,
   };
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function resolveRecipient(
+  body: Record<string, unknown>,
+  fallback: string
+): { to: string } | { error: string } {
+  const { recipientEmail } = body;
+  if (recipientEmail === undefined) return { to: fallback };
+  if (typeof recipientEmail !== "string" || !EMAIL_RE.test(recipientEmail)) {
+    return { error: "Invalid recipient email address" };
+  }
+  return { to: recipientEmail };
 }
 
 // ─── GET /api/export/workout-summary/pdf ─────────────────────────────────────
@@ -94,6 +108,12 @@ router.post(
         return;
       }
 
+      const recipient = resolveRecipient(req.body as Record<string, unknown>, user.email);
+      if ("error" in recipient) {
+        res.status(400).json({ message: recipient.error });
+        return;
+      }
+
       let transporter: ReturnType<typeof nodemailer.createTransport>;
       let from: string;
       try {
@@ -112,7 +132,7 @@ router.post(
 
       await transporter.sendMail({
         from,
-        to:      user.email,
+        to:      recipient.to,
         subject: "Your BudiFit Progress Summary",
         html: `
           <p>Hi ${user.firstName},</p>
@@ -128,7 +148,7 @@ router.post(
         ],
       });
 
-      res.status(200).json({ message: `Summary emailed to ${user.email}` });
+      res.status(200).json({ message: `Summary emailed to ${recipient.to}` });
     } catch (error) {
       console.error("Email export error:", error);
       res.status(500).json({ message: "Failed to send export email" });
@@ -217,6 +237,12 @@ router.post(
         return;
       }
 
+      const recipient = resolveRecipient(req.body as Record<string, unknown>, user.email);
+      if ("error" in recipient) {
+        res.status(400).json({ message: recipient.error });
+        return;
+      }
+
       const plan = await GeneratedWorkoutPlan.findOne({
         _id: planId,
         userId: req.authUser!.userId,
@@ -256,7 +282,7 @@ router.post(
 
       await transporter.sendMail({
         from,
-        to:      user.email,
+        to:      recipient.to,
         subject: `Your BudiFit Workout Plan: ${plan.title}`,
         html: `
           <p>Hi ${user.firstName},</p>
@@ -272,7 +298,7 @@ router.post(
         ],
       });
 
-      res.status(200).json({ message: `Workout plan emailed to ${user.email}` });
+      res.status(200).json({ message: `Workout plan emailed to ${recipient.to}` });
     } catch (error) {
       console.error("Workout plan email export error:", error);
       res.status(500).json({ message: "Failed to send workout plan email" });
@@ -340,6 +366,12 @@ router.post(
         return;
       }
 
+      const recipient = resolveRecipient(req.body as Record<string, unknown>, user.email);
+      if ("error" in recipient) {
+        res.status(400).json({ message: recipient.error });
+        return;
+      }
+
       const [completedPlans, dailyLogs] = await Promise.all([
         GeneratedWorkoutPlan.find({
           userId: req.authUser!.userId,
@@ -371,7 +403,7 @@ router.post(
 
       await transporter.sendMail({
         from,
-        to:      user.email,
+        to:      recipient.to,
         subject: "Your BudiFit Workout History",
         html: `
           <p>Hi ${user.firstName},</p>
@@ -387,7 +419,7 @@ router.post(
         ],
       });
 
-      res.status(200).json({ message: `Workout history emailed to ${user.email}` });
+      res.status(200).json({ message: `Workout history emailed to ${recipient.to}` });
     } catch (error) {
       console.error("Workout history email export error:", error);
       res.status(500).json({ message: "Failed to send workout history email" });
@@ -473,6 +505,12 @@ router.post(
       const user = await User.findById(req.authUser!.userId, { password: 0 });
       if (!user) { res.status(404).json({ message: "User not found" }); return; }
 
+      const recipient = resolveRecipient(req.body as Record<string, unknown>, user.email);
+      if ("error" in recipient) {
+        res.status(400).json({ message: recipient.error });
+        return;
+      }
+
       const plan = await GeneratedWorkoutPlan.findOne({
         _id: planId,
         userId: req.authUser!.userId,
@@ -510,7 +548,7 @@ router.post(
 
       await transporter.sendMail({
         from,
-        to: user.email,
+        to: recipient.to,
         subject: `Your BudiFit Workout — ${formattedDate}`,
         html: `
           <p>Hi ${user.firstName},</p>
@@ -526,7 +564,7 @@ router.post(
         ],
       });
 
-      res.status(200).json({ message: `Workout emailed to ${user.email}` });
+      res.status(200).json({ message: `Workout emailed to ${recipient.to}` });
     } catch (error) {
       console.error("Daily workout email export error:", error);
       res.status(500).json({ message: "Failed to send daily workout email" });

@@ -16,6 +16,7 @@ interface ShareActionModalProps {
   isLoading?: boolean;
   feedback?: string;
   feedbackIsError?: boolean;
+  extraContent?: ReactNode;
 }
 
 export function ShareActionModal({
@@ -25,6 +26,7 @@ export function ShareActionModal({
   isLoading,
   feedback,
   feedbackIsError,
+  extraContent,
 }: ShareActionModalProps) {
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -74,6 +76,8 @@ export function ShareActionModal({
             </button>
           ))}
         </div>
+
+        {extraContent}
 
         {isLoading && (
           <div className="mt-4 flex justify-center">

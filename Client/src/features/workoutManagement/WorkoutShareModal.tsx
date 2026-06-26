@@ -75,10 +75,16 @@ function triggerBlobDownload(blob: Blob, filename: string): void {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 export function WorkoutShareModal({ title, target, onClose }: WorkoutShareModalProps) {
   const { token } = useAuth();
   const [status, setStatus] = useState<OpStatus>("idle");
   const [feedback, setFeedback] = useState("");
+  const [recipientInput, setRecipientInput] = useState("");
+  const [recipientInputError, setRecipientInputError] = useState("");
 
   const isWorking = status === "working";
   const filename = pdfFilename(target);
@@ -122,17 +128,17 @@ export function WorkoutShareModal({ title, target, onClose }: WorkoutShareModalP
     }
   }
 
-  async function handleEmail() {
+  async function handleEmail(recipientEmail?: string) {
     if (!token || isWorking) return;
     setStatus("working");
     setFeedback("");
     try {
       const result =
         target.type === "workout-plan"
-          ? await exportService.emailWorkoutPlan(target.planId, token)
+          ? await exportService.emailWorkoutPlan(target.planId, token, recipientEmail)
           : target.type === "daily-workout"
-            ? await exportService.emailDailyWorkout(target.planId, target.date, token)
-            : await exportService.emailWorkoutHistory(token);
+            ? await exportService.emailDailyWorkout(target.planId, target.date, token, recipientEmail)
+            : await exportService.emailWorkoutHistory(token, recipientEmail);
       setStatus("success");
       setFeedback(result.message ?? "Email sent!");
     } catch (err) {
@@ -140,6 +146,21 @@ export function WorkoutShareModal({ title, target, onClose }: WorkoutShareModalP
       setStatus("error");
       setFeedback(err instanceof Error ? err.message : "Failed to send email. Please try again.");
     }
+  }
+
+  async function handleEmailTo() {
+    const email = recipientInput.trim();
+    if (!email) {
+      setRecipientInputError("Please enter an email address.");
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setRecipientInputError("Please enter a valid email address.");
+      return;
+    }
+    setRecipientInputError("");
+    await handleEmail(email);
+    if (status !== "error") setRecipientInput("");
   }
 
   async function handleShare() {
@@ -173,6 +194,36 @@ export function WorkoutShareModal({ title, target, onClose }: WorkoutShareModalP
     }
   }
 
+  const emailExtraContent = (
+    <div className="mt-3 border-t border-slate-100 pt-3 dark:border-[#3B344A]">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-[#9E97AF]">
+        Or send to another email
+      </p>
+      <div className="flex gap-2">
+        <input
+          type="email"
+          value={recipientInput}
+          onChange={(e) => { setRecipientInput(e.target.value); setRecipientInputError(""); }}
+          onKeyDown={(e) => { if (e.key === "Enter") void handleEmailTo(); }}
+          placeholder="Enter recipient email"
+          disabled={isWorking}
+          className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50 dark:border-[#3B344A] dark:bg-[#1A1725] dark:text-[#F8F7FB] dark:placeholder:text-[#9E97AF]"
+        />
+        <button
+          type="button"
+          onClick={() => void handleEmailTo()}
+          disabled={isWorking}
+          className="rounded-xl bg-slate-800 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#6C63FF] dark:hover:bg-[#5a52d5]"
+        >
+          Send
+        </button>
+      </div>
+      {recipientInputError && (
+        <p className="mt-1.5 text-xs text-red-500 dark:text-red-400">{recipientInputError}</p>
+      )}
+    </div>
+  );
+
   return (
     <ShareActionModal
       title={title}
@@ -180,6 +231,7 @@ export function WorkoutShareModal({ title, target, onClose }: WorkoutShareModalP
       isLoading={isWorking}
       feedback={feedback}
       feedbackIsError={status === "error"}
+      extraContent={emailExtraContent}
       actions={[
         {
           label: "Download as PDF",

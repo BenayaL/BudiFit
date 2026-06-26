@@ -569,37 +569,6 @@ usersRouter.post(
   }
 );
 
-// ─── Public routes ────────────────────────────────────────────────────────────
-
-// GET /api/users
-usersRouter.get("/", async (_req: Request, res: Response) => {
-  try {
-    const users = await User.find({}, { password: 0 });
-    res.status(200).json(users);
-  } catch {
-    res.status(500).json({ message: "Failed to get users" });
-  }
-});
-
-// GET /api/users/:email
-usersRouter.get("/:email", async (req: Request, res: Response) => {
-  try {
-    const user = await User.findOne(
-      { email: req.params.email },
-      { password: 0 }
-    );
-
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
-    res.status(200).json(user);
-  } catch {
-    res.status(500).json({ message: "Failed to get user" });
-  }
-});
-
 // POST /api/users/register
 usersRouter.post("/register", authLimiter, async (req: Request, res: Response) => {
   if (IS_DEV) console.log("[REGISTER] Request received");

@@ -6,7 +6,7 @@ import { StreakBadge } from "./StreakBadge";
 import { WorkoutCalendar } from "./WorkoutCalendar";
 import { DailyWorkoutDetailsModal } from "./DailyWorkoutDetailsModal";
 import { DailyWorkoutHistoryModal } from "./DailyWorkoutHistoryModal";
-import { ShareModal } from "../ShareModal";
+import { WorkoutShareModal } from "../WorkoutShareModal";
 import { useExercisePreferences } from "../ExercisePreferences/useExercisePreferences";
 import type { DailyPlanDay, DailyDashboard } from "./dailyWorkout.models";
 
@@ -139,10 +139,16 @@ export function DailyWorkoutSection() {
         <DailyWorkoutHistoryModal onClose={() => setModal(null)} />
       )}
 
-      {shareOpen && dashboard?.activePlan && (
-        <ShareModal
+      {shareOpen && dashboard?.activePlan && todayPlanDay && todayEntry && (
+        <WorkoutShareModal
           title="Share Today's Workout"
-          target={{ type: "workout-plan", planId: dashboard.activePlan.id, planTitle: dashboard.activePlan.title }}
+          target={{
+            type: "daily-workout",
+            planId: dashboard.activePlan.id,
+            planTitle: dashboard.activePlan.title,
+            workoutTitle: todayPlanDay.title,
+            date: todayEntry.date,
+          }}
           onClose={() => setShareOpen(false)}
         />
       )}

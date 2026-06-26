@@ -2,8 +2,8 @@
 import { DailyWorkoutSection } from "./DailyWorkout/DailyWorkoutSection";
 import { GeneratedWorkoutPlanCard } from "./WorkoutList/GeneratedWorkoutPlanCard";
 import { useGeneratedWorkoutPlans } from "./useGeneratedWorkoutPlans";
-import { ShareModal } from "./ShareModal";
-import type { ShareTarget } from "./ShareModal";
+import { WorkoutShareModal } from "./WorkoutShareModal";
+import type { ShareTarget } from "./WorkoutShareModal";
 
 interface WorkoutPageProps {
   onGoToPlansHistory: () => void;
@@ -183,7 +183,7 @@ function WorkoutPage({ onGoToPlansHistory, onSelectPlan }: WorkoutPageProps) {
       </section>
 
       {shareOpen && shareTarget && (
-        <ShareModal
+        <WorkoutShareModal
           title="Share Workout Plan"
           target={shareTarget}
           onClose={() => setShareOpen(false)}

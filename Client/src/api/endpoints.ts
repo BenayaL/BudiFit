@@ -105,5 +105,7 @@ export const ENDPOINTS = {
     workoutPlanEmail: (planId: string) => `/export/workout-plan/${planId}/email`,
     workoutHistoryPdf: "/export/workout-history/pdf",
     workoutHistoryEmail: "/export/workout-history/email",
+    dailyWorkoutPdf: (planId: string, date: string) => `/export/daily-workout/${planId}/pdf?date=${date}`,
+    dailyWorkoutEmail: (planId: string, date: string) => `/export/daily-workout/${planId}/email?date=${date}`,
   },
 };

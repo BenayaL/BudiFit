@@ -5,8 +5,8 @@ import type { GeneratedWorkoutPlanSummary } from "../workout.models";
 import type { WorkoutHistoryEntry } from "../DailyWorkout/dailyWorkout.models";
 import { HistoryPlanCard } from "./HistoryPlanCard";
 import { useAuth } from "../../../app/AuthContext";
-import { ShareModal } from "../ShareModal";
-import type { ShareTarget } from "../ShareModal";
+import { WorkoutShareModal } from "../WorkoutShareModal";
+import type { ShareTarget } from "../WorkoutShareModal";
 
 function getLocalDateString(): string {
   const now = new Date();
@@ -248,7 +248,7 @@ function WorkoutHistoryPage({ onBack, onSelectPlan }: WorkoutHistoryPageProps) {
       </section>
 
       {shareOpen && (
-        <ShareModal
+        <WorkoutShareModal
           title="Share Workout History"
           target={historyTarget}
           onClose={() => setShareOpen(false)}

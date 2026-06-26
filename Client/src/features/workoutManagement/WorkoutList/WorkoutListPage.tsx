@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { GeneratedWorkoutPlanCard } from "./GeneratedWorkoutPlanCard";
 import { useGeneratedWorkoutPlans } from "../useGeneratedWorkoutPlans";
-import { ShareModal } from "../ShareModal";
-import type { ShareTarget } from "../ShareModal";
+import { WorkoutShareModal } from "../WorkoutShareModal";
+import type { ShareTarget } from "../WorkoutShareModal";
 
 interface WorkoutListPageProps {
   onGoToHistory: () => void;
@@ -193,7 +193,7 @@ function WorkoutListPage({
       )}
 
       {shareOpen && shareTarget && (
-        <ShareModal
+        <WorkoutShareModal
           title="Share Workout Plan"
           target={shareTarget}
           onClose={() => setShareOpen(false)}

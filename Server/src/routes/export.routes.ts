@@ -13,11 +13,17 @@ import Workout from "../models/workout.model";
 import GeneratedWorkoutPlan from "../models/generatedWorkoutPlan.model";
 import User from "../models/user.model";
 import { authenticateToken, AuthenticatedRequest } from "../middleware/auth.middleware";
+import DailyWorkoutLog from "../models/dailyWorkoutLog.model";
 import {
   generateWorkoutSummaryPdf,
   generateWorkoutPlanPdf,
   generateWorkoutHistoryPdf,
+  generateDailyWorkoutPdf,
 } from "../utils/pdfGenerator";
+import {
+  findPlanDay,
+  isValidLocalDate,
+} from "../utils/dailyWorkoutPlan.helpers";
 
 const router = Router();
 
@@ -393,6 +399,157 @@ router.get(
     } catch (error) {
       console.error("Workout history email export error:", error);
       res.status(500).json({ message: "Failed to send workout history email" });
+    }
+  }
+);
+
+// ─── GET /api/export/daily-workout/:planId/pdf?date=YYYY-MM-DD ───────────────
+
+router.get(
+  "/daily-workout/:planId/pdf",
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const planId = req.params.planId as string;
+      const date = req.query.date as string | undefined;
+
+      if (!mongoose.Types.ObjectId.isValid(planId)) {
+        res.status(400).json({ message: "Invalid plan ID" });
+        return;
+      }
+      if (!isValidLocalDate(date)) {
+        res.status(400).json({ message: "date query param is required (YYYY-MM-DD)" });
+        return;
+      }
+
+      const user = await User.findById(req.authUser!.userId, { password: 0 });
+      if (!user) { res.status(404).json({ message: "User not found" }); return; }
+
+      const plan = await GeneratedWorkoutPlan.findOne({
+        _id: planId,
+        userId: req.authUser!.userId,
+      });
+      if (!plan) { res.status(404).json({ message: "Plan not found" }); return; }
+
+      const day = findPlanDay(plan, date);
+      if (!day || day.restDay) {
+        res.status(404).json({ message: "No workout scheduled for this date" });
+        return;
+      }
+
+      const log = await DailyWorkoutLog.findOne({
+        userId: req.authUser!.userId,
+        planId,
+        workoutDate: date,
+      });
+
+      const pdfBuffer = await generateDailyWorkoutPdf(
+        user,
+        plan.title,
+        day,
+        date,
+        !!log
+      );
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=budifit-daily-${date}.pdf`
+      );
+      res.setHeader("Content-Length", pdfBuffer.length.toString());
+      res.status(200).send(pdfBuffer);
+    } catch (error) {
+      console.error("Daily workout PDF export error:", error);
+      res.status(500).json({ message: "Failed to export daily workout PDF" });
+    }
+  }
+);
+
+// ─── GET /api/export/daily-workout/:planId/email?date=YYYY-MM-DD ─────────────
+
+router.get(
+  "/daily-workout/:planId/email",
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const planId = req.params.planId as string;
+      const date = req.query.date as string | undefined;
+
+      if (!mongoose.Types.ObjectId.isValid(planId)) {
+        res.status(400).json({ message: "Invalid plan ID" });
+        return;
+      }
+      if (!isValidLocalDate(date)) {
+        res.status(400).json({ message: "date query param is required (YYYY-MM-DD)" });
+        return;
+      }
+
+      const user = await User.findById(req.authUser!.userId, { password: 0 });
+      if (!user) { res.status(404).json({ message: "User not found" }); return; }
+
+      const plan = await GeneratedWorkoutPlan.findOne({
+        _id: planId,
+        userId: req.authUser!.userId,
+      });
+      if (!plan) { res.status(404).json({ message: "Plan not found" }); return; }
+
+      const day = findPlanDay(plan, date);
+      if (!day || day.restDay) {
+        res.status(404).json({ message: "No workout scheduled for this date" });
+        return;
+      }
+
+      let transporter: ReturnType<typeof nodemailer.createTransport>;
+      let from: string;
+      try {
+        ({ transporter, from } = createMailTransporter());
+      } catch {
+        res.status(500).json({ message: "Email service is not configured" });
+        return;
+      }
+
+      const log = await DailyWorkoutLog.findOne({
+        userId: req.authUser!.userId,
+        planId,
+        workoutDate: date,
+      });
+
+      const pdfBuffer = await generateDailyWorkoutPdf(
+        user,
+        plan.title,
+        day,
+        date,
+        !!log
+      );
+
+      const formattedDate = new Date(date + "T00:00:00Z").toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      });
+
+      await transporter.sendMail({
+        from,
+        to: user.email,
+        subject: `Your BudiFit Workout — ${formattedDate}`,
+        html: `
+          <p>Hi ${user.firstName},</p>
+          <p>Attached is your workout for <strong>${formattedDate}</strong> from BudiFit. Keep up the great work! 💪</p>
+          <p>— The BudiFit Team</p>
+        `,
+        attachments: [
+          {
+            filename: `budifit-daily-${date}.pdf`,
+            content: pdfBuffer,
+            contentType: "application/pdf",
+          },
+        ],
+      });
+
+      res.status(200).json({ message: `Workout emailed to ${user.email}` });
+    } catch (error) {
+      console.error("Daily workout email export error:", error);
+      res.status(500).json({ message: "Failed to send daily workout email" });
     }
   }
 );

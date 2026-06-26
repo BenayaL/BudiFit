@@ -5,7 +5,7 @@
 import PDFDocument from "pdfkit";
 import type { IUser } from "../models/user.model";
 import type { IWorkout } from "../models/workout.model";
-import type { IGeneratedWorkoutPlan } from "../models/generatedWorkoutPlan.model";
+import type { IGeneratedWorkoutPlan, IGeneratedWorkoutDay } from "../models/generatedWorkoutPlan.model";
 
 interface WorkoutSummaryStats {
   totalWorkouts: number;
@@ -302,6 +302,123 @@ export function generateWorkoutPlanPdf(
     }
 
     doc.moveDown(1);
+    doc
+      .fontSize(9)
+      .fillColor("#94a3b8")
+      .text("Keep up the great work! — The BudiFit Team", { align: "center" });
+
+    doc.end();
+  });
+}
+
+// ─── Daily-workout PDF ───────────────────────────────────────────────────────
+
+export function generateDailyWorkoutPdf(
+  user: Pick<IUser, "firstName" | "lastName" | "email">,
+  planTitle: string,
+  day: IGeneratedWorkoutDay,
+  date: string,
+  isCompleted: boolean
+): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 50 });
+    const chunks: Buffer[] = [];
+
+    doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    doc.on("error", reject);
+
+    const PAGE_BOTTOM = 720;
+    function ensureSpace(needed: number) {
+      if (doc.y + needed > PAGE_BOTTOM) doc.addPage();
+    }
+
+    const formattedDate = new Date(date + "T00:00:00Z").toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    // ─── Header ──────────────────────────────────────────────────────────────
+
+    doc
+      .fontSize(22)
+      .fillColor("#6C63FF")
+      .text("BudiFit Today's Workout", { align: "left" });
+
+    doc
+      .moveDown(0.3)
+      .fontSize(11)
+      .fillColor("#475569")
+      .text(`${user.firstName} ${user.lastName} — ${user.email}`)
+      .text(`Date: ${formattedDate}`);
+
+    doc.moveDown(1);
+
+    // ─── Day overview ────────────────────────────────────────────────────────
+
+    doc
+      .fontSize(14)
+      .fillColor("#0f172a")
+      .text(day.title, { underline: true });
+
+    doc.moveDown(0.3);
+
+    doc
+      .fontSize(11)
+      .fillColor("#475569")
+      .text(`Plan: ${planTitle}`)
+      .text(`Duration: ~${day.durationMinutes} min`)
+      .text(`Exercises: ${day.exercises.length}`);
+
+    if (isCompleted) {
+      doc
+        .moveDown(0.3)
+        .fontSize(10)
+        .fillColor("#16a34a")
+        .text("✓ Completed");
+    }
+
+    doc.moveDown(1);
+
+    // ─── Exercise list ───────────────────────────────────────────────────────
+
+    doc
+      .fontSize(14)
+      .fillColor("#0f172a")
+      .text("Exercises", { underline: true });
+
+    doc.moveDown(0.5);
+
+    const sortedEx = [...day.exercises].sort((a, b) => a.order - b.order);
+
+    for (const ex of sortedEx) {
+      ensureSpace(30);
+
+      const parts: string[] = [ex.name];
+      if (ex.sets) parts.push(`${ex.sets} sets`);
+      if (ex.reps) parts.push(`${ex.reps} reps`);
+      if (ex.durationSec) parts.push(`${ex.durationSec}s`);
+      if (ex.restSec) parts.push(`${ex.restSec}s rest`);
+      if (ex.equipment && ex.equipment !== "none") parts.push(`(${ex.equipment})`);
+
+      doc
+        .fontSize(10)
+        .fillColor("#0f172a")
+        .text(`• ${parts.join(" · ")}`, { indent: 10 });
+
+      if (ex.notes) {
+        doc
+          .fontSize(9)
+          .fillColor("#64748b")
+          .text(`  Note: ${ex.notes}`, { indent: 10 });
+      }
+
+      doc.moveDown(0.4);
+    }
+
+    doc.moveDown(1.5);
     doc
       .fontSize(9)
       .fillColor("#94a3b8")

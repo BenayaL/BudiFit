@@ -9,10 +9,10 @@
 //   - Richer Budi system prompt with multi-turn context
 
 import { Router, Response } from "express";
+import { GoogleGenAI } from "@google/genai";
 import rateLimit from "express-rate-limit";
 import { authenticateToken, AuthenticatedRequest } from "../middleware/auth.middleware";
 import BotSession, { type IBotMessage } from "../models/botSession.model";
-import { generateBudiReply } from "../utils/geminiClient";
 
 const router = Router();
 
@@ -142,14 +142,14 @@ router.post("/chat", authenticateToken, aiLimiter, async (req: AuthenticatedRequ
       "Budi:",
     ].join("\n\n");
 
-    const geminiResult = await generateBudiReply(process.env.GEMINI_API_KEY, conversationContext);
+       // Initialize Gemini client and call the model
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY ?? "" });
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: conversationContext,
+    });
 
-    if (!geminiResult.ok) {
-      res.status(500).json({ message: geminiResult.message ?? "Failed to generate response" });
-      return;
-    }
-
-    const replyText = geminiResult.text || "Sorry, I couldn't generate a response. Please try again!";
+    const replyText = response.text ?? "Sorry, I couldn't generate a response. Please try again!";
 
     // Build message objects for storage (timestamp as Date for MongoDB)
     const now = new Date();

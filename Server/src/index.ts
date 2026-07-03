@@ -23,6 +23,7 @@ dotenv.config();
 const IS_DEV = process.env.NODE_ENV !== "production";
 
 const app = express();
+app.set("trust proxy", 1);
 
 const PORT = Number(process.env.PORT) || 5000;
 const MONGO_URI = process.env.MONGO_URI;

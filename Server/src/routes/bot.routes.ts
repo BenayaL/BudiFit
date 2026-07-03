@@ -64,6 +64,9 @@ You do NOT:
 // ─── POST /api/bot/chat ───────────────────────────────────────────────────────
 
 router.post("/chat", authenticateToken, aiLimiter, async (req: AuthenticatedRequest, res: Response) => {
+  console.log("[BOT] POST /api/bot/chat reached", {
+    hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+  });
   try {
     const { sessionId, message } = req.body as {
       sessionId?: string;
@@ -155,7 +158,12 @@ router.post("/chat", authenticateToken, aiLimiter, async (req: AuthenticatedRequ
 
     res.status(200).json({ reply });
   } catch (error) {
-    console.error("Gemini error:", error);
+    const status =
+      error && typeof error === "object" && "status" in error
+        ? (error as { status?: unknown }).status
+        : undefined;
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("[BOT] Gemini error:", { status, message });
     res.status(500).json({ message: "Failed to generate response" });
   }
 });

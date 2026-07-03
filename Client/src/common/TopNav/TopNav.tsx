@@ -1,5 +1,7 @@
 import { useLayoutEffect, useRef, useState, useEffect } from "react";
+import { Moon, Sun } from "lucide-react";
 import BudiLogo from "../BudiLogo/BudiLogo";
+import { useTheme } from "../../app/useTheme";
 
 import type { TopNavProps } from "./TopNav.types";
 
@@ -14,6 +16,7 @@ export function TopNav({
   const navContainerRef = useRef<HTMLElement>(null);
   const [indicator, setIndicator] = useState({ left: 0, width: 0, opacity: 0 });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   useLayoutEffect(() => {
     const updateIndicator = () => {
@@ -87,8 +90,25 @@ export function TopNav({
           })}
         </div>
 
-        {/* Right — hamburger (< 1024px only) + avatar (always) */}
+        {/* Right — theme toggle + hamburger (< 1024px only) + avatar (always) */}
         <div className="shrink-0 flex items-center gap-2 pr-1">
+          <button
+            type="button"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            className="flex items-center justify-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 dark:border-[#3B344A] dark:bg-[#2A2436] dark:text-[#C9C4D6] dark:hover:bg-[#3B344A] dark:focus-visible:ring-offset-[#211D2B]"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-4 w-4 shrink-0 text-amber-400" />
+            ) : (
+              <Moon className="h-4 w-4 shrink-0 text-purple-500" />
+            )}
+            <span className="hidden sm:inline">
+              {theme === "dark" ? "Light" : "Dark"}
+            </span>
+          </button>
+
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

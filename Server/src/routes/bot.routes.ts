@@ -40,6 +40,42 @@ interface ChatMessage {
   timestamp: string;
 }
 
+// ─── Legacy-session fallback ──────────────────────────────────────────────────
+// Sessions used to get a random client-generated ID stored in localStorage,
+// so the same user ended up with a different BotSession per browser/origin.
+// Now the client always requests the deterministic `default:${userId}` session.
+// If that session is new/empty, adopt the user's most recently active legacy
+// session (by copying its messages) so history isn't lost — without deleting
+// or renaming the old document.
+async function loadSessionMessages(
+  userId: string,
+  sessionId: string
+): Promise<IBotMessage[]> {
+  const existing = await BotSession.findOne({ userId, sessionId }).lean<{
+    messages: IBotMessage[];
+  }>();
+
+  // Doc already exists — whether populated, freshly created, or emptied via
+  // "Clear chat" — its state is authoritative. Only a session that has never
+  // existed is eligible for the one-time legacy migration below (this also
+  // guarantees a cleared chat stays cleared instead of resurrecting legacy
+  // history on the next load).
+  if (existing) {
+    return existing.messages;
+  }
+
+  const legacy = await BotSession.findOne({ userId, sessionId: { $ne: sessionId } })
+    .sort({ updatedAt: -1 })
+    .lean<{ messages: IBotMessage[] }>();
+
+  if (!legacy || legacy.messages.length === 0) {
+    return [];
+  }
+
+  await BotSession.create({ userId, sessionId, messages: legacy.messages });
+  return legacy.messages;
+}
+
 // ─── Budi's system prompt ─────────────────────────────────────────────────────
 
 const BUDI_SYSTEM_PROMPT = `You are Budi, the friendly and highly motivating AI fitness assistant for the BudiFit app.
@@ -92,13 +128,9 @@ router.post("/chat", authenticateToken, aiLimiter, async (req: AuthenticatedRequ
       return;
     }
 
-    // Load existing history from MongoDB (scoped to this user + session)
-    const botSession = await BotSession.findOne({
-      userId: req.authUser!.userId,
-      sessionId: resolvedSessionId,
-    }).lean<{ messages: IBotMessage[] }>();
-
-    const history = botSession?.messages ?? [];
+    // Load existing history from MongoDB (scoped to this user + session),
+    // adopting a legacy session's messages on first use if this one is empty.
+    const history = await loadSessionMessages(req.authUser!.userId, resolvedSessionId);
 
     // Build the conversation context to send to Gemini
     const conversationContext = [
@@ -179,7 +211,14 @@ router.delete("/history/:sessionId", authenticateToken, async (req: Authenticate
       return;
     }
 
-    await BotSession.deleteOne({ userId: req.authUser!.userId, sessionId });
+    // Empty (rather than delete) the session doc: its existence marks the
+    // session as initialized, so the legacy-migration fallback in
+    // loadSessionMessages won't resurrect old history on the next load.
+    await BotSession.findOneAndUpdate(
+      { userId: req.authUser!.userId, sessionId },
+      { $set: { messages: [] } },
+      { upsert: true }
+    );
 
     res.status(200).json({ sessionId, messages: [] });
   } catch (error) {
@@ -199,12 +238,9 @@ router.get("/history/:sessionId", authenticateToken, async (req: AuthenticatedRe
       return;
     }
 
-    const botSession = await BotSession.findOne({
-      userId: req.authUser!.userId,
-      sessionId,
-    }).lean<{ messages: IBotMessage[] }>();
+    const sessionMessages = await loadSessionMessages(req.authUser!.userId, sessionId);
 
-    const messages: ChatMessage[] = (botSession?.messages ?? []).map((msg) => ({
+    const messages: ChatMessage[] = sessionMessages.map((msg) => ({
       id: msg.id,
       role: msg.role,
       content: msg.content,

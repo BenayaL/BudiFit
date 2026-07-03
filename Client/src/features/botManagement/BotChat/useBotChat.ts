@@ -10,16 +10,11 @@ export function useBotChat() {
   const [error, setError] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
 
-  // Derive or create a stable session ID, stored in localStorage per user
+  // Deterministic per-user session ID — stable across browsers/environments
+  // since it derives from the authenticated userId, not local storage.
   useEffect(() => {
     if (!user?.id) return;
-    const storageKey = `budifit_bot_session:${user.id}`;
-    let stored = localStorage.getItem(storageKey);
-    if (!stored) {
-      stored = `session-${Date.now()}`;
-      localStorage.setItem(storageKey, stored);
-    }
-    setSessionId(stored);
+    setSessionId(`default:${user.id}`);
   }, [user?.id]);
 
   // Load history from MongoDB when session is ready

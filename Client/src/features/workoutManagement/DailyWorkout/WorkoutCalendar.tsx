@@ -42,9 +42,10 @@ function entryColor(entry: CalendarEntry): string {
 
 interface WorkoutCalendarProps {
   refreshKey?: number;
+  onSelectDate?: (date: string) => void;
 }
 
-export function WorkoutCalendar({ refreshKey }: WorkoutCalendarProps) {
+export function WorkoutCalendar({ refreshKey, onSelectDate }: WorkoutCalendarProps) {
   const { token } = useAuth();
   const [month, setMonth] = useState(currentMonth);
   const [entries, setEntries] = useState<CalendarEntry[]>([]);
@@ -115,14 +116,30 @@ export function WorkoutCalendar({ refreshKey }: WorkoutCalendarProps) {
           ))}
           {entries.map((entry) => {
             const dayNum = Number(entry.date.split("-")[2]);
+            const isSelectable = entry.isPast && entry.isWorkoutDay && !!onSelectDate;
+
+            if (!isSelectable) {
+              return (
+                <div
+                  key={entry.date}
+                  title={entry.date}
+                  className={`flex h-8 w-full items-center justify-center rounded-lg text-xs font-semibold transition ${entryColor(entry)}`}
+                >
+                  {dayNum}
+                </div>
+              );
+            }
+
             return (
-              <div
+              <button
                 key={entry.date}
-                title={entry.date}
-                className={`flex h-8 w-full items-center justify-center rounded-lg text-xs font-semibold transition ${entryColor(entry)}`}
+                type="button"
+                title={entry.isMissed ? `${entry.date} — missed, click to mark as completed` : entry.date}
+                onClick={() => onSelectDate(entry.date)}
+                className={`flex h-8 w-full items-center justify-center rounded-lg text-xs font-semibold transition cursor-pointer hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#211D2B] ${entryColor(entry)}`}
               >
                 {dayNum}
-              </div>
+              </button>
             );
           })}
         </div>

@@ -67,6 +67,7 @@ export const ENDPOINTS = {
     dashboard: "/daily-workouts/dashboard",
     complete: "/daily-workouts/complete",
     calendar: "/daily-workouts/calendar",
+    day: (date: string) => `/daily-workouts/day?date=${date}`,
     history: (localDate: string) => `/daily-workouts/history?localDate=${localDate}`,
   },
 

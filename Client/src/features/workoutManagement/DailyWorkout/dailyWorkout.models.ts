@@ -63,6 +63,14 @@ export interface CalendarData {
   entries: CalendarEntry[];
 }
 
+export interface DailyWorkoutDayDetails {
+  date: string; // "YYYY-MM-DD"
+  planId: string | null;
+  dayNumber: number;
+  planDay: DailyPlanDay | null;
+  completion: DailyCompletion | null;
+}
+
 export interface WorkoutHistoryEntry {
   planId: string;
   planTitle: string;

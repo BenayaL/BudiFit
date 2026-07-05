@@ -4,6 +4,7 @@ import type {
   DailyDashboard,
   CalendarData,
   WorkoutHistoryEntry,
+  DailyWorkoutDayDetails,
 } from "./dailyWorkout.models";
 
 function getLocalDateString(): string {
@@ -38,6 +39,13 @@ export const dailyWorkoutService = {
   getCalendar(month: string, token: string): Promise<CalendarData> {
     return httpClient.get<CalendarData>(
       `${ENDPOINTS.dailyWorkouts.calendar}?month=${month}`,
+      token
+    );
+  },
+
+  getDay(date: string, token: string): Promise<DailyWorkoutDayDetails> {
+    return httpClient.get<DailyWorkoutDayDetails>(
+      ENDPOINTS.dailyWorkouts.day(date),
       token
     );
   },

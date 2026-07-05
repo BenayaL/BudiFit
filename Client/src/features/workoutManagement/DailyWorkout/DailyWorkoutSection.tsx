@@ -6,6 +6,7 @@ import { StreakBadge } from "./StreakBadge";
 import { WorkoutCalendar } from "./WorkoutCalendar";
 import { DailyWorkoutDetailsModal } from "./DailyWorkoutDetailsModal";
 import { DailyWorkoutHistoryModal } from "./DailyWorkoutHistoryModal";
+import { MissedWorkoutModal } from "./MissedWorkoutModal";
 import { WorkoutShareModal } from "../WorkoutShareModal";
 import { useExercisePreferences } from "../ExercisePreferences/useExercisePreferences";
 import type { DailyPlanDay, DailyDashboard } from "./dailyWorkout.models";
@@ -13,6 +14,7 @@ import type { DailyPlanDay, DailyDashboard } from "./dailyWorkout.models";
 type ModalMode =
   | { kind: "details"; day: DailyPlanDay; dateLabel: string; label: "Today" | "Tomorrow" }
   | { kind: "history" }
+  | { kind: "missed"; date: string }
   | null;
 
 function formatDate(dateStr: string): string {
@@ -118,6 +120,7 @@ export function DailyWorkoutSection() {
           onOpenDetails={(day, dateLabel, label) =>
             setModal({ kind: "details", day, dateLabel, label })
           }
+          onSelectDate={(date) => setModal({ kind: "missed", date })}
         />
       )}
 
@@ -137,6 +140,17 @@ export function DailyWorkoutSection() {
 
       {modal?.kind === "history" && (
         <DailyWorkoutHistoryModal onClose={() => setModal(null)} />
+      )}
+
+      {modal?.kind === "missed" && (
+        <MissedWorkoutModal
+          date={modal.date}
+          onClose={() => setModal(null)}
+          onCompleted={() => {
+            refresh();
+            setCalendarRefreshKey((k) => k + 1);
+          }}
+        />
       )}
 
       {shareOpen && dashboard?.activePlan && todayPlanDay && todayEntry && (
@@ -169,6 +183,7 @@ interface ActivePlanUIProps {
     dateLabel: string,
     label: "Today" | "Tomorrow"
   ) => void;
+  onSelectDate: (date: string) => void;
 }
 
 function ActivePlanUI({
@@ -178,6 +193,7 @@ function ActivePlanUI({
   calendarRefreshKey,
   onMarkDone,
   onOpenDetails,
+  onSelectDate,
 }: ActivePlanUIProps) {
   const { today, tomorrow, streak, activePlan } = dashboard;
 
@@ -218,7 +234,7 @@ function ActivePlanUI({
 
       {/* Calendar */}
       <div className="mt-6">
-        <WorkoutCalendar refreshKey={calendarRefreshKey} />
+        <WorkoutCalendar refreshKey={calendarRefreshKey} onSelectDate={onSelectDate} />
       </div>
     </>
   );

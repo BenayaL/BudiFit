@@ -271,6 +271,56 @@ router.get("/dashboard", async (req: AuthenticatedRequest, res: Response) => {
   }
 });
 
+// ─── GET /api/daily-workouts/day ─────────────────────────────────────────────
+// Details for an arbitrary date (used by the calendar's "mark missed workout
+// as completed" flow). Scoped to the caller's active plan.
+
+router.get("/day", async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.authUser!.userId;
+    const date = req.query.date;
+
+    if (!isValidLocalDate(date)) {
+      res.status(400).json({ message: "Invalid date. Expected YYYY-MM-DD." });
+      return;
+    }
+
+    const plan = await findActivePlan(userId);
+    if (!plan) {
+      res.json({
+        date,
+        planId: null,
+        dayNumber: getDayNumber(date),
+        planDay: null,
+        completion: null,
+      });
+      return;
+    }
+
+    const planId = (plan as unknown as { _id: unknown })._id;
+    const planDay = findPlanDay(plan, date);
+
+    const log = (await DailyWorkoutLog.findOne({
+      userId,
+      planId,
+      workoutDate: date,
+    })) as unknown as (IDailyWorkoutLog & { _id: unknown }) | null;
+
+    res.json({
+      date,
+      planId: String(planId),
+      dayNumber: getDayNumber(date),
+      planDay: planDay ? dayToDTO(planDay) : null,
+      completion: log
+        ? { id: String(log._id), completedAt: log.completedAt }
+        : null,
+    });
+  } catch (error) {
+    console.error("[DAILY] Day lookup error:", error);
+    res.status(500).json({ message: "Failed to load workout day details" });
+  }
+});
+
 // ─── POST /api/daily-workouts/complete ───────────────────────────────────────
 
 const completeBodySchema = z.object({
